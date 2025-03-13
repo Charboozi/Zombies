@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1f89cf4c8906e0e4ea62b7bfca399f4e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Scenes/Demo Station/BaseStation_Demo/LightingData.asset
+  uploadId: 629289

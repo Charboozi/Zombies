@@ -12,7 +12,6 @@ public class ProceduralWeaponAnimation : MonoBehaviour
     [Header("Reload Settings")]
     public float reloadLowerAmount = 0.2f;   // How much the gun lowers during reload
     public float reloadSpeed = 6f;           // Speed of reload animation
-    public float reloadDuration = 1.2f;      // How long reload takes
 
     [Header("Recoil Settings")]
     public float recoilAmount = 0.1f;        // How much the gun moves backward when shooting
@@ -25,6 +24,7 @@ public class ProceduralWeaponAnimation : MonoBehaviour
     private float nextFireTime = 0f;
 
     public event System.Action OnShoot;
+    public event System.Action OnStopShooting; // For continous fire weapons
 
     void Start()
     {
@@ -50,6 +50,8 @@ public class ProceduralWeaponAnimation : MonoBehaviour
     private IEnumerator PerformReload()
     {
         isReloading = true;
+
+        float reloadDuration = currentWeapon != null ? currentWeapon.reloadDuration : 1.2f;
 
         // Lower the weapon smoothly.
         Vector3 loweredPosition = originalPosition - new Vector3(0, reloadLowerAmount, 0);
@@ -80,26 +82,29 @@ public class ProceduralWeaponAnimation : MonoBehaviour
 
     private void HandleShooting()
     {
-        if (currentWeapon == null || isReloading || isRecoiling) return;
-
-        // **Apply fire rate limitation for semi-auto and full-auto weapons**
-        if (Time.time < nextFireTime) return;
+        if (currentWeapon == null || isReloading || isRecoiling) return; // ✅ Block shooting during reload
+        if (Time.time < nextFireTime) return; // ✅ Prevent spam clicking
 
         if (!currentWeapon.isAutomatic && Input.GetMouseButtonDown(0) && currentWeapon.CanShoot())
         {
-            nextFireTime = Time.time + currentWeapon.fireRate; 
+            nextFireTime = Time.time + currentWeapon.fireRate;
             StartCoroutine(PerformRecoil());
             currentWeapon.Shoot();
             OnShoot?.Invoke();
         }
         else if (currentWeapon.isAutomatic && Input.GetMouseButton(0) && currentWeapon.CanShoot())
         {
-            nextFireTime = Time.time + currentWeapon.fireRate; 
+            nextFireTime = Time.time + currentWeapon.fireRate;
             StartCoroutine(PerformRecoil());
             currentWeapon.Shoot();
             OnShoot?.Invoke();
         }
+        else if (currentWeapon is ContinuousFireWeapon && Input.GetMouseButtonUp(0))
+        {
+            OnStopShooting?.Invoke(); // Notify when stopping continuous fire
+        }
     }
+
 
     private IEnumerator PerformRecoil()
     {

@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 6af55a426d87eb149b727a5ee5293a75
+timeCreated: 1458345502
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/_DLNK Source/_DLNK Libraries/[dlnk Script Library]/dlnk
+    TopDown Library/Core/BuildingControl.cs
+  uploadId: 629289

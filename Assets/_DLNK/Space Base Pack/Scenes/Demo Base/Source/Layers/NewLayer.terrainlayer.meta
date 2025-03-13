@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3e207afeb91e9d543b245912b6933e61
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 8574412962073106934
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Scenes/Demo Base/Source/Layers/NewLayer.terrainlayer
+  uploadId: 629289

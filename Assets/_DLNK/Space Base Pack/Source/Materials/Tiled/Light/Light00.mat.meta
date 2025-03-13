@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4779beba369829b48bb78236717253e6
+timeCreated: 1492681980
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Source/Materials/Tiled/Light/Light00.mat
+  uploadId: 629289

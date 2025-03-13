@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 7b3c34f63cfb7b74d9f1474a684f0588
+timeCreated: 1493647406
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Scenes/Demo Base/Old TopDown/Containers/SB_Barrel00.prefab
+  uploadId: 629289

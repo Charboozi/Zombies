@@ -34,13 +34,6 @@ public class PickupWeapon : NetworkBehaviour
                     return;
                 }
 
-                // Check if the inventory is full.
-                if (weaponSwitcher.activeWeapons.Count >= weaponSwitcher.maxWeapons)
-                {
-                    Debug.Log($"⚠️ Inventory full! Cannot pick up '{weaponName}'.");
-                    return;
-                }
-
                 // Add the weapon (by name) to the inventory.
                 weaponSwitcher.PickUpWeapon(weaponName);
 

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 32eb52836b2c466409a1990d9c4fa758
+timeCreated: 1493470710
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/[Prefabs]/Deco Assets/Tech/Panels/ControlPanel00a.prefab
+  uploadId: 629289

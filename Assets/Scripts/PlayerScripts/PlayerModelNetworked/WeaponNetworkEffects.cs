@@ -7,6 +7,7 @@ public class WeaponNetworkEffects : NetworkBehaviour
 {
     public ParticleSystem muzzleFlash;
     private ProceduralWeaponAnimation proceduralWeaponAnimation;
+    private bool isFiring = false;
 
     void Start()
     {
@@ -16,24 +17,51 @@ public class WeaponNetworkEffects : NetworkBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Re-find the script in case of scene changes
         FindWeaponShooterScript();
     }
 
-    // This method is triggered by the shooting event.
-    // Only the owner calls this, and then it requests the server to play the effect on all other clients.
     public void TriggerMuzzleFlash()
     {
-        if (IsOwner)
+        if (!IsOwner) return;
+
+        WeaponBase currentWeapon = WeaponManager.Instance?.CurrentWeapon;
+
+        if (currentWeapon is ContinuousFireWeapon)
         {
-            RequestMuzzleFlashServerRpc();
+            if (!isFiring)
+            {
+                isFiring = true;
+                RequestMuzzleFlashServerRpc(true);
+            }
+        }
+        else
+        {
+            // ✅ Fix for automatic weapons (ensures effect is triggered every shot)
+            RequestMuzzleFlashServerRpc(true);
+            Invoke(nameof(StopMuzzleFlash), currentWeapon.fireRate); // Ensures flash stops correctly
+        }
+    }
+
+    private void StopMuzzleFlash()
+    {
+        if (WeaponManager.Instance?.CurrentWeapon is ContinuousFireWeapon) return;
+        RequestMuzzleFlashServerRpc(false);
+    }
+
+    public void StopFiring()
+    {
+        if (!IsOwner) return;
+
+        if (WeaponManager.Instance?.CurrentWeapon is ContinuousFireWeapon && isFiring)
+        {
+            isFiring = false;
+            RequestMuzzleFlashServerRpc(false);
         }
     }
 
     [ServerRpc]
-    private void RequestMuzzleFlashServerRpc(ServerRpcParams rpcParams = default)
+    private void RequestMuzzleFlashServerRpc(bool playEffect, ServerRpcParams rpcParams = default)
     {
-        // Prepare a list of target client IDs that excludes the sender (owner)
         List<ulong> targetClientIds = new List<ulong>();
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
@@ -48,17 +76,24 @@ public class WeaponNetworkEffects : NetworkBehaviour
             Send = new ClientRpcSendParams { TargetClientIds = targetClientIds.ToArray() }
         };
 
-        // Invoke the ClientRpc on all non-owner clients
-        PlayMuzzleFlashClientRpc(clientRpcParams);
+        PlayMuzzleFlashClientRpc(playEffect, clientRpcParams);
     }
 
     [ClientRpc]
-    private void PlayMuzzleFlashClientRpc(ClientRpcParams clientRpcParams = default)
+    private void PlayMuzzleFlashClientRpc(bool playEffect, ClientRpcParams clientRpcParams = default)
     {
-        // All remote clients will execute this and play the muzzle flash
         if (muzzleFlash != null)
         {
-            muzzleFlash.Play();
+            if (playEffect)
+            {
+                if (!muzzleFlash.isPlaying)
+                    muzzleFlash.Play();
+            }
+            else
+            {
+                if (muzzleFlash.isPlaying)
+                    muzzleFlash.Stop();
+            }
         }
     }
 
@@ -69,9 +104,11 @@ public class WeaponNetworkEffects : NetworkBehaviour
             proceduralWeaponAnimation = FindFirstObjectByType<ProceduralWeaponAnimation>();
             if (proceduralWeaponAnimation != null)
             {
-                // Unsubscribe first to avoid duplicate subscriptions
                 proceduralWeaponAnimation.OnShoot -= TriggerMuzzleFlash;
                 proceduralWeaponAnimation.OnShoot += TriggerMuzzleFlash;
+
+                proceduralWeaponAnimation.OnStopShooting -= StopFiring;
+                proceduralWeaponAnimation.OnStopShooting += StopFiring;
             }
         }
     }
@@ -82,6 +119,7 @@ public class WeaponNetworkEffects : NetworkBehaviour
         if (proceduralWeaponAnimation != null)
         {
             proceduralWeaponAnimation.OnShoot -= TriggerMuzzleFlash;
+            proceduralWeaponAnimation.OnStopShooting -= StopFiring;
         }
     }
 }

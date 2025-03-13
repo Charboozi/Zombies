@@ -8,6 +8,7 @@ public abstract class WeaponBase : MonoBehaviour
     public int reserveAmmo;
 
     [Header("Weapon Settings")]
+    public float reloadDuration;
     public bool isAutomatic;
     public float fireRate;
 

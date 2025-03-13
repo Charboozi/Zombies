@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 74066a25eb05562429890f7781203bcb
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/_DLNK Source/_DLNK Libraries/[dlnk Script Library]/TopDown
+    Wizard/Source/Scripts/Editor/TDActiveElementCustinspector.cs
+  uploadId: 629289

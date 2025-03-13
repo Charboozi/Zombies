@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 0e4220ffa95bc6b4e94d6ca1cc597830
+timeCreated: 1492543744
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Source/Materials/Pillars/ColumnSupBlade00.mat
+  uploadId: 629289

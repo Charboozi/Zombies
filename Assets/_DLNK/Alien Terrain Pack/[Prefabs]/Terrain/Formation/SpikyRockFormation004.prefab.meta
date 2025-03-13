@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 223286fdd7172c243b684606e7db23c5
+timeCreated: 1492516535
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Alien Terrain Pack/[Prefabs]/Terrain/Formation/SpikyRockFormation004.prefab
+  uploadId: 629289

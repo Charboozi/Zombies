@@ -104,17 +104,41 @@ public class WeaponSwitcher : MonoBehaviour
             return;
         }
 
-        // Add it to the active weapons list if not already present.
-        if (!activeWeapons.Contains(weaponToAdd))
+        // If the weapon is already in inventory, do nothing.
+        if (activeWeapons.Contains(weaponToAdd))
         {
-            activeWeapons.Add(weaponToAdd);
+            Debug.Log($"Weapon '{weaponName}' is already in inventory. No need to pick up again.");
+            return;
+        }
+
+        // If max weapons reached, drop the **currently equipped weapon**
+        if (activeWeapons.Count >= maxWeapons)
+        {
+            Debug.Log("Remove current weapon");
+            RemoveWeapon(currentWeaponIndex); // Remove the equipped weapon
         }
 
         // Equip the newly picked up weapon.
+        activeWeapons.Add(weaponToAdd);
         EquipWeapon(activeWeapons.IndexOf(weaponToAdd));
         Debug.Log("Picked up weapon: " + weaponToAdd.name);
     }
 
+        /// <summary>
+    /// Removes a weapon from active weapons and deactivates it.
+    /// </summary>
+    private void RemoveWeapon(int index)
+    {
+        if (index >= 0 && index < activeWeapons.Count)
+        {
+            WeaponBase weapon = activeWeapons[index];
+            activeWeapons.RemoveAt(index);
+            weapon.gameObject.SetActive(false);
+            Debug.Log("Removed weapon: " + weapon.name);
+        }
+    }
+
+    //Not used right now maybe later
     public void DropWeapon(int index)
     {
         if (index >= 0 && index < activeWeapons.Count)
