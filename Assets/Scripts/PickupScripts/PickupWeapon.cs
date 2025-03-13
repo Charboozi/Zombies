@@ -12,9 +12,7 @@ public class PickupWeapon : NetworkBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(pickupKey))
-        {
             AttemptPickup();
-        }
     }
 
     void AttemptPickup()
@@ -22,31 +20,36 @@ public class PickupWeapon : NetworkBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.forward, out hit, pickupRange, weaponLayer))
         {
-            WeaponPickupNetworked weaponScript = hit.collider.GetComponent<WeaponPickupNetworked>();
-            if (weaponScript != null)
+            // Look for the pickup script on the hit object.
+            WeaponPickupNetworked pickupScript = hit.collider.GetComponent<WeaponPickupNetworked>();
+            if (pickupScript != null)
             {
-                string weaponName = weaponScript.gameObject.name;
+                // Use the pickup's GameObject name as the weapon key.
+                string weaponName = pickupScript.gameObject.name;
 
-                // Check if weapon is already active
+                // Check if the weapon is already active.
                 if (weaponSwitcher != null && weaponSwitcher.activeWeapons.Any(w => w.name == weaponName))
                 {
                     Debug.Log($"Weapon '{weaponName}' is already active. Not picking it up.");
-                    return; 
+                    return;
                 }
 
-                // Check if inventory is full
-                if (weaponSwitcher.activeWeapons.Count >= weaponSwitcher.maxWeapons) // Assuming maxWeapons is 3
+                // Check if the inventory is full.
+                if (weaponSwitcher.activeWeapons.Count >= weaponSwitcher.maxWeapons)
                 {
                     Debug.Log($"⚠️ Inventory full! Cannot pick up '{weaponName}'.");
                     return;
                 }
-                    weaponSwitcher.PickUpWeapon(weaponScript.gameObject.name);
-                    // Tell the weapon to despawn itself
-                    weaponScript.DespawnWeapon();
+
+                // Add the weapon (by name) to the inventory.
+                weaponSwitcher.PickUpWeapon(weaponName);
+
+                // Despawn the pickup object over the network.
+                pickupScript.DespawnWeapon();
             }
             else
             {
-                Debug.LogWarning("No WeaponNetworked script found on this object!");
+                Debug.LogWarning("No WeaponPickupNetworked script found on this object!");
             }
         }
     }

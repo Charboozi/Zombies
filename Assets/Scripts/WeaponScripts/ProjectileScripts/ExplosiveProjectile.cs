@@ -1,0 +1,53 @@
+using UnityEngine;
+using Unity.Netcode;
+using System.Collections;
+
+public class ExplosiveProjectile : NetworkBehaviour
+{
+    [Header("Explosion Settings")]
+    public float explosionRadius = 5f;          // Radius within which damage is applied.
+    public float explosionDamage = 50f;         // Maximum damage at the center.
+    public float selfDestructTime = 5f;           // Lifetime of the projectile if it doesn't hit.
+    public GameObject explosionEffectPrefab;    // Name of the impact effect prefab (in Resources/ImpactEffects)
+
+    private bool hasExploded = false;
+    private NetworkImpactSpawner networkImpactSpawner;
+
+    void Start()
+    {
+        // Optionally, the projectile is local so we only need the impact effect to be networked.
+        networkImpactSpawner = FindFirstObjectByType<NetworkImpactSpawner>();
+        Destroy(gameObject, selfDestructTime); // Ensure it doesn't live forever.
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (hasExploded)
+            return;
+        hasExploded = true;
+
+        // Use the NetworkImpactSpawner to spawn the explosion effect across all clients.
+        if (networkImpactSpawner != null && explosionEffectPrefab != null)
+        {
+            // You can pass the projectile's position and the collision's contact normal.
+            networkImpactSpawner.SpawnImpactEffectServerRpc(transform.position, collision.contacts[0].normal, explosionEffectPrefab.name);
+        }
+
+        // Apply splash damage to entities within the explosion radius.
+        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
+        foreach (Collider hit in colliders)
+        {
+            EntityHealth entity = hit.GetComponent<EntityHealth>();
+            if (entity != null)
+            {
+                // Optional: Apply damage falloff based on distance.
+                float distance = Vector3.Distance(transform.position, hit.transform.position);
+                float multiplier = Mathf.Clamp01(1f - (distance / explosionRadius));
+                int damageToApply = Mathf.RoundToInt(explosionDamage * multiplier);
+                entity.TakeDamageServerRpc(damageToApply);
+            }
+        }
+
+        Destroy(gameObject);
+    }
+}

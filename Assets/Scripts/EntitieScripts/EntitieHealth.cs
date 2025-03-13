@@ -1,12 +1,20 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class EntityHealth : NetworkBehaviour
 {
     [Header("Health Settings")]
     public int maxHealth = 100;
-    private NetworkVariable<int> currentHealth = new NetworkVariable<int>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> currentHealth = new NetworkVariable<int>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    [Header("Regeneration Settings")]
+    public bool enableRegeneration = true; // Toggle regeneration on/off
+    public int regenAmount = 2; // Health regained per tick
+    public float regenInterval = 2f; // Time between each regeneration tick
+
+    private Coroutine regenCoroutine; // Store coroutine to avoid duplicates
+    
     public override void OnNetworkSpawn()
     {
         if (IsServer) // Only the server sets up health
@@ -30,6 +38,7 @@ public class EntityHealth : NetworkBehaviour
         {
             DieClientRpc();
         }
+        RestartHealthRegen();
     }
 
     //Server to all clients: "This guy got damaged"
@@ -40,6 +49,46 @@ public class EntityHealth : NetworkBehaviour
         {
             DamageScreenEffect.Instance.ShowDamageEffect();
         }
+    }
+
+    private void StartHealthRegen()
+    {
+        if (IsServer && enableRegeneration && gameObject.tag != "Enemy")
+        {
+            if (regenCoroutine == null) // Ensure we don't start multiple coroutines
+            {
+                regenCoroutine = StartCoroutine(HealthRegenCoroutine());
+            }
+        }
+    }
+
+    private void RestartHealthRegen()
+    {
+        if (regenCoroutine != null)
+        {
+            StopCoroutine(regenCoroutine);
+            regenCoroutine = null;
+        }
+        Invoke(nameof(StartHealthRegen), regenInterval * 2); // Wait before restarting regen
+    }
+
+    // Coroutine to regenerate health over time
+    private IEnumerator HealthRegenCoroutine()
+    {
+        while (currentHealth.Value < maxHealth)
+        {
+            yield return new WaitForSeconds(regenInterval); // Wait before adding health
+
+            if (currentHealth.Value < maxHealth)
+            {
+                currentHealth.Value += regenAmount;
+                if (currentHealth.Value > maxHealth) currentHealth.Value = maxHealth; // Prevent over-healing
+
+                Debug.Log($"{gameObject.name} regenerated {regenAmount} health. Current: {currentHealth.Value}");
+            }
+        }
+
+        regenCoroutine = null; // Stop coroutine when full health is reached
     }
 
     //Server to all clients"This guy died"

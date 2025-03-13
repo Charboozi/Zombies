@@ -17,11 +17,15 @@ public class EnemyAI : NetworkBehaviour
     [Header("Animation")]
     public Animator animator;
 
+    [Header("Powerup Settings")]
+    [Range(0f, 1f)] public float powerupSpawnChance = 0.3f;
+
     private NavMeshAgent agent;
     private Transform targetPlayer;
     private float roamTimer;
     private bool isAttacking = false; // Prevent multiple attack coroutines
     private bool isDead = false;
+    private GameObject spawnedPowerup; // Store reference to spawned powerup
 
     private float checkPlayerInterval = 2f; // How often to check for a closer player
     private float checkPlayerTimer = 0f; // Timer for checking players
@@ -208,6 +212,11 @@ public class EnemyAI : NetworkBehaviour
 
         OnEnemyDeath?.Invoke();
 
+        if (IsServer)
+        {
+            SpawnPowerupServerRpc();
+        }
+
         StartCoroutine(DestroyAfterDelay(10f));
     }
 
@@ -217,8 +226,52 @@ public class EnemyAI : NetworkBehaviour
 
         if (IsServer)
         {
-            GetComponent<NetworkObject>().Despawn(true); // Despawn the object for all clients
-            Destroy(gameObject); // Destroy on the server
+            // Explicitly despawn and destroy the powerup before the enemy despawns
+            if (spawnedPowerup != null)
+            {
+                NetworkObject powerupNetworkObject = spawnedPowerup.GetComponent<NetworkObject>();
+                if (powerupNetworkObject != null && powerupNetworkObject.IsSpawned)
+                {
+                    powerupNetworkObject.Despawn(true); // Despawn on network
+                }
+                Destroy(spawnedPowerup); // Destroy locally
+            }
+
+            // Now safely despawn and destroy the enemy
+            NetworkObject enemyNetworkObject = GetComponent<NetworkObject>();
+            if (enemyNetworkObject != null && enemyNetworkObject.IsSpawned)
+            {
+                enemyNetworkObject.Despawn(true);
+            }
+            Destroy(gameObject);
+        }
+    }
+
+    [ServerRpc]
+    private void SpawnPowerupServerRpc()
+    {
+        if (Random.value > powerupSpawnChance) // 70% chance to NOT spawn a powerup
+        {
+            Debug.Log("No powerup spawned.");
+            return;
+        }
+
+        GameObject[] powerups = Resources.LoadAll<GameObject>("Powerups");
+        if (powerups.Length == 0) return;
+
+        GameObject randomPowerup = powerups[Random.Range(0, powerups.Length)];
+        spawnedPowerup = Instantiate(randomPowerup, transform.position, Quaternion.Euler(-90f, 0f, 0f), transform); // Make powerup a child of enemy
+        // ✅ Move powerup to local position (0,0,0) relative to the enemy
+        spawnedPowerup.transform.localPosition = new Vector3(0, -1f);
+
+        NetworkObject networkObject = spawnedPowerup.GetComponent<NetworkObject>();
+        if (networkObject != null)
+        {
+            networkObject.Spawn(true);
+        }
+        else
+        {
+            Debug.LogError("Powerup prefab is missing NetworkObject component.");
         }
     }
 }

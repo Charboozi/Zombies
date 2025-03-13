@@ -758,11 +758,12 @@ MonoBehaviour:
   chaseRange: 10
   attackRange: 1.5
   attackRate: 1.5
-  attackDamage: 10
+  attackDamage: 20
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
   animator: {fileID: 6258806128400418899}
+  powerupSpawnChance: 0.3
 --- !u!114 &7976107921885345519
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -813,6 +814,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
+  currentHealth:
+    m_InternalValue: 100
+  enableRegeneration: 0
+  regenAmount: 2
+  regenInterval: 2
 --- !u!114 &6602319352519456612
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1492,8 +1498,8 @@ Transform:
   m_GameObject: {fileID: 5597102258638532448}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0048912, y: -1.004, z: -0.0090022}
-  m_LocalScale: {x: 1.0703242, y: 1.0703242, z: 1.0703242}
+  m_LocalPosition: {x: 0.0028867, y: -1.036, z: 0.005312}
+  m_LocalScale: {x: 0.95846754, y: 0.95846754, z: 0.95846754}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2073888317502066169}
