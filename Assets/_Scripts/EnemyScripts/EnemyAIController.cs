@@ -16,10 +16,23 @@ public class EnemyAIController : NetworkBehaviour
         targeting = GetComponent<TargetScanner>();
         attack = GetComponent<EnemyAttack>();
 
-        targeting.OnTargetAcquired += movement.SetTarget;
-        targeting.OnTargetAcquired += attack.SetTarget;
-        targeting.OnTargetInRange += attack.StartAttack;
-        targeting.OnTargetLost += movement.ClearTarget;
+        targeting.OnTargetAcquired += (target) => {
+            movement.SetTarget(target);
+            attack.SetTarget(target);
+        };
+
+        targeting.OnTargetInRange += () => {
+            attack.TargetInRange();
+        };
+
+        targeting.OnTargetLost += () => {
+            movement.ClearTarget();
+            attack.SetTarget(null);
+        };
+
+        targeting.OnTargetOutOfRange += () => {
+            attack.StopAttack();
+        };
     }
 
     private void Update()

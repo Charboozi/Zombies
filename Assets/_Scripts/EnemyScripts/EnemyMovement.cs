@@ -27,9 +27,9 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
 
     public void TickMovement()
     {
-        if (!IsServer || agent == null) return;
+        if (!IsServer || !agent.enabled) return;
 
-        if (currentTarget != null)
+        if (currentTarget != null && agent.enabled)
         {
             agent.SetDestination(currentTarget.position);
         }

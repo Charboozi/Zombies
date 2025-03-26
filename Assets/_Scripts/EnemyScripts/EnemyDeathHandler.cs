@@ -5,6 +5,7 @@ using UnityEngine.AI;
 using System;
 
 [RequireComponent(typeof(NavMeshAgent), typeof(CapsuleCollider), typeof(PowerupSpawner))]
+[RequireComponent(typeof(EnemyAnimationHandler))]
 public class EnemyDeathHandler : NetworkBehaviour, IKillable
 {
     [Header("Death Settings")]
@@ -15,6 +16,7 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
     private NavMeshAgent agent;
     private CapsuleCollider capsule;
     private PowerupSpawner powerupSpawner;
+    private EnemyAnimationHandler enemyAnimation;
 
     private bool isDead = false;
 
@@ -25,6 +27,7 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         agent = GetComponent<NavMeshAgent>();
         capsule = GetComponent<CapsuleCollider>();
         powerupSpawner = GetComponent<PowerupSpawner>();
+        enemyAnimation = GetComponent<EnemyAnimationHandler>();
     }
 
     public void Die()
@@ -32,10 +35,15 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         if (isDead) return;
         isDead = true;
 
-        if (agent != null) agent.isStopped = true;
+        if (agent != null)
+        {
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.enabled = false; 
+        }
         if (capsule != null) capsule.enabled = false;
 
-        animator.SetBool("isDead", true);
+        enemyAnimation.PlayDeath();
 
         powerupSpawner?.TrySpawn();
 

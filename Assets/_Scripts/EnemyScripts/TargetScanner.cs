@@ -2,13 +2,10 @@ using UnityEngine;
 using System;
 using Unity.Netcode;
 
-/// <summary>
-/// Scans for the closest valid target within a detection range and emits events.
-/// Can be used for enemies, turrets, or other AI units.
-/// </summary>
 public class TargetScanner : NetworkBehaviour
 {
     [SerializeField] private float detectionRange = 10f;
+    [SerializeField] private float inRangeThreshold = 2f;
     [SerializeField] private LayerMask targetLayer;
 
     private Transform currentTarget;
@@ -18,17 +15,11 @@ public class TargetScanner : NetworkBehaviour
     public event Action<Transform> OnTargetAcquired;
     public event Action OnTargetLost;
     public event Action OnTargetInRange;
+    public event Action OnTargetOutOfRange;
 
-    private EnemyAttack enemyAttack;
-
-    void Awake()
+    private void Update()
     {
-        enemyAttack = GetComponent<EnemyAttack>();
-    }
-
-    void Update()
-    {
-        if (!IsServer || enemyAttack == null) return;
+        if (!IsServer) return;
 
         checkTimer -= Time.deltaTime;
         if (checkTimer <= 0f)
@@ -40,15 +31,18 @@ public class TargetScanner : NetworkBehaviour
         if (currentTarget != null)
         {
             float dist = Vector3.Distance(transform.position, currentTarget.position);
-
             if (dist > detectionRange)
             {
                 OnTargetLost?.Invoke();
                 currentTarget = null;
             }
-            else if (dist <= enemyAttack.attackRange)
+            else if (dist <= inRangeThreshold)
             {
                 OnTargetInRange?.Invoke();
+            }
+            else
+            {
+                OnTargetOutOfRange?.Invoke();
             }
         }
     }
@@ -56,7 +50,6 @@ public class TargetScanner : NetworkBehaviour
     private void ScanForTargets()
     {
         Collider[] targets = Physics.OverlapSphere(transform.position, detectionRange, targetLayer);
-
         Transform closestTarget = null;
         float closestDist = Mathf.Infinity;
 

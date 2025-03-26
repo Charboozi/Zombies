@@ -115523,7 +115523,7 @@ Transform:
   m_GameObject: {fileID: 7095822562400779867}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.329, z: 0}
+  m_LocalPosition: {x: 0, y: 0.605, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -126386,7 +126386,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
   currentHealth:
-    m_InternalValue: 100
+    m_InternalValue: 1000000
   enableRegeneration: 1
   regenAmount: 5
   regenInterval: 1
