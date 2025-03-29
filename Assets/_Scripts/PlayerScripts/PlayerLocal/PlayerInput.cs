@@ -60,7 +60,7 @@ public class PlayerInput : MonoBehaviour
             OnInteractPressed?.Invoke();
 
         // Weapon switching: Number keys 1–3
-        for (int i = 1; i <= 3; i++)
+        for (int i = 1; i <= 4; i++)
         {
             if (Input.GetKeyDown(KeyCode.Alpha0 + i))
             {

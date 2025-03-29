@@ -26,7 +26,6 @@ public abstract class WeaponBase : MonoBehaviour
 
     protected virtual void Start()
     {
-        // Use the main camera if not set otherwise
         playerCamera = Camera.main;
         networkImpactSpawner = FindFirstObjectByType<NetworkImpactSpawner>();
 

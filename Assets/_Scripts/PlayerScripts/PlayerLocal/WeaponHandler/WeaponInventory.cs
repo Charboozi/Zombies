@@ -5,7 +5,9 @@ using System.Linq;
 [RequireComponent(typeof(CurrentWeaponHolder))]
 public class WeaponInventory : MonoBehaviour
 {
-    public int maxWeapons = 3;
+    private int baseMaxWeapons = 2;
+    private int currentMaxWeapons;
+
     [SerializeField]private List<WeaponBase> ownedWeapons = new List<WeaponBase>();
 
     public IReadOnlyList<WeaponBase> Weapons => ownedWeapons;
@@ -13,13 +15,23 @@ public class WeaponInventory : MonoBehaviour
     public event System.Action<WeaponBase> OnWeaponAdded;
     public event System.Action<int> OnWeaponLimitReached;
 
+    void Awake()
+    {
+        currentMaxWeapons = baseMaxWeapons;
+    }
+
+    public void SetMaxWeapons(int amount)
+    {
+        currentMaxWeapons = amount;
+    }
+
     public void AddWeapon(WeaponBase weapon)
     {
         if (ownedWeapons.Contains(weapon)) return;
 
-        if (ownedWeapons.Count >= maxWeapons)
+        if (ownedWeapons.Count >= currentMaxWeapons)
         {
-            OnWeaponLimitReached?.Invoke(maxWeapons); 
+            OnWeaponLimitReached?.Invoke(currentMaxWeapons); 
         }
 
         ownedWeapons.Add(weapon);

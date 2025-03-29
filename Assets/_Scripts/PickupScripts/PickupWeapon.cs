@@ -29,7 +29,7 @@ public class PickupWeapon : NetworkBehaviour
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.forward, out hit, pickupRange, weaponLayer))
         {
-            WeaponPickupNetworked pickupScript = hit.collider.GetComponent<WeaponPickupNetworked>();
+            NetworkedPickupableItem pickupScript = hit.collider.GetComponent<NetworkedPickupableItem>();
             if (pickupScript != null)
             {
                 string weaponName = pickupScript.gameObject.name;
@@ -44,7 +44,7 @@ public class PickupWeapon : NetworkBehaviour
                 weaponInventory.PickUpWeapon(weaponName);
 
                 // Despawn the pickup object over the network.
-                pickupScript.DespawnWeapon();
+                pickupScript.Despawn();
             }
             else
             {

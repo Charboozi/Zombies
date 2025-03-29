@@ -9,10 +9,10 @@ public class LocalModelHider : NetworkBehaviour
     {
         if (!IsOwner || modelRoot == null) return;
 
-        foreach (var skinnedMesh in modelRoot.GetComponentsInChildren<SkinnedMeshRenderer>())
+        foreach (var skinnedMesh in modelRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             skinnedMesh.enabled = false;
 
-        foreach (var mesh in modelRoot.GetComponentsInChildren<MeshRenderer>())
+        foreach (var mesh in modelRoot.GetComponentsInChildren<MeshRenderer>(true))
             mesh.enabled = false;
     }
 }

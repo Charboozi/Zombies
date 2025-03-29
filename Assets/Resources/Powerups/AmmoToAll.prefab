@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4420785190467010452}
   - component: {fileID: 68019023596694509}
   - component: {fileID: 8690916308781563278}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Stars
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4793,7 +4793,7 @@ GameObject:
   - component: {fileID: 1752924632977462179}
   - component: {fileID: 5373112230069264069}
   - component: {fileID: 8529393209179898573}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: HoloLines
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9638,7 +9638,7 @@ GameObject:
   - component: {fileID: 6618032167208217121}
   - component: {fileID: 367745378663914187}
   - component: {fileID: 6050501894566221783}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14483,7 +14483,7 @@ GameObject:
   - component: {fileID: 9073605744311105983}
   - component: {fileID: 1129658897853007237}
   - component: {fileID: 7622590328657161091}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: HoloRay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19328,7 +19328,7 @@ GameObject:
   - component: {fileID: 4112522666286305500}
   - component: {fileID: 7206918269431997763}
   - component: {fileID: 4870523207329087891}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: PowerupAmmo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24175,7 +24175,7 @@ GameObject:
   - component: {fileID: 7731841250396994103}
   - component: {fileID: 5128063664670161523}
   - component: {fileID: 4443910616665553641}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: HoloSpinner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -29020,7 +29020,7 @@ GameObject:
   - component: {fileID: 2133289165942455090}
   - component: {fileID: 836528071182849028}
   - component: {fileID: 8437018523857273822}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: HoloRay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -33868,7 +33868,7 @@ GameObject:
   - component: {fileID: 4230852263183674827}
   - component: {fileID: 5308263841388591090}
   - component: {fileID: 7078648145945364293}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: AmmoToAll
   m_TagString: Untagged
   m_Icon: {fileID: 0}
