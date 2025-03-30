@@ -21,6 +21,13 @@ public class PickupEquipment : MonoBehaviour
             
             string equipmentName = pickup.gameObject.name;
 
+            // Check if this equipment is already equipped.
+            if (equipmentInventory.HasEquipped(equipmentName))
+            {
+                Debug.Log($"Equipment '{equipmentName}' is already active. Not picking it up.");
+                return;
+            }
+
             // Equip it in the local inventory (your own logic).
             equipmentInventory.Equip(equipmentName);
 

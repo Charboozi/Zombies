@@ -11,7 +11,7 @@ NavMeshProjectSettings:
     cost: 1
   - name: Jump
     cost: 2
-  - name: Crawlable
+  - name: 
     cost: 1
   - name: 
     cost: 1
@@ -73,10 +73,10 @@ NavMeshProjectSettings:
   m_Settings:
   - serializedVersion: 3
     agentTypeID: 0
-    agentRadius: 0.16
-    agentHeight: 0.5
-    agentSlope: 45.3
-    agentClimb: 0.45
+    agentRadius: 0.19
+    agentHeight: 0.85
+    agentSlope: 60
+    agentClimb: 0.84
     ledgeDropHeight: 0
     maxJumpAcrossDistance: 0
     minRegionArea: 2

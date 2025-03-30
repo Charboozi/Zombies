@@ -16,8 +16,37 @@ public class Interactable : NetworkBehaviour
 
     public void Interact()
     {
-        // Only the owner (client) should call this, and it will request the server to handle the logic
         if (isCoolingDown.Value) return;
+
+        var battery = GetComponent<InteractableCharge>();
+
+        // 🔋 Interactables with battery
+        if (battery != null)
+        {
+            if (battery.IsDrained)
+            {
+                var manager = ConsumableManager.Instance;
+                if (manager == null || !manager.Use("Keycard"))
+                {
+                    Debug.Log("🔒 Battery is drained and no keycard available.");
+                    return;
+                }
+
+                Debug.Log("🔓 Used keycard to override battery lock.");
+            }
+        }
+        else
+        {
+            // 🚪 Interactables without battery: always require keycard
+            var manager = ConsumableManager.Instance;
+            if (manager == null || !manager.Use("Keycard"))
+            {
+                Debug.Log("🔐 This object requires a keycard to interact.");
+                return;
+            }
+
+            Debug.Log("🔓 Used keycard to access secured object.");
+        }
 
         RequestInteractServerRpc();
     }

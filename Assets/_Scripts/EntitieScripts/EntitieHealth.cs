@@ -6,6 +6,7 @@ public class EntityHealth : NetworkBehaviour
 {
     [Header("Health Settings")]
     public int maxHealth = 100;
+    public int armor = 0;
     public NetworkVariable<int> currentHealth = new NetworkVariable<int>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [Header("Regeneration Settings")]
@@ -28,10 +29,13 @@ public class EntityHealth : NetworkBehaviour
     public void TakeDamageServerRpc(int damage)
     {
         if (currentHealth.Value <= 0) return; // Already dead
+        int effectiveDamage = damage - armor;
+        if (effectiveDamage < 1)
+            effectiveDamage = 1;
 
         TakeDamageClientRpc();
 
-        currentHealth.Value -= damage;
+        currentHealth.Value -= effectiveDamage;
         Debug.Log($"{gameObject.name} took {damage} damage! Health: {currentHealth.Value}");
 
         if (currentHealth.Value <= 0)
@@ -116,6 +120,20 @@ public class EntityHealth : NetworkBehaviour
         {
             GetComponent<NetworkObject>().Despawn(true); // Despawn the player for all clients
         }
+    }
+
+    // Methods to modify armor.
+    public void AddArmor(int bonus)
+    {
+        armor += bonus;
+        Debug.Log($"{gameObject.name}: Armor increased by {bonus}. Total armor: {armor}");
+    }
+
+    public void RemoveArmor(int bonus)
+    {
+        armor -= bonus;
+        if (armor < 0) armor = 0;
+        Debug.Log($"{gameObject.name}: Armor decreased by {bonus}. Total armor: {armor}");
     }
 
 }

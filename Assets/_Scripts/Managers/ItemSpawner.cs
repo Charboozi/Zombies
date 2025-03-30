@@ -6,7 +6,7 @@ public class ItemSpawner : NetworkBehaviour, IInteractableAction
 {
     [Header("Item Spawning Settings")]
     [SerializeField] private List<GameObject> itemPrefabs;
-    [SerializeField] private Vector3 spawnOffset = new Vector3(0, 1.5f, 0.25f);
+    [SerializeField] private Vector3 spawnOffsetPosition = new Vector3(0, 1.5f, 0.25f);
 
     public void DoAction()
     {
@@ -23,9 +23,9 @@ public class ItemSpawner : NetworkBehaviour, IInteractableAction
         }
 
         int randomIndex = Random.Range(0, itemPrefabs.Count);
-        Vector3 spawnPosition = transform.position + spawnOffset;
+        Vector3 spawnPosition = transform.position + spawnOffsetPosition;
 
-        GameObject itemInstance = Instantiate(itemPrefabs[randomIndex], spawnPosition, Quaternion.Euler(0, 90, 0));
+        GameObject itemInstance = Instantiate(itemPrefabs[randomIndex], spawnPosition, Quaternion.identity);
 
         if (itemInstance.TryGetComponent(out NetworkObject networkObject))
         {

@@ -7,6 +7,7 @@ public class WeaponSwitcher : MonoBehaviour
     public int CurrentWeaponIndex { get; private set; } = 0;
 
     [SerializeField] private Transform rightHand;
+    [SerializeField] private WeaponController weaponController;
     
     public event System.Action OnWeaponSwitched;
 
@@ -54,6 +55,7 @@ public class WeaponSwitcher : MonoBehaviour
 
     public void EquipWeapon(int index)
     {
+        if (weaponController.IsReloading) return;
         if (index < 0 || index >= inventory.Weapons.Count)
         {
             Debug.LogWarning("Weapon index out of range.");

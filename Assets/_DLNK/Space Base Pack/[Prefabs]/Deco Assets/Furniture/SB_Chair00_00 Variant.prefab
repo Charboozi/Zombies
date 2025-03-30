@@ -5,6 +5,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1879006643049528, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
@@ -17,15 +18,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4557319704009418, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 4.366926
       objectReference: {fileID: 0}
     - target: {fileID: 4557319704009418, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.56999993
       objectReference: {fileID: 0}
     - target: {fileID: 4557319704009418, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -11.849743
       objectReference: {fileID: 0}
     - target: {fileID: 4557319704009418, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -67,25 +68,54 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 0.5964944
       objectReference: {fileID: 0}
-    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
+    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 49f6769d060694c4da9fe813c5157674, type: 2}
-    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[1]
+    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 96f71b57069e40846afae5c1ea026637, type: 2}
-    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[2]
+    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
       value: 
       objectReference: {fileID: 2100000, guid: e8731958fb671cd4c8568e0ed711972c, type: 2}
-    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[4]
+    - target: {fileID: 23434177277811824, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+      propertyPath: 'm_Materials.Array.data[4]'
       value: 
       objectReference: {fileID: 2100000, guid: 5f4f7f01aafae7d4b823db6d3614e97e, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 64202716448184230, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1930491032010596, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 427849075613575959}
   m_SourcePrefab: {fileID: 100100000, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+--- !u!1 &3479815820868479991 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1930491032010596, guid: 411f18882cee402498828e5c7435ae0b, type: 3}
+  m_PrefabInstance: {fileID: 3480176163388789907}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &427849075613575959
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3479815820868479991}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.9639678, y: 1.1355269, z: 2.4679904}
+  m_Center: {x: -0.00000071525574, y: 0.08577956, z: 1.2219288}

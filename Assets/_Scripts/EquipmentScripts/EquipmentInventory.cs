@@ -11,6 +11,8 @@ public class EquipmentInventory : MonoBehaviour
 
     public event Action<GameObject> OnEquipped;
 
+    public EquipmentUIManager uiManager;
+
     private void Awake()
     {
         // Find all children (can be on different bones) except self.
@@ -30,15 +32,15 @@ public class EquipmentInventory : MonoBehaviour
             return;
         }
 
-        if (equippedItems.Contains(equipment))
-        {
-            Debug.Log($"Equipment '{equipmentName}' is already equipped.");
-            return;
-        }
-
         equipment.SetActive(true);
         equippedItems.Add(equipment);
         OnEquipped?.Invoke(equipment);
+        
+        BaseEquipment baseEquip = equipment.GetComponent<BaseEquipment>();
+        if (baseEquip != null && uiManager != null)
+        {
+            uiManager.DisplayIcon(baseEquip.equipmentIcon);
+        }
     }
 
     public bool HasEquipped(string equipmentName)

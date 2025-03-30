@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Backpack : MonoBehaviour
+public class Backpack : BaseEquipment
 {
     [SerializeField] private int weaponBonus = 2;
     [SerializeField] private WeaponInventory weaponInventory;
