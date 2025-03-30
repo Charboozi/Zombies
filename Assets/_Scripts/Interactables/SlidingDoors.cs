@@ -46,6 +46,19 @@ public class SlidingDoor : NetworkBehaviour, IInteractableAction
         isOpen.Value = !isOpen.Value;
     }
 
+    public void Close()
+    {
+        if (!IsServer || isSliding || !isOpen.Value) return;
+
+        isOpen.Value = false;
+    }
+
+    public void Open()
+    {
+        if (!IsServer || isSliding || isOpen.Value) return;
+        isOpen.Value = true;
+    }
+
     private void AnimateDoor(bool opening)
     {
         StartCoroutine(SlideDoors(opening));
