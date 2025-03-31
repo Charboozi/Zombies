@@ -126919,6 +126919,7 @@ GameObject:
   - component: {fileID: 3585913456175318353}
   - component: {fileID: -1691546852130851939}
   - component: {fileID: -3285461817517955801}
+  - component: {fileID: 2237540359678880329}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -127081,7 +127082,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   moveSpeed: 6
-  jumpForce: 1
+  jumpForce: 0.5
   gravity: 9.8
   groundCheckRadius: 0.3
   lerpRate: 10
@@ -127197,6 +127198,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!54 &2237540359678880329
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8174947123595278457}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &8194831976378829552
 GameObject:
   m_ObjectHideFlags: 0

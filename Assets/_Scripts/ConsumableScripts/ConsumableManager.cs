@@ -14,7 +14,7 @@ public class ConsumableManager : MonoBehaviour
 
     private void Start()
     {
-        Add("Keycard", 4); // Give player 2 keycards at the start FOR TESTING
+        //Add("Keycard", 4); // Give player 4 keycards at the start FOR TESTING
     }
 
     private void Awake()

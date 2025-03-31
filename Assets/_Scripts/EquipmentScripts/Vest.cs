@@ -3,7 +3,7 @@ using Unity.Netcode;
 
 public class Vest : BaseEquipment
 {
-    [SerializeField] private int armorBonus = 20;
+    [SerializeField] private int armorBonus = 5;
     public int ArmorBonus => armorBonus;
 
     private bool effectApplied = false;

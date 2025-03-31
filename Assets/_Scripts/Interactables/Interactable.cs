@@ -48,6 +48,14 @@ public class Interactable : NetworkBehaviour
             Debug.Log("🔓 Used keycard to access secured object.");
         }
 
+        // 👇 Special case: if the object wants to run client-side logic
+        var localOnly = GetComponent<IClientOnlyAction>();
+        if (localOnly != null)
+        {
+            localOnly.DoClientAction();
+            return;
+        }
+
         RequestInteractServerRpc();
     }
 
