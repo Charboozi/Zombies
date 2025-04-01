@@ -7,8 +7,9 @@ public class WeaponController : MonoBehaviour
     private WeaponBase currentWeapon => CurrentWeaponHolder.Instance.CurrentWeapon;
 
     private float nextFireTime = 0f;
-    private bool isReloading = false;
     private bool isFiringHeld = false;
+    private Coroutine autoReloadCoroutine = null;
+    private Coroutine delayBeforeReloadCoroutine = null;
 
     public static event Action OnShoot;
     public static event Action OnStopShooting;
@@ -19,33 +20,38 @@ public class WeaponController : MonoBehaviour
     {
         PlayerInput.OnFirePressed += HandleFirePressed;
         PlayerInput.OnFireReleased += HandleFireReleased;
-        PlayerInput.OnReloadPressed += HandleReloadPressed;
     }
 
     private void OnDisable()
     {
         PlayerInput.OnFirePressed -= HandleFirePressed;
         PlayerInput.OnFireReleased -= HandleFireReleased;
-        PlayerInput.OnReloadPressed -= HandleReloadPressed;
     }
 
     private void Update()
     {
-        if (currentWeapon == null || isReloading) return;
+        if (currentWeapon == null) return;
 
         if (isFiringHeld && currentWeapon.isAutomatic && Time.time >= nextFireTime && currentWeapon.CanShoot())
         {
             FireWeapon();
         }
+
+        // Start reload delay if not shooting and not already waiting and ammo not full
+        if (!isFiringHeld && !IsReloading && currentWeapon.currentAmmo < currentWeapon.maxAmmo && delayBeforeReloadCoroutine == null)
+        {
+            delayBeforeReloadCoroutine = StartCoroutine(DelayBeforeReloadCoroutine());
+        }
     }
 
     private void HandleFirePressed()
     {
-        if (currentWeapon == null || isReloading) return;
+        if (currentWeapon == null || !currentWeapon.CanShoot()) return;
 
         isFiringHeld = true;
+        StopReloading(); // Cancel both coroutines
 
-        if (!currentWeapon.isAutomatic && Time.time >= nextFireTime && currentWeapon.CanShoot())
+        if (!currentWeapon.isAutomatic && Time.time >= nextFireTime)
         {
             FireWeapon();
         }
@@ -61,13 +67,6 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-    private void HandleReloadPressed()
-    {
-        if (isReloading || currentWeapon == null || !currentWeapon.CanReload()) return;
-
-        StartCoroutine(HandleReload());
-    }
-
     private void FireWeapon()
     {
         nextFireTime = Time.time + currentWeapon.fireRate;
@@ -75,17 +74,55 @@ public class WeaponController : MonoBehaviour
         OnShoot?.Invoke();
     }
 
-    private IEnumerator HandleReload()
+    private IEnumerator DelayBeforeReloadCoroutine()
     {
-        isReloading = true;
+        float interval = currentWeapon.reloadDuration / currentWeapon.maxAmmo;
+        yield return new WaitForSeconds(interval);
+        autoReloadCoroutine = StartCoroutine(AutoReloadCoroutine());
+        delayBeforeReloadCoroutine = null;
+    }
+    private IEnumerator AutoReloadCoroutine()
+    {
         OnReloadStart?.Invoke();
 
-        yield return new WaitForSeconds(currentWeapon.reloadDuration);
+        while (currentWeapon.currentAmmo < currentWeapon.maxAmmo && currentWeapon.reserveAmmo > 0)
+        {
+            yield return new WaitForSeconds(0.1f);
+            currentWeapon.currentAmmo++;
+            currentWeapon.reserveAmmo--;
+            currentWeapon.UpdateEmissionIntensity();
+        }
 
-        currentWeapon.Reload();
-        isReloading = false;
         OnReloadEnd?.Invoke();
+        autoReloadCoroutine = null;
     }
 
-    public bool IsReloading => isReloading;
+    public void OnWeaponSwitched()
+    {
+        StopReloading();
+
+        // Check if new weapon needs reload
+        if (currentWeapon != null && currentWeapon.currentAmmo < currentWeapon.maxAmmo)
+        {
+            delayBeforeReloadCoroutine = StartCoroutine(DelayBeforeReloadCoroutine());
+        }
+    }
+
+    private void StopReloading()
+    {
+        if (delayBeforeReloadCoroutine != null)
+        {
+            StopCoroutine(delayBeforeReloadCoroutine);
+            delayBeforeReloadCoroutine = null;
+        }
+
+        if (autoReloadCoroutine != null)
+        {
+            StopCoroutine(autoReloadCoroutine);
+            autoReloadCoroutine = null;
+            OnReloadEnd?.Invoke();
+        }
+    }
+
+    public bool IsReloading => autoReloadCoroutine != null;
 }

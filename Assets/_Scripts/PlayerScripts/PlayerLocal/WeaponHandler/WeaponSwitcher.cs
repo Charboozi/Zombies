@@ -55,7 +55,7 @@ public class WeaponSwitcher : MonoBehaviour
 
     public void EquipWeapon(int index)
     {
-        if (weaponController.IsReloading) return;
+        weaponController.OnWeaponSwitched();
         if (index < 0 || index >= inventory.Weapons.Count)
         {
             Debug.LogWarning("Weapon index out of range.");

@@ -3,11 +3,14 @@ using Unity.Netcode;
 
 public class AmmoPowerup : PowerupBase
 {
-    [Tooltip("The amount of reserve ammo to add.")]
-    public int ammoAmount = 30;
+    [Tooltip("Unused now - value is taken from weapon's max ammo")]
+    public int fallbackAmount = 30;
 
-    // Return the ammo amount as the effect value.
-    protected override int GetEffectValue() => ammoAmount;
+    protected override int GetEffectValue()
+    {
+        // This is not used anymore since ammo amount is decided on client
+        return fallbackAmount;
+    }
 
     // On the client, find the local WeaponStats and add the ammo.
     [ClientRpc]
@@ -16,7 +19,8 @@ public class AmmoPowerup : PowerupBase
         WeaponBase weapon = CurrentWeaponHolder.Instance.CurrentWeapon;
         if (weapon != null)
         {
-            weapon.reserveAmmo += effectValue;
+            int amountToGive = weapon.maxAmmo;
+            weapon.reserveAmmo += amountToGive;
             Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Ammo powerup applied: +{effectValue} reserve ammo.");
         }
         else

@@ -56,8 +56,6 @@ public class ArmsReloadAnimation : MonoBehaviour, IArmsOffsetProvider
         WeaponBase weapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
         if (weapon == null) yield break;
 
-        float totalDuration = weapon.reloadDuration * reloadDurationMultiplier;
-
         // PHASE 1: Lower
         yield return LerpPosition(Vector3.zero, new Vector3(0, -lowerAmount, 0), lowerTime);
 

@@ -25,6 +25,8 @@ public class ExplosiveWeapon : WeaponBase
         // Deduct ammo.
         currentAmmo--;
 
+        UpdateEmissionIntensity();
+
         // Instantiate the projectile at the muzzle position and rotation.
         if (explosiveProjectilePrefab != null && muzzleTransform != null)
         {

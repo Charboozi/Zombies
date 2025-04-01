@@ -17,6 +17,8 @@ public class ShotgunWeapon : WeaponBase
 
         currentAmmo--; // Deduct ammo
 
+        UpdateEmissionIntensity();
+
         Debug.Log("Shotgun fired!");
 
         for (int i = 0; i < pelletsPerShot; i++)
