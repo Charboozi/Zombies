@@ -43,6 +43,10 @@ public class EntityHealth : NetworkBehaviour
             DieClientRpc();
         }
         RestartHealthRegen();
+        if(gameObject.tag == "Player")
+        {
+            ApplySlowEffectClientRpc(0.3f, 2f);
+        }
     }
 
     //Server to all clients: "This guy got damaged"
@@ -51,7 +55,7 @@ public class EntityHealth : NetworkBehaviour
     {
         if(IsOwner && gameObject.tag != "Enemy")
         {
-            DamageScreenEffect.Instance.ShowDamageEffect();
+            FadeScreenEffect.Instance.ShowEffect(Color.red, 0.5f, 2f);
         }
     }
 
@@ -87,8 +91,6 @@ public class EntityHealth : NetworkBehaviour
             {
                 currentHealth.Value += regenAmount;
                 if (currentHealth.Value > maxHealth) currentHealth.Value = maxHealth; // Prevent over-healing
-
-                Debug.Log($"{gameObject.name} regenerated {regenAmount} health. Current: {currentHealth.Value}");
             }
         }
 
@@ -102,7 +104,7 @@ public class EntityHealth : NetworkBehaviour
         Debug.Log($"{gameObject.name} has died!");
         if(IsOwner && gameObject.tag == "Player")
         {
-            DamageScreenEffect.Instance.ShowDeathEffect();
+            FadeScreenEffect.Instance.ShowDeathEffect();
             RequestDespawnServerRpc();
         }
 
@@ -134,6 +136,25 @@ public class EntityHealth : NetworkBehaviour
         armor -= bonus;
         if (armor < 0) armor = 0;
         Debug.Log($"{gameObject.name}: Armor decreased by {bonus}. Total armor: {armor}");
+    }
+
+    [ClientRpc]
+    void ApplySlowEffectClientRpc(float slowFactor, float duration)
+    {
+        if (IsOwner)
+        {
+            var movement = GetComponent<NetworkedCharacterMovement>();
+            if (movement != null)
+            {
+                movement.ApplyTemporarySlow(slowFactor, duration);
+            }
+        }
+    }
+
+    public void FullHeal()
+    {
+        currentHealth.Value = maxHealth;
+        Debug.Log($"{gameObject.name}: Fully healed to {maxHealth}.");
     }
 
 }

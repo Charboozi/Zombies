@@ -14,11 +14,12 @@ public class RandomSoundPlayer : MonoBehaviour
     public float maxPitch = 1.1f;    // Maximum random pitch
 
     private AudioSource audioSource;
+    private Coroutine playRoutine;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        StartCoroutine(SoundRoutine());
+        playRoutine = StartCoroutine(SoundRoutine());
     }
 
     private IEnumerator SoundRoutine()
@@ -27,7 +28,6 @@ public class RandomSoundPlayer : MonoBehaviour
         {
             float waitTime = Random.Range(minInterval, maxInterval);
             yield return new WaitForSeconds(waitTime);
-
             PlayRandomSound();
         }
     }
@@ -41,7 +41,19 @@ public class RandomSoundPlayer : MonoBehaviour
         }
 
         AudioClip randomClip = soundClips[Random.Range(0, soundClips.Length)];
-        audioSource.pitch = Random.Range(minPitch, maxPitch); // Apply random pitch
+        audioSource.pitch = Random.Range(minPitch, maxPitch);
         audioSource.PlayOneShot(randomClip);
+    }
+
+    public void StopSounds()
+    {
+        if (playRoutine != null)
+        {
+            StopCoroutine(playRoutine);
+            playRoutine = null; // ✅ Safe cleanup
+        }
+
+        if (audioSource.isPlaying)
+            audioSource.Stop();
     }
 }

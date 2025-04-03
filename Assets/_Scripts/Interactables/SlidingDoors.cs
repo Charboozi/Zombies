@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 
+[RequireComponent(typeof(Interactable))]
 public class SlidingDoor : NetworkBehaviour, IInteractableAction
 {
     [Header("Door Parts")]

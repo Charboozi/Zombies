@@ -7,8 +7,14 @@ public class EnemyAttack : NetworkBehaviour
 {
     [Header("Attack Settings")]
     public int attackDamage = 10;
-    public float attackCooldown = 1.5f;
-    public float attackRange = 2f;  // The maximum distance at which the attack can hit
+    public float attackCooldown = 1.2f;
+    public float attackRange = 2f; 
+
+    [Header("Audio")]
+    public AudioClip hitSound;
+
+    private AudioSource audioSource;
+    private RandomSoundPlayer randomSoundPlayer;
 
     private Transform target;
     private bool isAttacking = false;
@@ -21,6 +27,9 @@ public class EnemyAttack : NetworkBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         enemyAnimation = GetComponent<EnemyAnimationHandler>();
+
+        audioSource = GetComponent<AudioSource>();
+        randomSoundPlayer = GetComponent<RandomSoundPlayer>();
     }
 
     // Called by TargetScanner when a target is acquired or remains in range.
@@ -63,7 +72,6 @@ public class EnemyAttack : NetworkBehaviour
     {
         isAttacking = true;
         cooldownTimer = attackCooldown;
-        Debug.Log("Start Attacking!!!!!!!");
 
         if (agent.enabled)
             agent.isStopped = true;
@@ -90,12 +98,14 @@ public class EnemyAttack : NetworkBehaviour
         {
             if (target.TryGetComponent(out EntityHealth health))
             {
+                PlayHitSoundClientRpc();
+
                 health.TakeDamageServerRpc(attackDamage);
             }
         }
         else
         {
-            Debug.Log("Attack missed: target out of range");
+            //Debug.Log("Attack missed: target out of range");
         }
     }
 
@@ -113,5 +123,17 @@ public class EnemyAttack : NetworkBehaviour
     private void PlayAttackAnimationClientRpc()
     {
         enemyAnimation.TriggerAttack();
+    }
+    [ClientRpc]
+    private void PlayHitSoundClientRpc()
+    {
+        if (randomSoundPlayer != null)
+            randomSoundPlayer.StopSounds();
+
+        if (audioSource.isPlaying)
+            audioSource.Stop();
+
+        if (hitSound != null)
+            audioSource.PlayOneShot(hitSound);
     }
 }

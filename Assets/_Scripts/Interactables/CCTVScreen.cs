@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CCTVScreen : MonoBehaviour, IClientOnlyAction
+public class CCTVScreen : MonoBehaviour, IClientOnlyAction, IInteractableAction
 {
     public void DoClientAction()
     {
@@ -10,4 +10,5 @@ public class CCTVScreen : MonoBehaviour, IClientOnlyAction
             manager.ActivateCCTV();
         }
     }
+    public void DoAction(){}
 }

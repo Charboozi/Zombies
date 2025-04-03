@@ -713,7 +713,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.44
-  m_Speed: 6
+  m_Speed: 6.5
   m_Acceleration: 40
   avoidancePriority: 50
   m_AngularSpeed: 500
@@ -799,7 +799,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.736
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -810,7 +810,7 @@ AudioSource:
   MinDistance: 1
   MaxDistance: 30
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -901,10 +901,15 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 70af06cb10e2d94478566b092488c188, type: 3}
   - {fileID: 8300000, guid: 2560c51e73617d4429ada5866c43353d, type: 3}
   - {fileID: 8300000, guid: 26edfcc2f4ad17147a9a5aa53d2cba04, type: 3}
-  minInterval: 3
-  maxInterval: 30
-  minPitch: 0.8
-  maxPitch: 1.2
+  - {fileID: 8300000, guid: 5c04184a5bffc2d4b89514958594b001, type: 3}
+  - {fileID: 8300000, guid: 29b27c7a24fa89f48aa1ec112d3338a1, type: 3}
+  - {fileID: 8300000, guid: c804233a555acab468b4e8bb581fd319, type: 3}
+  - {fileID: 8300000, guid: 9ad5ff0a4fb40514c990b86a6def6ab1, type: 3}
+  - {fileID: 8300000, guid: aab3a3a019095cb48be8817486347a67, type: 3}
+  minInterval: 5
+  maxInterval: 10
+  minPitch: 0.7
+  maxPitch: 1.3
 --- !u!114 &-1048199361051046701
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -985,8 +990,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   attackDamage: 10
-  attackCooldown: 0
+  attackCooldown: 1.2
   attackRange: 2
+  hitSound: {fileID: 8300000, guid: c804233a555acab468b4e8bb581fd319, type: 3}
 --- !u!114 &4308550124934727242
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1002,6 +1008,12 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   destroyDelay: 10
   animator: {fileID: 8681897807220252526}
+  deathClips:
+  - {fileID: 8300000, guid: 9ad5ff0a4fb40514c990b86a6def6ab1, type: 3}
+  - {fileID: 8300000, guid: c804233a555acab468b4e8bb581fd319, type: 3}
+  - {fileID: 8300000, guid: 5c04184a5bffc2d4b89514958594b001, type: 3}
+  - {fileID: 8300000, guid: a886dd0a90d7fc549a0484ff00ba7251, type: 3}
+  - {fileID: 8300000, guid: 4032b6a4846d44f49b96396541dc8223, type: 3}
 --- !u!114 &7240201750090418575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1042,8 +1054,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73f06816724a16948acaecf51ad0ec75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   crawlThreshold: 1.5
+  crawlBuffer: 0.1
   rayOrigin: {fileID: 5234382732963937818}
+  ceilingLayer:
+    serializedVersion: 2
+    m_Bits: 2048
 --- !u!54 &972305435575493324
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1414,7 +1431,7 @@ Transform:
   m_GameObject: {fileID: 3836480040663160796}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.923, z: 0}
+  m_LocalPosition: {x: 0, y: -0.82, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

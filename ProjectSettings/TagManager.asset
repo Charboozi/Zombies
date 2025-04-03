@@ -8,6 +8,9 @@ TagManager:
   - Enemy
   - OneHanded
   - TwoHanded
+  - PW - Prop
+  - PW - Nature
+  - StartPosition
   layers:
   - Default
   - TransparentFX
@@ -20,7 +23,7 @@ TagManager:
   - Enemy
   - Interactable
   - Equipment
-  - 
+  - Ceiling
   - 
   - 
   - 

@@ -25,6 +25,12 @@ public class HealthProxy : NetworkBehaviour
             RequestRemoveArmorServerRpc(bonus);
     }
 
+    public void FullHeal()
+    {
+        if (NetworkManager.Singleton.IsClient)
+            RequestFullHealServerRpc();
+    }
+
     [ServerRpc(RequireOwnership = false)]
     private void RequestAddArmorServerRpc(int bonus, ServerRpcParams rpcParams = default)
     {
@@ -35,5 +41,11 @@ public class HealthProxy : NetworkBehaviour
     private void RequestRemoveArmorServerRpc(int bonus, ServerRpcParams rpcParams = default)
     {
         entityHealth.RemoveArmor(bonus);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestFullHealServerRpc(ServerRpcParams rpcParams = default)
+    {
+        entityHealth.FullHeal();
     }
 }

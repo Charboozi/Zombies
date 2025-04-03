@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 public class NetworkedCharacterMovement : NetworkBehaviour
@@ -19,6 +20,9 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     private bool isGrounded;
 
     public bool IsGrounded => isGrounded;
+
+    private float originalMoveSpeed;
+    private Coroutine slowCoroutine;
     
     void Start()
     {
@@ -28,6 +32,8 @@ public class NetworkedCharacterMovement : NetworkBehaviour
         {
             velocity = Vector3.zero; // Reset velocity
         }
+
+        originalMoveSpeed = moveSpeed;
     }
 
     void Update()
@@ -78,5 +84,20 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     {
         Vector3 spherePosition = transform.position + Vector3.down * (controller.height / 2f);
         isGrounded = Physics.CheckSphere(spherePosition, groundCheckRadius, groundLayer);
+    }
+
+    public void ApplyTemporarySlow(float slowFactor, float duration)
+    {
+        if (slowCoroutine != null)
+            StopCoroutine(slowCoroutine);
+
+        slowCoroutine = StartCoroutine(SlowDownCoroutine(slowFactor, duration));
+    }
+
+    private IEnumerator SlowDownCoroutine(float slowFactor, float duration)
+    {
+        moveSpeed = originalMoveSpeed * (1f - slowFactor);
+        yield return new WaitForSeconds(duration);
+        moveSpeed = originalMoveSpeed;
     }
 }

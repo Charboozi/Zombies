@@ -1,13 +1,18 @@
 using UnityEngine;
+using Unity.Netcode;
 
 [RequireComponent(typeof(EnemyAnimationHandler))]
-public class CrawlBewaviour : MonoBehaviour
+public class CrawlBehaviour : NetworkBehaviour
 {
     [Header("Ceiling Detection")]
-    public float crawlThreshold = 1.0f;  // If ceiling is closer than this → crawl
+    public float crawlThreshold = 1.0f;
+    public float crawlBuffer = 0.1f;
 
-    [Header("References")]
-    [SerializeField] private Transform rayOrigin; // Point near the feet of the enemy
+    [Header("Ray Origin")]
+    [SerializeField] private Transform rayOrigin;
+
+    [Tooltip("Layer(s) considered as ceiling.")]
+    public LayerMask ceilingLayer;
 
     private float ceilingDistance = Mathf.Infinity;
     private bool isCrawling;
@@ -21,42 +26,45 @@ public class CrawlBewaviour : MonoBehaviour
 
     void Update()
     {
+        if (!IsServer) return; // Only server runs logic
+
         CheckCeilingDistance();
     }
 
     void CheckCeilingDistance()
     {
+        if (rayOrigin == null) return;
+
         Ray ray = new Ray(rayOrigin.position, Vector3.up);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
+        bool shouldCrawl;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ceilingLayer))
         {
             ceilingDistance = hit.distance;
 
-            if (ceilingDistance <= crawlThreshold)
-            {
-                isCrawling = true;
-            }
+            if (!isCrawling)
+                shouldCrawl = ceilingDistance <= crawlThreshold - crawlBuffer;
             else
-            {
-                isCrawling = false;
-            }
+                shouldCrawl = ceilingDistance <= crawlThreshold + crawlBuffer;
         }
         else
         {
-            // No ceiling detected
             ceilingDistance = Mathf.Infinity;
-            isCrawling = false;
+            shouldCrawl = false;
         }
 
-        enemyAnimation.SetCrawling(isCrawling);
+        if (shouldCrawl != isCrawling)
+        {
+            isCrawling = shouldCrawl;
+            UpdateCrawlClientRpc(isCrawling);
+        }
     }
 
-    void OnDrawGizmosSelected()
+    [ClientRpc]
+    void UpdateCrawlClientRpc(bool crawl)
     {
-        if (rayOrigin != null)
-        {
-            Gizmos.color = isCrawling ? Color.red : Color.green;
-            Gizmos.DrawLine(rayOrigin.position, rayOrigin.position + Vector3.up * crawlThreshold);
-        }
+        isCrawling = crawl;
+        enemyAnimation.SetCrawling(crawl);
     }
 }

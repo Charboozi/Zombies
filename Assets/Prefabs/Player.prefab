@@ -125468,7 +125468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   moveSpeed: 6
-  jumpForce: 0.3
+  jumpForce: 0.15
   gravity: 9.8
   groundCheckRadius: 0.3
   lerpRate: 10
@@ -125538,7 +125538,7 @@ MonoBehaviour:
   maxHealth: 100
   armor: 0
   currentHealth:
-    m_InternalValue: 1000000
+    m_InternalValue: 100
   enableRegeneration: 1
   regenAmount: 5
   regenInterval: 1

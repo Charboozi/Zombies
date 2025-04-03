@@ -2,59 +2,73 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class DamageScreenEffect : MonoBehaviour
+public class FadeScreenEffect : MonoBehaviour
 {
-    public static DamageScreenEffect Instance; // Singleton for easy access
-    private Image damageImage;
-    private float fadeSpeed = 2f; // Speed of fade-out effect
-    private Color damageColor = new Color(1, 0, 0, 0.5f); // Red with 50% opacity
+    public static FadeScreenEffect Instance;
+
+    private Image screenImage;
+    private Coroutine currentFadeCoroutine;
 
     void Awake()
     {
         Instance = this;
-        damageImage = GetComponent<Image>();
-        damageImage.color = new Color(1, 0, 0, 0); // Start fully transparent
+        screenImage = GetComponent<Image>();
+        screenImage.color = new Color(0, 0, 0, 0); // Start fully transparent
     }
 
-    public void ShowDamageEffect()
+    /// <summary>
+    /// Show a screen tint effect using the specified color, alpha, and fade speed.
+    /// </summary>
+    public void ShowEffect(Color effectColor, float initialAlpha = 0.5f, float fadeSpeed = 2f)
     {
-        StopAllCoroutines();
-        StartCoroutine(FadeOutEffect());
-    }
-    private IEnumerator FadeOutEffect()
-    {
-        damageImage.color = damageColor; // Make screen red
+        if (currentFadeCoroutine != null)
+            StopCoroutine(currentFadeCoroutine);
 
-        float alpha = damageColor.a;
-        while (alpha > 0)
+        currentFadeCoroutine = StartCoroutine(FadeOutEffect(effectColor, initialAlpha, fadeSpeed));
+    }
+
+    private IEnumerator FadeOutEffect(Color color, float startAlpha, float fadeSpeed)
+    {
+        float alpha = startAlpha;
+        color.a = alpha;
+        screenImage.color = color;
+
+        while (alpha > 0f)
         {
             alpha -= Time.deltaTime * fadeSpeed;
-            damageImage.color = new Color(1, 0, 0, alpha);
+            color.a = alpha;
+            screenImage.color = color;
             yield return null;
         }
+
+        screenImage.color = new Color(0, 0, 0, 0);
+        currentFadeCoroutine = null;
     }
 
+    /// <summary>
+    /// Fades the screen to black permanently (used for death).
+    /// </summary>
     public void ShowDeathEffect()
     {
-        StopAllCoroutines(); // Stop any previous fade effects
-        StartCoroutine(FadeToBlackEffect());
+        if (currentFadeCoroutine != null)
+            StopCoroutine(currentFadeCoroutine);
+
+        currentFadeCoroutine = StartCoroutine(FadeToBlackEffect());
     }
 
     private IEnumerator FadeToBlackEffect()
     {
         float alpha = 0f;
-        Color blackColor = new Color(0, 0, 0, 0); // Start fully transparent
-        damageImage.color = blackColor;
+        Color blackColor = new Color(0, 0, 0, 0);
+        screenImage.color = blackColor;
 
-        while (alpha < 1f) // Gradually increase opacity
+        while (alpha < 1f)
         {
-            alpha += Time.deltaTime * 0.5f; // Adjust fade speed here
-            damageImage.color = new Color(0, 0, 0, alpha);
+            alpha += Time.deltaTime * 0.5f;
+            screenImage.color = new Color(0, 0, 0, alpha);
             yield return null;
         }
 
-        // Ensure it's fully black at the end
-        damageImage.color = new Color(0, 0, 0, 1);
+        screenImage.color = new Color(0, 0, 0, 1f);
     }
-
 }

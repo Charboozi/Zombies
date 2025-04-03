@@ -48,14 +48,19 @@ public class Interactable : NetworkBehaviour
             Debug.Log("🔓 Used keycard to access secured object.");
         }
 
-        // 👇 Special case: if the object wants to run client-side logic
+        // 👇 Special case: if the object wants to run client-side logic only on local client
         var localOnly = GetComponent<IClientOnlyAction>();
         if (localOnly != null)
         {
             localOnly.DoClientAction();
-            return;
         }
 
+        // 👇 Everyone triggers this, but server will broadcast it
+        var broadcast = GetComponent<IBroadcastClientAction>();
+        if (broadcast != null)
+        {
+            RequestBroadcastClientRpcServerRpc();
+        }
         RequestInteractServerRpc();
     }
 
@@ -74,6 +79,22 @@ public class Interactable : NetworkBehaviour
         // Start server-side cooldown
         isCoolingDown.Value = true;
         StartCoroutine(CooldownRoutine());
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestBroadcastClientRpcServerRpc(ServerRpcParams rpcParams = default)
+    {
+        RunAllClientsActionClientRpc();
+    }
+
+    [ClientRpc]
+    private void RunAllClientsActionClientRpc()
+    {
+        var allClientsAction = GetComponent<IBroadcastClientAction>();
+        if (allClientsAction != null)
+        {
+            allClientsAction.DoAllClientsAction();
+        }
     }
 
     private IEnumerator CooldownRoutine()
