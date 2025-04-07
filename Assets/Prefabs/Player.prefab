@@ -125540,8 +125540,8 @@ MonoBehaviour:
   currentHealth:
     m_InternalValue: 100
   enableRegeneration: 1
-  regenAmount: 5
-  regenInterval: 1
+  regenAmount: 1
+  regenInterval: 3
 --- !u!114 &3585913456175318353
 MonoBehaviour:
   m_ObjectHideFlags: 0

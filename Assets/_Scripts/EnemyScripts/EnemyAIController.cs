@@ -16,6 +16,10 @@ public class EnemyAIController : NetworkBehaviour
         targeting = GetComponent<TargetScanner>();
         attack = GetComponent<EnemyAttack>();
 
+        // Register this enemy's movement with the centralized manager.
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.RegisterEnemy(movement);
+
         targeting.OnTargetAcquired += (target) => {
             movement.SetTarget(target);
             attack.SetTarget(target);
@@ -35,10 +39,12 @@ public class EnemyAIController : NetworkBehaviour
         };
     }
 
-    private void Update()
+    public override void OnNetworkDespawn()
     {
         if (!IsServer) return;
-
-        movement?.TickMovement(); 
+        
+        // Unregister from the manager when the enemy is despawned.
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.UnregisterEnemy(movement);
     }
 }

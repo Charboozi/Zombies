@@ -18,27 +18,50 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
         agent = GetComponent<NavMeshAgent>();
     }
 
+
     private void Start()
     {
         if (!IsServer) return;
 
         PickNewRoamDestination();
+        roamTimer = roamDelay;
+
+        EnemyManager.Instance.RegisterEnemy(this);
+    }
+
+    public override void OnDestroy()
+    {
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.UnregisterEnemy(this);
+        }
     }
 
     public void TickMovement()
     {
+        if (!IsServer || agent == null || !agent.isActiveAndEnabled) return;
+
+        roamTimer -= Time.deltaTime;
+
+        if (currentTarget == null && (roamTimer <= 0f || agent.remainingDistance < 1f))
+        {
+            PickNewRoamDestination();
+            roamTimer = roamDelay;
+        }
+    }
+
+    public void UpdateDestination()
+    {
         if (!IsServer || !agent.enabled) return;
 
-        if (currentTarget != null && agent.enabled)
+        if (currentTarget != null)
         {
             agent.SetDestination(currentTarget.position);
         }
-        else
+        else if (agent.remainingDistance < 1f)
         {
-            roamTimer -= Time.deltaTime;
-
-            if (roamTimer <= 0f || agent.remainingDistance < 1f)
-                PickNewRoamDestination();
+            PickNewRoamDestination();
+            roamTimer = roamDelay;
         }
     }
 
@@ -59,7 +82,6 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
         if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, roamRadius, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
-            roamTimer = roamDelay;
         }
     }
 }

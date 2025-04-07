@@ -101,10 +101,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e1d6ce47e72a8a438a4dad42c92ab0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   explosionRadius: 5
   explosionDamage: 50
-  explosionEffectPrefab: {fileID: 120980, guid: 37b2ccf5e6f6ef841aea86828cfde63f, type: 3}
   selfDestructTime: 5
+  explosionEffectPrefab: {fileID: 120980, guid: 37b2ccf5e6f6ef841aea86828cfde63f, type: 3}
 --- !u!136 &7555526477976347269
 CapsuleCollider:
   m_ObjectHideFlags: 0

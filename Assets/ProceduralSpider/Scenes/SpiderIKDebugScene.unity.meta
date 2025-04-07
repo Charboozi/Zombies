@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6f74ecbf4df2240e3bc2258c33d5a1b2
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 267789
+  packageName: Procedural Spider
+  packageVersion: 1.1.0
+  assetPath: Assets/ProceduralSpider/Scenes/SpiderIKDebugScene.unity
+  uploadId: 744674

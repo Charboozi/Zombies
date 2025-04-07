@@ -19,7 +19,7 @@ public class Interactable : NetworkBehaviour
         if (isCoolingDown.Value) return;
 
         var battery = GetComponent<InteractableCharge>();
-
+        
         // 🔋 Interactables with battery
         if (battery != null)
         {
@@ -94,6 +94,12 @@ public class Interactable : NetworkBehaviour
         if (allClientsAction != null)
         {
             allClientsAction.DoAllClientsAction();
+        }
+
+        var audioSource = GetComponent<AudioSource>();
+        if (audioSource != null)
+        {
+            audioSource.Play();
         }
     }
 

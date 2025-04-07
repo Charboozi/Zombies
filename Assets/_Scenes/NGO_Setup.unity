@@ -3145,7 +3145,6 @@ GameObject:
   - component: {fileID: 874721600}
   - component: {fileID: 874721599}
   - component: {fileID: 874721598}
-  - component: {fileID: 874721601}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -3240,24 +3239,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &874721601
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 874721597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa3dd3357d2b79749b65a927fea84d33, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spawnPoints:
-  - {fileID: 345338250}
-  - {fileID: 1591456587}
-  - {fileID: 1699790238}
-  - {fileID: 1508228229}
-  - {fileID: 959345990}
 --- !u!1 &897254704
 GameObject:
   m_ObjectHideFlags: 0

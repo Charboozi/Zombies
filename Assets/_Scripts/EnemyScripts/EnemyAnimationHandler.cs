@@ -4,6 +4,8 @@ public class EnemyAnimationHandler : MonoBehaviour
 {
     [SerializeField] private Animator animator;
 
+    public int numberOfRandomAnimations = 2;
+
     public void TriggerAttack() => animator.SetTrigger("Attack");
     public void PlayDeath() => animator.SetBool("isDead", true);
     public void SetCrawling(bool crawl) => animator.SetBool("isCrawling", crawl);
@@ -16,7 +18,7 @@ public class EnemyAnimationHandler : MonoBehaviour
 
     void SetRandomWalkIndex()
     {
-        int index = Random.Range(0, 3);
-        animator.SetInteger("walkIndex", index);
+        int index = Random.Range(0, numberOfRandomAnimations);
+        animator.SetFloat("randomIndex", index);
     }
 }
