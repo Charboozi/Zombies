@@ -1,14 +1,16 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Shows Player health on the healthbar
+/// </summary>
 public class PlayerHealthUI : MonoBehaviour
 {
-    private Slider healthBar; // Automatically assigned
+    private Slider healthBar;
     private EntityHealth playerHealth;
 
     void Awake()
     {
-        // Get the Slider component from the same GameObject
         healthBar = GetComponent<Slider>();
 
         if (healthBar == null)
@@ -16,19 +18,19 @@ public class PlayerHealthUI : MonoBehaviour
             Debug.LogError("Slider component missing from " + gameObject.name);
             return;
         }
+    }
 
-        // Find the local player (owner)
-        EntityHealth[] allEntities = FindObjectsByType<EntityHealth>(FindObjectsSortMode.None);
-        foreach (var entity in allEntities)
+    public void SetPlayer(EntityHealth player)
+    {
+        if (player == null)
         {
-            if (entity.IsOwner) // Only track local player's health
-            {
-                playerHealth = entity;
-                playerHealth.currentHealth.OnValueChanged += UpdateHealthUI;
-                UpdateHealthUI(0, playerHealth.currentHealth.Value); // Initial UI update
-                break;
-            }
+            Debug.LogError("PlayerHealthUI: Assigned player is null!");
+            return;
         }
+
+        playerHealth = player;
+        playerHealth.currentHealth.OnValueChanged += UpdateHealthUI;
+        UpdateHealthUI(0, playerHealth.currentHealth.Value);
     }
 
     private void UpdateHealthUI(int oldValue, int newValue)

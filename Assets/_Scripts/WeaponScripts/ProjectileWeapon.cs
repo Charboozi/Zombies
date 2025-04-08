@@ -28,9 +28,9 @@ public class ProjectileWeapon : WeaponBase
             }
 
             // Spawn an impact effect via the network spawner
-            if (networkImpactSpawner != null)
+            if (NetworkImpactSpawner.Instance != null)
             {
-                networkImpactSpawner.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
+                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
             }
         }
 

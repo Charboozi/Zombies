@@ -46,9 +46,9 @@ public class ShotgunWeapon : WeaponBase
                 entity.TakeDamageServerRpc(damage / pelletsPerShot); // Split damage across pellets
             }
 
-            if (networkImpactSpawner != null)
+            if (NetworkImpactSpawner.Instance != null)
             {
-                networkImpactSpawner.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
+                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
             }
         }
     }

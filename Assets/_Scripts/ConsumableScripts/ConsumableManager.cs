@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// Singleton to to call when adding and using consumables 
+/// </summary>
 [System.Serializable]
 public class ConsumableEvent : UnityEvent<string, int> {}
 

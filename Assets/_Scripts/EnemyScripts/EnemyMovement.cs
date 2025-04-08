@@ -13,9 +13,12 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     private Transform currentTarget;
     private float roamTimer;
 
+    private EnemyAnimationHandler animationHandler;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        animationHandler = GetComponent<EnemyAnimationHandler>();
     }
 
 
@@ -48,6 +51,8 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
             PickNewRoamDestination();
             roamTimer = roamDelay;
         }
+
+        UpdateMoveAnimation();
     }
 
     public void UpdateDestination()
@@ -63,6 +68,8 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
             PickNewRoamDestination();
             roamTimer = roamDelay;
         }
+
+        UpdateMoveAnimation();
     }
 
     public void SetTarget(Transform target)
@@ -82,6 +89,15 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
         if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, roamRadius, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
+        }
+    }
+    
+    private void UpdateMoveAnimation()
+    {
+        if (animationHandler != null)
+        {
+            float speed = agent.velocity.magnitude;
+            animationHandler.SetMoveSpeed(speed);
         }
     }
 }

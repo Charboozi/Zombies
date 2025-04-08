@@ -27,12 +27,10 @@ public abstract class WeaponBase : MonoBehaviour
     [SerializeField] private Color baseEmissionColor = new Color(0f, 255f / 255f, 255f / 255f);
 
     protected Camera playerCamera;
-    protected NetworkImpactSpawner networkImpactSpawner;
 
     protected virtual void Start()
     {
         playerCamera = Camera.main;
-        networkImpactSpawner = FindFirstObjectByType<NetworkImpactSpawner>();
         
         currentAmmo = maxAmmo;
 

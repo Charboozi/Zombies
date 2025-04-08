@@ -11,7 +11,7 @@ public class EquipmentInventory : MonoBehaviour
 
     public event Action<GameObject> OnEquipped;
 
-    public EquipmentUIManager uiManager;
+    public EquipmentUI uiManager;
 
     private void Awake()
     {

@@ -1,18 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EquipmentUIManager : MonoBehaviour
+/// <summary>
+/// Instantiates an equipment icon and assigns the correct sprite.
+/// </summary>
+public class EquipmentUI : MonoBehaviour
 {
-   
-    [Tooltip("Prefab for an equipment icon (a UI Image prefab)")]
-    public GameObject iconPrefab;
+    private GameObject iconPrefab;
+
+    private void Awake()
+    {
+        iconPrefab = Resources.Load<GameObject>("UI/IconPrefab");
+    }
 
     public void DisplayIcon(Sprite icon)
     {
-        if (iconPrefab == null|| icon == null)
+        if (iconPrefab == null || icon == null)
             return;
         
-        GameObject newIcon = Instantiate(iconPrefab, gameObject.transform);
+        GameObject newIcon = Instantiate(iconPrefab, transform);
         Image img = newIcon.GetComponent<Image>();
         if (img != null)
         {

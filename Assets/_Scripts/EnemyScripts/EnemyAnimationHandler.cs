@@ -21,4 +21,9 @@ public class EnemyAnimationHandler : MonoBehaviour
         int index = Random.Range(0, numberOfRandomAnimations);
         animator.SetFloat("randomIndex", index);
     }
+
+    public void SetMoveSpeed(float speed)
+    {
+        animator.SetFloat("moveSpeed", speed);
+    }
 }

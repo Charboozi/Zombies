@@ -1,16 +1,29 @@
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Update Consumable UI
+/// </summary>
 public class ConsumableUI : MonoBehaviour
 {
-    [SerializeField] private string consumableType;
-    [SerializeField] private ConsumableManager manager;
-    [SerializeField] private TextMeshProUGUI text;
+    [Tooltip("Type must match consumable pickup object!")]
+    [SerializeField] private string consumableType;   
+    
+    private TextMeshProUGUI text;
 
     private void Start()
     {
-        manager.OnConsumableChanged.AddListener(OnChanged);
-        UpdateUI(manager.Get(consumableType));
+        text = GetComponent<TextMeshProUGUI>();
+
+        if (ConsumableManager.Instance != null)
+        {
+            ConsumableManager.Instance.OnConsumableChanged.AddListener(OnChanged);
+            UpdateUI(ConsumableManager.Instance.Get(consumableType));
+        }
+        else
+        {
+            Debug.LogWarning("ConsumableManager instance is missing. ConsumableUI will not update.");
+        }
     }
 
     private void OnChanged(string type, int count)

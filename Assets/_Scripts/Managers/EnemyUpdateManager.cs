@@ -6,14 +6,22 @@ public class EnemyManager : MonoBehaviour
     public static EnemyManager Instance;
 
     [Header("Performance Settings")]
+
+    [Tooltip("How many enemies will be processed per frame for TickMovement (general movement updates). Higher means more responsive movement, lower means better performance.")]
     public int updatesPerFrame = 10;
-    public int destinationUpdatesPerFrame = 10; // NEW
+
+    [Tooltip("How many enemies will update their destination per frame. Higher makes pathing more responsive, lower reduces performance cost.")]
+    public int destinationUpdatesPerFrame = 10;
+
+    [Tooltip("Interval in seconds between destination updates. Lower values make enemies change paths more frequently, but increases CPU usage.")]
     public float destinationUpdateInterval = 0.2f;
 
     private List<IEnemyMovement> enemyMovements = new List<IEnemyMovement>();
     private int currentIndex = 0;
-    private int destinationUpdateIndex = 0; // NEW
+    private int destinationUpdateIndex = 0;
     private float destinationUpdateTimer = 0f;
+
+    private List<IEnemyMovement> pendingRemovals = new List<IEnemyMovement>();
 
     private void Awake()
     {
@@ -25,8 +33,6 @@ public class EnemyManager : MonoBehaviour
         if (!enemyMovements.Contains(enemy))
             enemyMovements.Add(enemy);
     }
-
-    private List<IEnemyMovement> pendingRemovals = new List<IEnemyMovement>();
 
     public void UnregisterEnemy(IEnemyMovement enemy)
     {
@@ -51,7 +57,7 @@ public class EnemyManager : MonoBehaviour
 
     private void Update()
     {
-        // Regular logic updates (TickMovement), already smooth ✅
+        // Regular movement updates
         int updatesThisFrame = Mathf.Min(updatesPerFrame, enemyMovements.Count);
 
         for (int i = 0; i < updatesThisFrame; i++)
@@ -64,7 +70,7 @@ public class EnemyManager : MonoBehaviour
             currentIndex = (currentIndex + 1) % enemyMovements.Count;
         }
 
-        // Destination update timer
+        // Destination updates (pathfinding)
         destinationUpdateTimer -= Time.deltaTime;
         if (destinationUpdateTimer <= 0f)
         {
@@ -80,7 +86,6 @@ public class EnemyManager : MonoBehaviour
                 destinationUpdateIndex = (destinationUpdateIndex + 1) % enemyMovements.Count;
             }
 
-            // Reset timer to next interval
             destinationUpdateTimer = destinationUpdateInterval;
         }
     }
