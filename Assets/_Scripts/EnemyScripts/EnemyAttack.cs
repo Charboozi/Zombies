@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Unity.Netcode;
 
-[RequireComponent(typeof(NavMeshAgent), typeof(EnemyAnimationHandler))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class EnemyAttack : NetworkBehaviour
 {
     [Header("Attack Settings")]
@@ -21,12 +21,12 @@ public class EnemyAttack : NetworkBehaviour
     private float cooldownTimer = 0f;
 
     private NavMeshAgent agent;
-    private EnemyAnimationHandler enemyAnimation;
+    private IEnemyAnimationHandler enemyAnimation;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        enemyAnimation = GetComponent<EnemyAnimationHandler>();
+        enemyAnimation = GetComponent<IEnemyAnimationHandler>() ?? NullEnemyAnimationHandler.Instance;
 
         audioSource = GetComponent<AudioSource>();
         randomSoundPlayer = GetComponent<RandomSoundPlayer>();
@@ -76,14 +76,24 @@ public class EnemyAttack : NetworkBehaviour
         if (agent.enabled)
             agent.isStopped = true;
 
-        // Play the attack animation on the server.
-        enemyAnimation.TriggerAttack();
-        // Sync the attack animation on clients.
-        PlayAttackAnimationClientRpc();
+        if (enemyAnimation.HasAttackAnimation)
+        {
+            // ✅ Play animation if available
+            enemyAnimation.TriggerAttack();
+            PlayAttackAnimationClientRpc();
 
-        // ⛑ Failsafe: ensure we resume movement even if animation event fails
-        CancelInvoke(nameof(OnAttackAnimationComplete)); // cancel if already pending
-        Invoke(nameof(OnAttackAnimationComplete), 2.5f); // fire after 2.5s if needed
+            // Failsafe: ensure we resume movement even if animation event fails
+            CancelInvoke(nameof(OnAttackAnimationComplete));
+            Invoke(nameof(OnAttackAnimationComplete), 2.5f); // Adjust this based on your animation length
+        }
+        else
+        {
+            // ✅ Fallback: attack directly at interval without animation
+            TryDoDamage(); // Immediately do damage
+
+            // Resume movement after cooldown
+            Invoke(nameof(OnAttackAnimationComplete), attackCooldown);
+        }
     }
 
     // This method is triggered by an animation event at the moment of impact.

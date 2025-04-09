@@ -17,7 +17,6 @@ GameObject:
   - component: {fileID: 3238762893385494189}
   - component: {fileID: 9209780019002954703}
   - component: {fileID: 272879090165997764}
-  - component: {fileID: 3568300219173223664}
   - component: {fileID: 1113827101455557938}
   - component: {fileID: 7771675281392896969}
   - component: {fileID: 3321399132803433900}
@@ -221,6 +220,7 @@ MonoBehaviour:
   cullDistance: 50
   monoBehavioursToDisable:
   - {fileID: 5973141481737700106}
+  - {fileID: 4476183246169368326}
   - {fileID: 3512709808135806563}
 --- !u!54 &5599449293474435032
 Rigidbody:
@@ -245,7 +245,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 2
@@ -269,7 +269,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 2.56
+  m_Height: 2.38
   m_Direction: 2
   m_Center: {x: 0, y: 1.45, z: 0}
 --- !u!195 &9209780019002954703
@@ -281,7 +281,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 7258956464550662980}
   m_Enabled: 1
   m_AgentTypeID: 1479372276
-  m_Radius: 0.8
+  m_Radius: 0.68
   m_Speed: 7
   m_Acceleration: 40
   avoidancePriority: 50
@@ -307,25 +307,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  detectionRange: 20
-  inRangeThreshold: 5
+  detectionRange: 10
+  inRangeThreshold: 3
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
---- !u!114 &3568300219173223664
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7258956464550662980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a17ddee1a884fb84db6e307245137660, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animator: {fileID: 1147593676904502055}
-  numberOfRandomAnimations: 2
 --- !u!114 &1113827101455557938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -339,9 +325,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  attackDamage: 20
+  attackDamage: 30
   attackCooldown: 1.2
-  attackRange: 5
+  attackRange: 3
   hitSound: {fileID: 0}
 --- !u!114 &7771675281392896969
 MonoBehaviour:
@@ -394,8 +380,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  spawnChance: 0.3
-  powerupLifetime: 10
+  spawnChance: 0.807
+  powerupLifetime: 20
 --- !u!114 &1564522451099145672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -409,8 +395,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  destroyDelay: 10
+  destroyDelay: 20
   animator: {fileID: 1147593676904502055}
+  scriptsToDisable:
+  - {fileID: 5973141481737700106}
+  - {fileID: 3512709808135806563}
+  - {fileID: 4476183246169368326}
   deathClips: []
 --- !u!114 &-1151094817036392357
 MonoBehaviour:
@@ -481,8 +471,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  roamRadius: 100
-  roamDelay: 3
+  roamRadius: 3
+  roamDelay: 15
 --- !u!82 &3946328567269968560
 AudioSource:
   m_ObjectHideFlags: 0
@@ -730,11 +720,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.45
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalRotation.w
@@ -742,15 +732,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.000000044723333
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3703156950079139750, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -913,9 +903,29 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7993156363193574806, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993156363193574806, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: d0791f623c27b1f4385b6519c92e3fde, type: 2}
+    - target: {fileID: 7993156363193574806, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
+      propertyPath: m_UpdateMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993156363193574806, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
+      propertyPath: m_CullingMode
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993156363193574806, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
+      propertyPath: m_AnimatePhysics
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993156363193574806, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8209405721795515452, guid: 3ecef98c30b1448fdb2e29a3430f5d17, type: 3}
       propertyPath: m_Layer
       value: 8

@@ -13,12 +13,12 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     private Transform currentTarget;
     private float roamTimer;
 
-    private EnemyAnimationHandler animationHandler;
+    private IEnemyAnimationHandler enemyAnimation;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        animationHandler = GetComponent<EnemyAnimationHandler>();
+        enemyAnimation = GetComponent<IEnemyAnimationHandler>() ?? NullEnemyAnimationHandler.Instance;
     }
 
 
@@ -57,7 +57,7 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
 
     public void UpdateDestination()
     {
-        if (!IsServer || !agent.enabled) return;
+        if (!IsServer || agent == null || !agent.isActiveAndEnabled) return;
 
         if (currentTarget != null)
         {
@@ -94,10 +94,7 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     
     private void UpdateMoveAnimation()
     {
-        if (animationHandler != null)
-        {
-            float speed = agent.velocity.magnitude;
-            animationHandler.SetMoveSpeed(speed);
-        }
+        float speed = agent.velocity.magnitude;
+        enemyAnimation.SetMoveSpeed(speed);
     }
 }

@@ -659,7 +659,7 @@ GameObject:
   m_Layer: 8
   m_Name: Enemy
   m_TagString: Enemy
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 3936346786652291628, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -923,10 +923,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 100
+  maxHealth: 120
   armor: 0
   currentHealth:
-    m_InternalValue: 100
+    m_InternalValue: 120
   enableRegeneration: 0
   regenAmount: 2
   regenInterval: 2
@@ -989,9 +989,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  attackDamage: 10
+  attackDamage: 17
   attackCooldown: 1.2
-  attackRange: 2
+  attackRange: 1.5
   hitSound: {fileID: 8300000, guid: c804233a555acab468b4e8bb581fd319, type: 3}
 --- !u!114 &4308550124934727242
 MonoBehaviour:
@@ -1042,6 +1042,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 8681897807220252526}
+  keepAnimatorAlwaysEnabled: 1
+  numberOfRandomAnimations: 2
 --- !u!114 &-2201545359673580460
 MonoBehaviour:
   m_ObjectHideFlags: 0

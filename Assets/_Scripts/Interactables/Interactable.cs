@@ -7,6 +7,9 @@ public class Interactable : NetworkBehaviour
     [SerializeField] private float cooldownDuration = 5f;
     [SerializeField] private string interactText = "Use Terminal";
 
+    [Header("Blackout Settings")]
+    [SerializeField, Range(0f, 1f)] private float blackoutChanceOnUse = 0.02f; // 2% chance
+
     public NetworkVariable<bool> isCoolingDown = new NetworkVariable<bool>(false);
 
     public string GetInteractText()
@@ -34,18 +37,6 @@ public class Interactable : NetworkBehaviour
 
                 Debug.Log("🔓 Used keycard to override battery lock.");
             }
-        }
-        else
-        {
-            // 🚪 Interactables without battery: always require keycard
-            var manager = ConsumableManager.Instance;
-            if (manager == null || !manager.Use("Keycard"))
-            {
-                Debug.Log("🔐 This object requires a keycard to interact.");
-                return;
-            }
-
-            Debug.Log("🔓 Used keycard to access secured object.");
         }
 
         // 👇 Special case: if the object wants to run client-side logic only on local client
@@ -76,9 +67,30 @@ public class Interactable : NetworkBehaviour
             action.DoAction(); // already server-side
         }
 
+        TryTriggerBlackout();
+
+        PlayInteractionSoundClientRpc();
+
         // Start server-side cooldown
         isCoolingDown.Value = true;
         StartCoroutine(CooldownRoutine());
+    }
+
+    private void TryTriggerBlackout()
+    {
+        if (Random.value <= blackoutChanceOnUse)
+        {
+            Debug.Log("⚡ Random blackout triggered by interactable use!");
+
+            if (LightmapSwitcher.Instance != null)
+            {
+                LightmapSwitcher.Instance.RequestBlackout();
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ LightmapSwitcher not found in scene.");
+            }
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -95,17 +107,21 @@ public class Interactable : NetworkBehaviour
         {
             allClientsAction.DoAllClientsAction();
         }
-
-        var audioSource = GetComponent<AudioSource>();
-        if (audioSource != null)
-        {
-            audioSource.Play();
-        }
     }
 
     private IEnumerator CooldownRoutine()
     {
         yield return new WaitForSeconds(cooldownDuration);
         isCoolingDown.Value = false;
+    }
+
+    [ClientRpc]
+    private void PlayInteractionSoundClientRpc()
+    {
+        var audioSource = GetComponent<AudioSource>();
+        if (audioSource != null)
+        {
+            audioSource.Play();
+        }
     }
 }

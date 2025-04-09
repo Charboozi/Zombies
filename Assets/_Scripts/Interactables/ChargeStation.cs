@@ -9,17 +9,33 @@ public class ChargeStation : NetworkBehaviour, IInteractableAction, IBroadcastCl
     {
         if (!IsServer) return;
 
-        foreach (var chargeComponent in FindObjectsByType<InteractableCharge>(FindObjectsSortMode.None))
+        if (InteractableChargeManager.Instance != null)
         {
-            chargeComponent.FullyRecharge();
+            InteractableChargeManager.Instance.FullyRechargeAll();
+            Debug.Log("🔋 ChargeStation recharged all interactables (synced to everyone).");
         }
-
-        Debug.Log("🔋 ChargeStation recharged all interactables (synced to everyone).");
+        else
+        {
+            Debug.LogWarning("⚠️ No InteractableChargeManager found in the scene.");
+        }
+        
+        if (LightmapSwitcher.Instance != null)
+        {
+            LightmapSwitcher.Instance.RequestLightsOn();
+            Debug.Log("💡 Lights restored by ChargeStation.");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No LightmapSwitcher found in the scene.");
+        }
     }
+
     public void DoAllClientsAction()
     {
         if (chargeEffect != null)
-        chargeEffect.Play();
-        FlashEffect.Instance.TriggerFlash();
+            chargeEffect.Play();
+
+        if (FlashEffect.Instance != null)
+            FlashEffect.Instance.TriggerFlash();
     }
 }

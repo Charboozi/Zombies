@@ -70,6 +70,14 @@ public class InteractableCharge : NetworkBehaviour, IInteractableAction
         Debug.Log($"{gameObject.name} fully recharged.");
     }
 
+    public void FullyDischarge()
+    {
+        if (!IsServer) return;
+
+        currentCharge.Value = 0;
+        Debug.Log($"{gameObject.name} fully discharged.");
+    }
+
     private void UpdateLight()
     {
         if (lightMatInstance != null)

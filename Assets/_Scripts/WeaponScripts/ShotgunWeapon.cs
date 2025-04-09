@@ -43,12 +43,21 @@ public class ShotgunWeapon : WeaponBase
             EntityHealth entity = hit.collider.GetComponent<EntityHealth>();
             if (entity != null)
             {
-                entity.TakeDamageServerRpc(damage / pelletsPerShot); // Split damage across pellets
-            }
+                entity.TakeDamageServerRpc(damage / pelletsPerShot);
 
-            if (NetworkImpactSpawner.Instance != null)
+                // Spawn blood effect
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                }
+            }
+            else
             {
-                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
+                // Spawn regular impact effect
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
+                }
             }
         }
     }

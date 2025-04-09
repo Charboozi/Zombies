@@ -12,9 +12,7 @@ public class ProjectileWeapon : WeaponBase
         if (!CanShoot())
             return;
 
-        // Deduct ammo and perform a raycast to simulate shooting
         currentAmmo--;
-
         UpdateEmissionIntensity();
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
@@ -25,19 +23,27 @@ public class ProjectileWeapon : WeaponBase
             if (entity != null)
             {
                 entity.TakeDamageServerRpc(damage);
-            }
 
-            // Spawn an impact effect via the network spawner
-            if (NetworkImpactSpawner.Instance != null)
+                // Blood effect on entity hit
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                }
+            }
+            else
             {
-                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
+                // Regular impact effect
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
+                }
             }
         }
 
-        // Play muzzle flash effect
         if (muzzleFlash != null)
         {
             muzzleFlash.Play();
         }
     }
+
 }

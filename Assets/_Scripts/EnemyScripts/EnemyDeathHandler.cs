@@ -5,7 +5,6 @@ using UnityEngine.AI;
 using System;
 
 [RequireComponent(typeof(NavMeshAgent), typeof(CapsuleCollider), typeof(PowerupSpawner))]
-[RequireComponent(typeof(EnemyAnimationHandler))]
 public class EnemyDeathHandler : NetworkBehaviour, IKillable
 {
     [Header("Death Settings")]
@@ -13,10 +12,13 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
 
     [SerializeField]private Animator animator;
 
+    [Header("Scripts to Disable on Death")]
+    [SerializeField] private MonoBehaviour[] scriptsToDisable;
+
     private NavMeshAgent agent;
     private CapsuleCollider capsule;
     private PowerupSpawner powerupSpawner;
-    private EnemyAnimationHandler enemyAnimation;
+    private IEnemyAnimationHandler enemyAnimation;
 
     public AudioClip[] deathClips; // Assign in Inspector
     private AudioSource audioSource;
@@ -32,7 +34,8 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         agent = GetComponent<NavMeshAgent>();
         capsule = GetComponent<CapsuleCollider>();
         powerupSpawner = GetComponent<PowerupSpawner>();
-        enemyAnimation = GetComponent<EnemyAnimationHandler>();
+
+        enemyAnimation = GetComponent<IEnemyAnimationHandler>() ?? NullEnemyAnimationHandler.Instance;
 
         audioSource = GetComponent<AudioSource>();
         randomSoundPlayer = GetComponent<RandomSoundPlayer>();
@@ -48,6 +51,8 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         agent.enabled = false;
         capsule.enabled = false;
 
+        DisableScripts();
+
         enemyAnimation.PlayDeath();
         randomSoundPlayer?.StopSounds();
 
@@ -62,6 +67,17 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         StopAllCoroutines();
         StartCoroutine(DestroyAfterDelay());
         OnEnemyDeath?.Invoke();
+    }
+
+    private void DisableScripts()
+    {
+        foreach (var script in scriptsToDisable)
+        {
+            if (script != null)
+            {
+                script.enabled = false;
+            }
+        }
     }
 
     [ClientRpc]
