@@ -1,7 +1,8 @@
 using UnityEngine;
+using Unity.Netcode;
 using System;
 
-public class DayManager : MonoBehaviour
+public class DayManager : NetworkBehaviour
 {
     public static DayManager Instance { get; private set; }
 
@@ -9,7 +10,9 @@ public class DayManager : MonoBehaviour
     [Tooltip("Length of a full day in seconds, Example: 2 minutes = 1 day")]
     [SerializeField] private float dayLengthInSeconds = 120f;
 
-    public float CurrentTime { get; private set; } // Current time in seconds
+    private NetworkVariable<float> currentTime = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    public float CurrentTime => currentTime.Value; // Read-only for clients
     public float CurrentDay => CurrentTime / dayLengthInSeconds;
     public int CurrentDayInt => Mathf.FloorToInt(CurrentDay);
 
@@ -30,7 +33,9 @@ public class DayManager : MonoBehaviour
 
     private void Update()
     {
-        CurrentTime += Time.deltaTime;
+        if (!IsServer) return; // Only the server updates time
+
+        currentTime.Value += Time.deltaTime;
 
         int day = Mathf.FloorToInt(CurrentDay);
         if (day != lastDayChecked)
@@ -38,6 +43,27 @@ public class DayManager : MonoBehaviour
             lastDayChecked = day;
             OnNewDayStarted?.Invoke(day);
             Debug.Log($"🌞 New day: {day}");
+        }
+    }
+
+    private void OnEnable()
+    {
+        currentTime.OnValueChanged += OnTimeChanged;
+    }
+
+    private void OnDisable()
+    {
+        currentTime.OnValueChanged -= OnTimeChanged;
+    }
+
+    private void OnTimeChanged(float oldValue, float newValue)
+    {
+        int day = Mathf.FloorToInt(newValue / dayLengthInSeconds);
+        if (day != lastDayChecked)
+        {
+            lastDayChecked = day;
+            OnNewDayStarted?.Invoke(day);
+            Debug.Log($"🌞 (Client) New day: {day}");
         }
     }
 

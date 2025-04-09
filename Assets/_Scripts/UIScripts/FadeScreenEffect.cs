@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// Show a fade scren effect. e.g healing it shows green and then fades
+/// Show a fade screen effect. e.g. healing shows green, damage red, downed dark, etc.
 /// </summary>
 public class FadeScreenEffect : MonoBehaviour
 {
@@ -12,7 +12,7 @@ public class FadeScreenEffect : MonoBehaviour
     private Image screenImage;
     private Coroutine currentFadeCoroutine;
 
-    void Awake()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -26,7 +26,7 @@ public class FadeScreenEffect : MonoBehaviour
     }
 
     /// <summary>
-    /// Show a screen tint effect using the specified color, alpha, and fade speed. Called when need effect
+    /// Show a screen tint effect using the specified color, alpha, and fade speed. Called for damage, healing, etc.
     /// </summary>
     public void ShowEffect(Color effectColor, float initialAlpha = 0.5f, float fadeSpeed = 2f)
     {
@@ -45,7 +45,7 @@ public class FadeScreenEffect : MonoBehaviour
         while (alpha > 0f)
         {
             alpha -= Time.deltaTime * fadeSpeed;
-            color.a = alpha;
+            color.a = Mathf.Clamp01(alpha);
             screenImage.color = color;
             yield return null;
         }
@@ -55,29 +55,58 @@ public class FadeScreenEffect : MonoBehaviour
     }
 
     /// <summary>
-    /// Fades the screen to black permanently (used for death TEMPORARY BEFORE DOWNED EFFECT, WILL GET REMOVED).
+    /// Fades the screen to semi-transparent black for downed state.
     /// </summary>
-    public void ShowDeathEffect()
+    public void ShowDownedEffect()
     {
         if (currentFadeCoroutine != null)
             StopCoroutine(currentFadeCoroutine);
 
-        currentFadeCoroutine = StartCoroutine(FadeToBlackEffect());
+        currentFadeCoroutine = StartCoroutine(FadeToSemiBlackEffect());
     }
 
-    private IEnumerator FadeToBlackEffect()
+    private IEnumerator FadeToSemiBlackEffect()
     {
-        float alpha = 0f;
-        Color blackColor = new Color(0, 0, 0, 0);
-        screenImage.color = blackColor;
+        float alpha = screenImage.color.a;
+        Color targetColor = new Color(0, 0, 0, 0.7f); // 70% black
 
-        while (alpha < 1f)
+        while (alpha < targetColor.a)
         {
-            alpha += Time.deltaTime * 0.5f;
+            alpha += Time.deltaTime * 1f; // Speed of fade in
+            alpha = Mathf.Clamp(alpha, 0, targetColor.a);
             screenImage.color = new Color(0, 0, 0, alpha);
             yield return null;
         }
 
-        screenImage.color = new Color(0, 0, 0, 1f);
+        screenImage.color = targetColor;
+        currentFadeCoroutine = null;
+    }
+
+    /// <summary>
+    /// Fades the screen back to clear after being revived.
+    /// </summary>
+    public void ShowReviveEffect()
+    {
+        if (currentFadeCoroutine != null)
+            StopCoroutine(currentFadeCoroutine);
+
+        currentFadeCoroutine = StartCoroutine(FadeFromBlackEffect());
+    }
+
+    private IEnumerator FadeFromBlackEffect()
+    {
+        float alpha = screenImage.color.a;
+        Color color = screenImage.color;
+
+        while (alpha > 0f)
+        {
+            alpha -= Time.deltaTime * 1.5f; // Speed of fade out
+            alpha = Mathf.Clamp01(alpha);
+            screenImage.color = new Color(color.r, color.g, color.b, alpha);
+            yield return null;
+        }
+
+        screenImage.color = new Color(0, 0, 0, 0);
+        currentFadeCoroutine = null;
     }
 }

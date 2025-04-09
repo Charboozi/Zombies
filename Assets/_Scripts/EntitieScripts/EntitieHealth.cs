@@ -9,6 +9,8 @@ public class EntityHealth : NetworkBehaviour
     public int armor = 0;
     public NetworkVariable<int> currentHealth = new NetworkVariable<int>(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    public NetworkVariable<bool> isDowned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     [Header("Regeneration Settings")]
     public bool enableRegeneration = true; // Toggle regeneration on/off
     public int regenAmount = 2; // Health regained per tick
@@ -21,6 +23,7 @@ public class EntityHealth : NetworkBehaviour
         if (IsServer) // Only the server sets up health
         {
             currentHealth.Value = maxHealth;
+            isDowned.Value = false;
         }
     }
 
@@ -29,6 +32,7 @@ public class EntityHealth : NetworkBehaviour
     public void TakeDamageServerRpc(int damage)
     {
         if (currentHealth.Value <= 0) return; // Already dead
+
         int effectiveDamage = damage - armor;
         if (effectiveDamage < 1)
             effectiveDamage = 1;
@@ -38,11 +42,26 @@ public class EntityHealth : NetworkBehaviour
         currentHealth.Value -= effectiveDamage;
         Debug.Log($"{gameObject.name} took {damage} damage! Health: {currentHealth.Value}");
 
+        // If health reaches 0, determine whether to down or die.
         if (currentHealth.Value <= 0)
         {
-            DieClientRpc();
+            if (gameObject.CompareTag("Player"))
+            {
+                // Set player to downed state (only if not already downed).
+                if (!isDowned.Value)
+                {
+                    isDowned.Value = true;
+                    DownedClientRpc();
+                }
+            }
+            else
+            {
+                DieClientRpc();
+            }
         }
+
         RestartHealthRegen();
+
         if(gameObject.tag == "Player")
         {
             ApplySlowEffectClientRpc(0.3f, 2f);
@@ -61,7 +80,7 @@ public class EntityHealth : NetworkBehaviour
 
     private void StartHealthRegen()
     {
-        if (IsServer && enableRegeneration && gameObject.tag != "Enemy")
+        if (IsServer && enableRegeneration && gameObject.tag != "Enemy" && !isDowned.Value)
         {
             if (regenCoroutine == null) // Ensure we don't start multiple coroutines
             {
@@ -90,10 +109,10 @@ public class EntityHealth : NetworkBehaviour
             if (currentHealth.Value < maxHealth)
             {
                 currentHealth.Value += regenAmount;
-                if (currentHealth.Value > maxHealth) currentHealth.Value = maxHealth; // Prevent over-healing
+                if (currentHealth.Value > maxHealth) 
+                currentHealth.Value = maxHealth; // Prevent over-healing
             }
         }
-
         regenCoroutine = null; // Stop coroutine when full health is reached
     }
 
@@ -102,11 +121,6 @@ public class EntityHealth : NetworkBehaviour
     private void DieClientRpc()
     {
         Debug.Log($"{gameObject.name} has died!");
-        if(IsOwner && gameObject.tag == "Player")
-        {
-            FadeScreenEffect.Instance.ShowDeathEffect();
-            RequestDespawnServerRpc();
-        }
 
         if(TryGetComponent<IKillable>(out var killable))
         {
@@ -114,13 +128,16 @@ public class EntityHealth : NetworkBehaviour
         }
     }
 
-    //Temporary death for player
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestDespawnServerRpc()
+    
+    // ClientRpc to show the downed state for players.
+    [ClientRpc]
+    private void DownedClientRpc()
     {
-        if (IsServer)
+        Debug.Log($"{gameObject.name} is downed!");
+        if (IsOwner && gameObject.CompareTag("Player"))
         {
-            GetComponent<NetworkObject>().Despawn(true); // Despawn the player for all clients
+            // Replace this with your downed animation or visual effect.
+            FadeScreenEffect.Instance.ShowDownedEffect(); 
         }
     }
 
@@ -151,10 +168,30 @@ public class EntityHealth : NetworkBehaviour
         }
     }
 
+    // Call this method from your revival system to heal and re-enable the player.
     public void FullHeal()
     {
-        currentHealth.Value = maxHealth;
-        Debug.Log($"{gameObject.name}: Fully healed to {maxHealth}.");
+        if (gameObject.CompareTag("Player"))
+        {
+            currentHealth.Value = maxHealth;
+            isDowned.Value = false; // Revive the player
+            PlayReviveEffectClientRpc();
+            Debug.Log($"{gameObject.name}: Fully healed to {maxHealth} and revived.");
+        }
+        else
+        {
+            currentHealth.Value = maxHealth;
+            Debug.Log($"{gameObject.name}: Fully healed to {maxHealth}.");
+        }
+    }
+
+    [ClientRpc]
+    private void PlayReviveEffectClientRpc()
+    {
+        if (IsOwner && gameObject.CompareTag("Player"))
+        {
+            FadeScreenEffect.Instance.ShowReviveEffect();
+        }
     }
 
 }

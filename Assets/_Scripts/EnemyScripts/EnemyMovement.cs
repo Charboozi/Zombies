@@ -13,6 +13,8 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     private Transform currentTarget;
     private float roamTimer;
 
+    private NetworkVariable<float> syncedSpeed = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     private IEnemyAnimationHandler enemyAnimation;
 
     private void Awake()
@@ -21,6 +23,18 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
         enemyAnimation = GetComponent<IEnemyAnimationHandler>() ?? NullEnemyAnimationHandler.Instance;
     }
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsClient)
+        {
+            syncedSpeed.OnValueChanged += OnSpeedChanged;
+        }
+    }
+
+    private void OnSpeedChanged(float oldSpeed, float newSpeed)
+    {
+        enemyAnimation.SetMoveSpeed(newSpeed);
+    }
 
     private void Start()
     {
@@ -34,6 +48,11 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
 
     public override void OnDestroy()
     {
+        if (IsClient && syncedSpeed != null)
+        {
+            syncedSpeed.OnValueChanged -= OnSpeedChanged;
+        }
+
         if (EnemyManager.Instance != null)
         {
             EnemyManager.Instance.UnregisterEnemy(this);
@@ -95,6 +114,6 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     private void UpdateMoveAnimation()
     {
         float speed = agent.velocity.magnitude;
-        enemyAnimation.SetMoveSpeed(speed);
+        syncedSpeed.Value = speed; 
     }
 }

@@ -54,7 +54,18 @@ public class TargetScanner : NetworkBehaviour
         float closestDist = Mathf.Infinity;
 
         foreach (var candidate in targets)
-        {
+        {        
+            // Check if the candidate has EntityHealth and is not downed
+            if (candidate.TryGetComponent<EntityHealth>(out var entityHealth))
+            {
+                if (entityHealth.isDowned.Value)
+                    continue; // Skip downed targets
+            }
+            else
+            {
+                continue; // Skip if no EntityHealth (optional safety)
+            }
+            
             float dist = Vector3.Distance(transform.position, candidate.transform.position);
             if (dist < closestDist)
             {

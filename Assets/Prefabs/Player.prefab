@@ -125307,6 +125307,8 @@ GameObject:
   - component: {fileID: 2237540359678880329}
   - component: {fileID: 6192483702680877018}
   - component: {fileID: -6056153841159724490}
+  - component: {fileID: 5644290074567251564}
+  - component: {fileID: -5885933133328406950}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -125540,6 +125542,8 @@ MonoBehaviour:
   armor: 0
   currentHealth:
     m_InternalValue: 100
+  isDowned:
+    m_InternalValue: 0
   enableRegeneration: 1
   regenAmount: 1
   regenInterval: 3
@@ -125641,6 +125645,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &5644290074567251564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8174947123595278457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10cf8807337fbe14581460418cc3146b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  animator: {fileID: 1461661257957880316}
+--- !u!114 &-5885933133328406950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8174947123595278457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae8a27b7e0b6f094a9ca0bec85402efa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  reviveTime: 3
+  reviveRange: 2
 --- !u!1 &8194831976378829552
 GameObject:
   m_ObjectHideFlags: 0

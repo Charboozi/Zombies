@@ -10,10 +10,10 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     public float jumpForce = 2.0f;
     public float gravity = 9.8f;
     public float groundCheckRadius = 0.3f;
-    public float lerpRate = 10f; // Interpolation for remote players
+    public float lerpRate = 10f;
 
     [Header("Ground Check Settings")]
-    public LayerMask groundLayer; // Assign in Inspector to detect ground
+    public LayerMask groundLayer;
 
     private CharacterController controller;
     private Vector3 velocity;
@@ -23,14 +23,17 @@ public class NetworkedCharacterMovement : NetworkBehaviour
 
     private float originalMoveSpeed;
     private Coroutine slowCoroutine;
-    
+
+    private EntityHealth entityHealth;
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        entityHealth = GetComponent<EntityHealth>();
 
         if (IsOwner)
         {
-            velocity = Vector3.zero; // Reset velocity
+            velocity = Vector3.zero;
         }
 
         originalMoveSpeed = moveSpeed;
@@ -38,24 +41,27 @@ public class NetworkedCharacterMovement : NetworkBehaviour
 
     void Update()
     {
-        if (IsOwner)
+        if (!IsOwner) return;
+
+        if (entityHealth != null && entityHealth.isDowned.Value)
         {
-            CheckGrounded(); // **Better ground detection**
-            ProcessMovement();
-            ProcessJump();
+            // Player is downed, disable movement.
+            return;
         }
+
+        CheckGrounded();
+        ProcessMovement();
+        ProcessJump();
     }
 
     private void ProcessMovement()
     {
-        // Get input
-        float moveX = Input.GetAxisRaw("Horizontal"); // A/D or Left/Right
-        float moveZ = Input.GetAxisRaw("Vertical");   // W/S or Up/Down
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveZ = Input.GetAxisRaw("Vertical");
 
-        // Move relative to player rotation
         Vector3 moveDir = (transform.forward * moveZ + transform.right * moveX).normalized;
 
-        if (moveDir.sqrMagnitude > 0.01f) // Prevent small unnecessary movements
+        if (moveDir.sqrMagnitude > 0.01f)
         {
             controller.Move(moveDir * moveSpeed * Time.deltaTime);
         }
@@ -65,16 +71,13 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     {
         bool jumpPressed = Input.GetKeyDown(KeyCode.Space);
 
-        if (isGrounded)
+        if (isGrounded && jumpPressed)
         {
-            if (jumpPressed)
-            {
-                velocity.y = Mathf.Sqrt(jumpForce * 2f * gravity);
-            }
+            velocity.y = Mathf.Sqrt(jumpForce * 2f * gravity);
         }
         else
         {
-            velocity.y -= gravity * Time.deltaTime; // Apply gravity
+            velocity.y -= gravity * Time.deltaTime;
         }
 
         controller.Move(velocity * Time.deltaTime);

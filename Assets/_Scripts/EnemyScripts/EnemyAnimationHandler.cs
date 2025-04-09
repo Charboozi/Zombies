@@ -7,17 +7,9 @@ public class EnemyAnimationHandler : MonoBehaviour, IEnemyAnimationHandler
     public bool HasAttackAnimation => true;
     public int numberOfRandomAnimations = 2;
 
-    private Transform[] bones;
-
     private void Awake()
     {
         SetRandomWalkIndex();
-    }
-
-    private void CacheBones()
-    {
-        // Cache all child transforms to restore positions
-        bones = GetComponentsInChildren<Transform>();
     }
 
     public void TriggerAttack()
