@@ -17,6 +17,8 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
 
     private IEnemyAnimationHandler enemyAnimation;
 
+    private bool isWaitingToRoam = false;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -63,16 +65,36 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     {
         if (!IsServer || agent == null || !agent.isActiveAndEnabled) return;
 
-        roamTimer -= Time.deltaTime;
-
-        if (currentTarget == null && (roamTimer <= 0f || agent.remainingDistance < 1f))
+        if (currentTarget != null)
         {
-            PickNewRoamDestination();
+            agent.SetDestination(currentTarget.position); // ✅ Explicit chase
+            UpdateMoveAnimation();
+            return;
+        }
+
+        HandleRoaming();
+        UpdateMoveAnimation();
+    }
+
+    private void HandleRoaming()
+    {
+        if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance && !isWaitingToRoam)
+        {
+            isWaitingToRoam = true;
             roamTimer = roamDelay;
         }
 
-        UpdateMoveAnimation();
+        if (isWaitingToRoam)
+        {
+            roamTimer -= Time.deltaTime;
+            if (roamTimer <= 0f)
+            {
+                PickNewRoamDestination();
+                isWaitingToRoam = false;
+            }
+        }
     }
+
 
     public void UpdateDestination()
     {
@@ -115,5 +137,10 @@ public class EnemyMovement : NetworkBehaviour, IEnemyMovement
     {
         float speed = agent.velocity.magnitude;
         syncedSpeed.Value = speed; 
+    }
+
+    public float GetSyncedSpeed()
+    {
+        return syncedSpeed.Value;
     }
 }

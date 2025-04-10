@@ -4,11 +4,13 @@ using System.Collections;
 public class ContinuousFireWeapon : WeaponBase
 {
     [Header("Continuous Fire Settings")]
+    [SerializeField] private float initialFireDelay = 0.3f;
     public float damageInterval = 0.1f; // Time between damage ticks
     public float splashRadius = 2f;     // Radius of splash damage
 
     private bool isFiring = false;
     private Coroutine fireCoroutine;
+    
 
     protected override void Start()
     {
@@ -63,13 +65,15 @@ public class ContinuousFireWeapon : WeaponBase
 
     private IEnumerator FireContinuously()
     {
-        // Continue firing while the fire button is held and ammo remains.
+        yield return new WaitForSeconds(initialFireDelay);
+
         while (isFiring && currentAmmo > 0 && CanShoot())
         {
             Shoot();
             yield return new WaitForSeconds(damageInterval);
         }
-        StopFiring(); // Automatically stop firing if out of ammo.
+
+        StopFiring();
     }
 
     public override void Shoot()

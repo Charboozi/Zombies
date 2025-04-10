@@ -25,6 +25,10 @@ public class LightmapSwitcher : NetworkBehaviour
     private LightmapData[] lightsOnLightmaps;
     private LightmapData[] blackoutLightmaps;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip blackoutSound;
+    private AudioSource audioSource;
+
     private void Awake()
     {
         // Singleton setup
@@ -34,6 +38,8 @@ public class LightmapSwitcher : NetworkBehaviour
             return;
         }
         Instance = this;
+
+        audioSource = GetComponent<AudioSource>();
 
         PrepareLightmaps();
     }
@@ -139,6 +145,8 @@ public class LightmapSwitcher : NetworkBehaviour
             InteractableChargeManager.Instance.FullyDischargeAll();
         }
 
+        PlaySound(blackoutSound);
+
         Debug.Log("🕶️ Blackout applied.");
     }
 
@@ -178,4 +186,13 @@ public class LightmapSwitcher : NetworkBehaviour
     {
         LightmapSettings.lightProbes = probes;
     }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
 }

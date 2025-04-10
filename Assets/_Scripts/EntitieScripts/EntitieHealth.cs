@@ -16,8 +16,12 @@ public class EntityHealth : NetworkBehaviour
     public int regenAmount = 2; // Health regained per tick
     public float regenInterval = 2f; // Time between each regeneration tick
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip damageSound;
+    [SerializeField] private AudioSource audioSource;
+
     private Coroutine regenCoroutine; // Store coroutine to avoid duplicates
-    
+
     public override void OnNetworkSpawn()
     {
         if (IsServer) // Only the server sets up health
@@ -75,6 +79,10 @@ public class EntityHealth : NetworkBehaviour
         if(IsOwner && gameObject.tag != "Enemy")
         {
             FadeScreenEffect.Instance.ShowEffect(Color.red, 0.5f, 2f);
+            if (damageSound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(damageSound);
+            }
         }
     }
 

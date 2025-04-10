@@ -23,6 +23,8 @@ public class EnemyAttack : NetworkBehaviour
     private NavMeshAgent agent;
     private IEnemyAnimationHandler enemyAnimation;
 
+    private bool isDead = false;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -30,6 +32,17 @@ public class EnemyAttack : NetworkBehaviour
 
         audioSource = GetComponent<AudioSource>();
         randomSoundPlayer = GetComponent<RandomSoundPlayer>();
+
+        if (TryGetComponent(out EnemyDeathHandler deathHandler))
+        {
+            deathHandler.OnEnemyDeath += HandleDeath;
+        }
+    }
+
+    private void HandleDeath()
+    {
+        isDead = true;
+        StopAttack();
     }
 
     // Called by TargetScanner when a target is acquired or remains in range.
@@ -41,8 +54,8 @@ public class EnemyAttack : NetworkBehaviour
     // Called when the target is confirmed to be in attack range.
     public void TargetInRange()
     {
-        // Only try to start an attack if we're not already attacking,
-        // a target exists, and the cooldown has expired.
+        if (isDead) return;
+
         if (!isAttacking && target != null && cooldownTimer <= 0f)
         {
             StartAttack();

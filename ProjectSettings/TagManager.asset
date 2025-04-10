@@ -11,6 +11,7 @@ TagManager:
   - PW - Prop
   - PW - Nature
   - StartPosition
+  - Lift
   layers:
   - Default
   - TransparentFX
@@ -24,7 +25,7 @@ TagManager:
   - Interactable
   - Equipment
   - Ceiling
-  - 
+  - Bilboard
   - 
   - 
   - 

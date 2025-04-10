@@ -24,6 +24,12 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     private float originalMoveSpeed;
     private Coroutine slowCoroutine;
 
+    private Transform currentLift;
+    private Vector3 lastLiftPosition;
+
+
+    public Vector3 MovementVelocity { get; private set; }
+
     private EntityHealth entityHealth;
 
     void Start()
@@ -43,6 +49,14 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        if (currentLift != null)
+        {
+            Vector3 liftDelta = currentLift.position - lastLiftPosition;
+            controller.Move(liftDelta); // ✅ Apply platform movement
+
+            lastLiftPosition = currentLift.position;
+        }
+
         if (entityHealth != null && entityHealth.isDowned.Value)
         {
             // Player is downed, disable movement.
@@ -60,6 +74,8 @@ public class NetworkedCharacterMovement : NetworkBehaviour
         float moveZ = Input.GetAxisRaw("Vertical");
 
         Vector3 moveDir = (transform.forward * moveZ + transform.right * moveX).normalized;
+
+        MovementVelocity = moveDir * moveSpeed;
 
         if (moveDir.sqrMagnitude > 0.01f)
         {
@@ -103,4 +119,21 @@ public class NetworkedCharacterMovement : NetworkBehaviour
         yield return new WaitForSeconds(duration);
         moveSpeed = originalMoveSpeed;
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Lift")) // Make sure your lift platform has the "Lift" tag
+        {
+            currentLift = other.transform;
+            lastLiftPosition = currentLift.position;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Lift"))
+        {
+            currentLift = null;
+        }
+    }
+
 }

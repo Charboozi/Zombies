@@ -17,6 +17,9 @@ public class SlidingDoor : NetworkBehaviour, IInteractableAction
     [SerializeField] private float slideDuration = 0.5f;
     [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+    [Header("Initial State")]
+    [SerializeField] private bool startOpen = true;
+
     private Vector3 leftClosedPos, rightClosedPos;
     private Vector3 leftOpenPos, rightOpenPos;
 
@@ -36,6 +39,11 @@ public class SlidingDoor : NetworkBehaviour, IInteractableAction
 
     public override void OnNetworkSpawn()
     {
+        if (IsServer)
+        {
+            isOpen.Value = startOpen; // Set initial state from inspector value
+        }
+
         isOpen.OnValueChanged += (_, _) => AnimateDoor(isOpen.Value);
         AnimateDoor(isOpen.Value); // Ensure correct state on spawn
     }
@@ -57,6 +65,7 @@ public class SlidingDoor : NetworkBehaviour, IInteractableAction
     public void Open()
     {
         if (!IsServer || isSliding || isOpen.Value) return;
+
         isOpen.Value = true;
     }
 
