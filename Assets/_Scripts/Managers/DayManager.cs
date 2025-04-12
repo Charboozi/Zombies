@@ -16,6 +16,11 @@ public class DayManager : NetworkBehaviour
     public float CurrentDay => CurrentTime / dayLengthInSeconds;
     public int CurrentDayInt => Mathf.FloorToInt(CurrentDay);
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip dayChangeClip;
+
+
     public event Action<int> OnNewDayStarted;
 
     private int lastDayChecked = -1;
@@ -64,6 +69,8 @@ public class DayManager : NetworkBehaviour
             lastDayChecked = day;
             OnNewDayStarted?.Invoke(day);
             Debug.Log($"🌞 (Client) New day: {day}");
+
+            PlayDayChangeSoundClientRpc(); 
         }
     }
 
@@ -76,4 +83,14 @@ public class DayManager : NetworkBehaviour
     {
         return CurrentDay >= targetDay;
     }
+
+    [ClientRpc]
+    private void PlayDayChangeSoundClientRpc()
+    {
+        if (audioSource != null && dayChangeClip != null)
+        {
+            audioSource.PlayOneShot(dayChangeClip);
+        }
+    }
+
 }

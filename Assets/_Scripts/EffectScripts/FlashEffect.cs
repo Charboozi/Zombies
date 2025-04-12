@@ -14,6 +14,10 @@ public class FlashEffect : MonoBehaviour
     private ColorAdjustments colorAdjustments;
     private float originalExposure;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip flashSound;
+
     void Awake()
     {
         Instance = this;
@@ -26,12 +30,26 @@ public class FlashEffect : MonoBehaviour
         {
             Debug.LogError("⚠️ ColorAdjustments not found on Volume.");
         }
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                Debug.LogWarning("⚠️ No AudioSource assigned or found. Flash sound will not play.");
+            }
+        }
     }
 
     public void TriggerFlash()
     {
         if (colorAdjustments != null)
             StartCoroutine(FlashRoutine());
+            
+        if (audioSource != null && flashSound != null)
+        {
+            audioSource.PlayOneShot(flashSound);
+        }    
     }
 
     private IEnumerator FlashRoutine()

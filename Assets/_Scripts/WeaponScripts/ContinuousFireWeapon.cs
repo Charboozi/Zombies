@@ -4,70 +4,39 @@ using System.Collections;
 public class ContinuousFireWeapon : WeaponBase
 {
     [Header("Continuous Fire Settings")]
-    [SerializeField] private float initialFireDelay = 0.3f;
-    public float damageInterval = 0.1f; // Time between damage ticks
-    public float splashRadius = 2f;     // Radius of splash damage
+    [SerializeField] private float initialChargeDelay = 1f;
+    [SerializeField] private float damageInterval = 0.1f;
+    [SerializeField] private float splashRadius = 2f;
 
-    private bool isFiring = false;
-    private Coroutine fireCoroutine;
-    
+    private Coroutine firingRoutine;
 
-    protected override void Start()
-    {
-        base.Start();
-    }
+    public override bool HandlesInput => true;
 
     private void Update()
     {
-        // Start firing on initial button press.
         if (Input.GetMouseButtonDown(0) && CanShoot())
         {
-            StartFiring();
+            // Start firing coroutine
+            if (firingRoutine == null)
+                firingRoutine = StartCoroutine(FireRoutine());
         }
-        // Stop firing when button is released or when we can't shoot.
-        if (!Input.GetMouseButton(0) || !CanShoot() || !muzzleFlash.isPlaying)
+
+        if (Input.GetMouseButtonUp(0) || !CanShoot())
         {
             StopFiring();
         }
     }
 
-    private void StartFiring()
+    private IEnumerator FireRoutine()
     {
-        if (isFiring) return; // Prevent duplicate coroutines.
-        
-        // Start the muzzle flash effect if available.
+        // Optional: Muzzle effect on charge start
         if (muzzleFlash != null && !muzzleFlash.isPlaying)
-        {
             muzzleFlash.Play();
-        }
-        
-        isFiring = true;
-        fireCoroutine = StartCoroutine(FireContinuously());
 
-    }
+        // Initial charge delay
+        yield return new WaitForSeconds(initialChargeDelay);
 
-    private void StopFiring()
-    {
-        if (!isFiring) return;
-        isFiring = false;
-        // Stop the muzzle flash effect.
-        if (muzzleFlash != null && muzzleFlash.isPlaying)
-        {
-            muzzleFlash.Stop();
-        }
-        if (fireCoroutine != null)
-        {
-            StopCoroutine(fireCoroutine);
-            fireCoroutine = null;
-        }
-
-    }
-
-    private IEnumerator FireContinuously()
-    {
-        yield return new WaitForSeconds(initialFireDelay);
-
-        while (isFiring && currentAmmo > 0 && CanShoot())
+        while (CanShoot() && Input.GetMouseButton(0))
         {
             Shoot();
             yield return new WaitForSeconds(damageInterval);
@@ -76,29 +45,30 @@ public class ContinuousFireWeapon : WeaponBase
         StopFiring();
     }
 
+    private void StopFiring()
+    {
+        if (firingRoutine != null)
+        {
+            StopCoroutine(firingRoutine);
+            firingRoutine = null;
+        }
+
+        if (muzzleFlash != null && muzzleFlash.isPlaying)
+            muzzleFlash.Stop();
+    }
+
     public override void Shoot()
     {
-        if (!CanShoot()) return;
+        if (!CanShoot() || currentAmmo <= 0) return;
 
-        // Deduct ammo for this shot.
         currentAmmo--;
-
         UpdateEmissionIntensity();
 
-        // Raycast forward from the player camera.
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
             Debug.Log("Continuous Fire Hit: " + hit.collider.name);
-
-            // Apply splash damage at the hit point.
             ApplySplashDamage(hit.point);
-
-            // Optionally, spawn a networked impact effect.
-            // if (networkImpactSpawner != null)
-            // {
-            //     networkImpactSpawner.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffectPrefab.name);
-            // }
         }
     }
 
@@ -107,8 +77,7 @@ public class ContinuousFireWeapon : WeaponBase
         Collider[] hitObjects = Physics.OverlapSphere(center, splashRadius);
         foreach (Collider obj in hitObjects)
         {
-            EntityHealth entity = obj.GetComponent<EntityHealth>();
-            if (entity != null)
+            if (obj.TryGetComponent(out EntityHealth entity))
             {
                 entity.TakeDamageServerRpc(damage);
             }

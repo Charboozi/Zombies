@@ -12,6 +12,9 @@ public class Interactable : NetworkBehaviour
 
     public NetworkVariable<bool> isCoolingDown = new NetworkVariable<bool>(false);
 
+    [Header("Access Settings (only for no battery interactables)")]
+    [SerializeField] private bool requiresKeycard = true;
+
     public string GetInteractText()
     {
         return isCoolingDown.Value ? "Cooling down..." : interactText;
@@ -22,10 +25,10 @@ public class Interactable : NetworkBehaviour
         if (isCoolingDown.Value) return;
 
         var battery = GetComponent<InteractableCharge>();
-        
-        // 🔋 Interactables with battery
+
         if (battery != null)
         {
+            // ✅ PRIORITY 1: If we have battery, check if it's drained
             if (battery.IsDrained)
             {
                 var manager = ConsumableManager.Instance;
@@ -38,6 +41,22 @@ public class Interactable : NetworkBehaviour
                 Debug.Log("🔓 Used keycard to override battery lock.");
             }
         }
+        else
+        {
+            // ✅ PRIORITY 2: If no battery, check if interactable manually requires keycard
+            if (requiresKeycard)
+            {
+                var manager = ConsumableManager.Instance;
+                if (manager == null || !manager.Use("Keycard"))
+                {
+                    Debug.Log("🔒 Keycard required but not available.");
+                    return;
+                }
+
+                Debug.Log("🔓 Used keycard to access interactable.");
+            }
+        }
+
 
         // 👇 Special case: if the object wants to run client-side logic only on local client
         var localOnly = GetComponent<IClientOnlyAction>();

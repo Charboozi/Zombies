@@ -78,7 +78,7 @@ public class EntityHealth : NetworkBehaviour
     {
         if(IsOwner && gameObject.tag != "Enemy")
         {
-            FadeScreenEffect.Instance.ShowEffect(Color.red, 0.5f, 2f);
+            FadeScreenEffect.Instance.ShowEffect(Color.red, 0.5f, 4f);
             if (damageSound != null && audioSource != null)
             {
                 audioSource.PlayOneShot(damageSound);

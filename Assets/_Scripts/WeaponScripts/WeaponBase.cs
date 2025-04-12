@@ -12,6 +12,7 @@ public abstract class WeaponBase : MonoBehaviour
     public bool isAutomatic;
     public float fireRate;
     public float reloadDuration;
+    public bool canPierceEnemies = false;
 
     [Header("Shoot Settings")]
     public float range;
@@ -20,13 +21,14 @@ public abstract class WeaponBase : MonoBehaviour
     [Header("Effects")]
     public Transform muzzleTransform;
     public ParticleSystem muzzleFlash;
-    public GameObject impactEffectPrefab;
 
     [Header("Emission")]
     [SerializeField] private List<Renderer> weaponRenderers = new();
     [SerializeField] private Color baseEmissionColor = new Color(0f, 255f / 255f, 255f / 255f);
 
     protected Camera playerCamera;
+
+    public virtual bool HandlesInput => false;
 
     protected virtual void Start()
     {

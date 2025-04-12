@@ -49,7 +49,6 @@ public abstract class PowerupBase : NetworkBehaviour
     // Derived classes override this ClientRpc to implement the specific effect.
     [ClientRpc]
     protected virtual void ApplyPowerupClientRpc(int effectValue, ClientRpcParams clientRpcParams = default)
-    {
-        Debug.LogWarning("ApplyPowerupClientRpc was called but not implemented in derived class.");
-    }
+    {}
 }
+

@@ -87,12 +87,10 @@ public class WeaponNetworkEffects : NetworkBehaviour
         {
             if (playEffect)
             {
-                if (!muzzleFlash.isPlaying)
                     muzzleFlash.Play();
             }
             else
             {
-                if (muzzleFlash.isPlaying)
                     muzzleFlash.Stop();
             }
         }

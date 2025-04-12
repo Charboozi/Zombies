@@ -4,7 +4,9 @@ using UnityEngine;
 public class PlayerFootstep : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private float stepInterval = 0.3f;
+    [SerializeField] private float baseStepInterval = 0.4f;
+    [SerializeField] private float stepRandomness = 0.15f;
+    [SerializeField] private Vector2 volumeRange = new Vector2(0.8f, 1.2f);
     [SerializeField] private AudioClip[] footstepClips;
 
     private AudioSource audioSource;
@@ -26,7 +28,10 @@ public class PlayerFootstep : MonoBehaviour
         if (stepTimer <= 0f)
         {
             PlayFootstep();
-            stepTimer = stepInterval;
+
+            // Randomize next step interval slightly
+            float randomInterval = baseStepInterval * Random.Range(1f - stepRandomness, 1f + stepRandomness);
+            stepTimer = randomInterval;
         }
     }
 
@@ -34,7 +39,6 @@ public class PlayerFootstep : MonoBehaviour
     {
         if (movement == null) return false;
 
-        // Check if grounded and moving
         bool isGrounded = movement.IsGrounded;
         bool isMoving = movement.MovementVelocity.sqrMagnitude > 0.1f;
 
@@ -45,8 +49,13 @@ public class PlayerFootstep : MonoBehaviour
     {
         if (footstepClips.Length == 0) return;
 
+        // Pick random clip
         AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
+
+        // Randomize pitch and volume
         audioSource.pitch = Random.Range(0.95f, 1.05f);
+        audioSource.volume = Random.Range(volumeRange.x, volumeRange.y);
+
         audioSource.PlayOneShot(clip);
     }
 }

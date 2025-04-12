@@ -16,29 +16,42 @@ public class ProjectileWeapon : WeaponBase
         UpdateEmissionIntensity();
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, range))
+    RaycastHit[] hits = Physics.RaycastAll(ray, range);
+
+    // ✅ Sort hits by distance!
+    System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+    foreach (var hit in hits)
+    {
+        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
         {
-            // Apply damage to the hit entity
-            EntityHealth entity = hit.collider.GetComponent<EntityHealth>();
-            if (entity != null)
+            if (hit.collider.TryGetComponent(out EntityHealth entity))
             {
                 entity.TakeDamageServerRpc(damage);
 
-                // Blood effect on entity hit
                 if (NetworkImpactSpawner.Instance != null)
                 {
                     NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
                 }
             }
+
+            if (canPierceEnemies)
+                continue;
             else
-            {
-                // Regular impact effect
-                if (NetworkImpactSpawner.Instance != null)
-                {
-                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
-                }
-            }
+                break;
         }
+        else
+        {
+            // Hit non-enemy object (wall, etc.)
+            if (NetworkImpactSpawner.Instance != null)
+            {
+                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
+            }
+
+            break;
+        }
+    }
+
 
         if (muzzleFlash != null)
         {

@@ -1,0 +1,80 @@
+using UnityEngine;
+using Unity.Netcode;
+
+public abstract class TrapBase : NetworkBehaviour, IInteractableAction
+{
+    [Header("Trap Settings")]
+    public float activeDuration = 5f;
+
+    [Header("Trap Audio")]
+    [SerializeField] private AudioClip activeLoopClip;
+    [SerializeField] AudioSource loopingAudioSource;
+
+    [HideInInspector]public bool isActive = false;
+
+    public void DoAction()
+    {
+        if (!IsServer || isActive)
+            return;
+
+        ActivateTrap();
+    }
+
+    void Awake()
+    {
+        loopingAudioSource = GetComponent<AudioSource>();
+    }
+
+    protected void ActivateTrap()
+    {
+        isActive = true;
+        OnTrapActivated();
+
+        ActivateTrapClientRpc();
+
+        Invoke(nameof(DeactivateTrap), activeDuration);
+    }
+
+    private void DeactivateTrap()
+    {
+        isActive = false;
+        OnTrapDeactivated();
+
+        DeactivateTrapClientRpc();
+    }
+
+    protected abstract void OnTrapActivated();
+    protected abstract void OnTrapDeactivated();
+
+    [ClientRpc]
+    private void ActivateTrapClientRpc()
+    {
+        OnTrapActivated();
+        PlayLoopingSound();
+    }
+
+    [ClientRpc]
+    private void DeactivateTrapClientRpc()
+    {
+        OnTrapDeactivated();
+        StopLoopingSound();
+    }
+
+    private void PlayLoopingSound()
+    {
+        if (loopingAudioSource != null && activeLoopClip != null)
+        {
+            loopingAudioSource.clip = activeLoopClip;
+            loopingAudioSource.loop = true;
+            loopingAudioSource.Play();
+        }
+    }
+
+    private void StopLoopingSound()
+    {
+        if (loopingAudioSource != null && loopingAudioSource.isPlaying)
+        {
+            loopingAudioSource.Stop();
+        }
+    }
+}

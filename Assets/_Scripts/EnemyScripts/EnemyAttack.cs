@@ -3,18 +3,21 @@ using UnityEngine.AI;
 using Unity.Netcode;
 
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(Collider))]
 public class EnemyAttack : NetworkBehaviour
 {
     [Header("Attack Settings")]
     public int attackDamage = 10;
     public float attackCooldown = 1.2f;
-    public float attackRange = 2f; 
+    public float attackRange = 2f;
+    public float rotationSpeed = 10f;
 
     [Header("Audio")]
     public AudioClip hitSound;
 
     private AudioSource audioSource;
     private RandomSoundPlayer randomSoundPlayer;
+    private Collider enemyCollider;
 
     private Transform target;
     private bool isAttacking = false;
@@ -32,10 +35,31 @@ public class EnemyAttack : NetworkBehaviour
 
         audioSource = GetComponent<AudioSource>();
         randomSoundPlayer = GetComponent<RandomSoundPlayer>();
+        enemyCollider = GetComponent<Collider>();
 
         if (TryGetComponent(out EnemyDeathHandler deathHandler))
         {
             deathHandler.OnEnemyDeath += HandleDeath;
+        }
+    }
+
+    private void Update()
+    {
+        if (!IsServer) return;
+
+        if (cooldownTimer > 0f)
+            cooldownTimer -= Time.deltaTime;
+
+        // ✅ Keep rotating toward target even while attacking
+        if (target != null && isAttacking)
+        {
+            Vector3 direction = (target.position - transform.position).normalized;
+            direction.y = 0f; // Ignore vertical rotation
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
         }
     }
 
@@ -45,40 +69,21 @@ public class EnemyAttack : NetworkBehaviour
         StopAttack();
     }
 
-    // Called by TargetScanner when a target is acquired or remains in range.
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
     }
 
-    // Called when the target is confirmed to be in attack range.
     public void TargetInRange()
     {
-        if (isDead) return;
+        if (isDead || isAttacking || target == null || cooldownTimer > 0f) return;
 
-        if (!isAttacking && target != null && cooldownTimer <= 0f)
-        {
-            StartAttack();
-        }
+        StartAttack();
     }
 
-    // Called when the target is lost or goes out of a reasonable range.
     public void StopAttack()
     {
         isAttacking = false;
-        // Optionally, you can also reset cooldown here or keep it running.
-    }
-
-    private void Update()
-    {
-        if (!IsServer)
-            return;
-
-        // Decrease cooldown timer over time.
-        if (cooldownTimer > 0f)
-        {
-            cooldownTimer -= Time.deltaTime;
-        }
     }
 
     private void StartAttack()
@@ -91,53 +96,89 @@ public class EnemyAttack : NetworkBehaviour
 
         if (enemyAnimation.HasAttackAnimation)
         {
-            // ✅ Play animation if available
             enemyAnimation.TriggerAttack();
             PlayAttackAnimationClientRpc();
 
-            // Failsafe: ensure we resume movement even if animation event fails
             CancelInvoke(nameof(OnAttackAnimationComplete));
-            Invoke(nameof(OnAttackAnimationComplete), 2.5f); // Adjust this based on your animation length
+            Invoke(nameof(OnAttackAnimationComplete), 2.5f);
         }
         else
         {
-            // ✅ Fallback: attack directly at interval without animation
-            TryDoDamage(); // Immediately do damage
-
-            // Resume movement after cooldown
+            TryDoDamage();
             Invoke(nameof(OnAttackAnimationComplete), attackCooldown);
         }
     }
 
-    // This method is triggered by an animation event at the moment of impact.
     public void TryDoDamage()
     {
         if (!IsServer || target == null)
             return;
 
-        // Check if the target is still within attack range.
-        float distance = Vector3.Distance(transform.position, target.position);
-        if (distance <= attackRange)
+        float distanceToTarget = Vector3.Distance(transform.position, target.position);
+        if (distanceToTarget > attackRange)
+            return;
+
+        bool hitConfirmed = false;
+
+        // Dynamic origin point based on collider bounds
+        Vector3 origin = enemyCollider.bounds.center;
+        origin.y = enemyCollider.bounds.max.y - 0.1f; // slightly below top of collider
+        origin += transform.forward * (enemyCollider.bounds.extents.z + 0.2f); // forward offset
+
+        Vector3 direction = (target.position - origin).normalized;
+
+        // First: try SphereCast ✅ (bigger radius to catch enemies of different sizes)
+        if (Physics.SphereCast(origin, 0.5f, direction, out RaycastHit sphereHit, attackRange))
+        {
+            Debug.DrawRay(origin, direction * sphereHit.distance, Color.green, 1f);
+
+            if (sphereHit.transform == target)
+            {
+                hitConfirmed = true;
+            }
+        }
+
+        // Fallback: if spherecast missed, try OverlapSphere at target position ✅
+        if (!hitConfirmed)
+        {
+            Collider[] overlaps = Physics.OverlapSphere(target.position, 0.7f);
+            foreach (var collider in overlaps)
+            {
+                if (collider.transform == target)
+                {
+                    // Check line of sight
+                    if (Physics.Raycast(origin, direction, out RaycastHit losHit, attackRange))
+                    {
+                        Debug.DrawRay(origin, direction * losHit.distance, Color.yellow, 1f);
+
+                        if (losHit.transform == target)
+                        {
+                            hitConfirmed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (hitConfirmed)
         {
             if (target.TryGetComponent(out EntityHealth health))
             {
                 PlayHitSoundClientRpc();
-
                 health.TakeDamageServerRpc(attackDamage);
             }
         }
-        else
-        {
-            //Debug.Log("Attack missed: target out of range");
-        }
     }
 
-    // This method is triggered via an animation event at the end of the attack.
+
+
     public void OnAttackAnimationComplete()
     {
         CancelInvoke(nameof(OnAttackAnimationComplete));
 
         isAttacking = false;
+
         if (agent.enabled)
             agent.isStopped = false;
     }
@@ -147,6 +188,7 @@ public class EnemyAttack : NetworkBehaviour
     {
         enemyAnimation.TriggerAttack();
     }
+
     [ClientRpc]
     private void PlayHitSoundClientRpc()
     {

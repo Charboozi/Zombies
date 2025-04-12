@@ -32,24 +32,29 @@ public class WeaponController : MonoBehaviour
     {
         if (currentWeapon == null) return;
 
-        if (isFiringHeld && currentWeapon.isAutomatic && Time.time >= nextFireTime && currentWeapon.CanShoot())
+        if (!currentWeapon.HandlesInput) // ✅ Skip automatic fire if weapon handles its own input
         {
-            FireWeapon();
+            if (isFiringHeld && currentWeapon.isAutomatic && Time.time >= nextFireTime && currentWeapon.CanShoot())
+            {
+                FireWeapon();
+            }
         }
 
-        // Start reload delay if not shooting and not already waiting and ammo not full
         if (!isFiringHeld && !IsReloading && currentWeapon.currentAmmo < currentWeapon.maxAmmo && delayBeforeReloadCoroutine == null)
         {
             delayBeforeReloadCoroutine = StartCoroutine(DelayBeforeReloadCoroutine());
         }
     }
 
+
     private void HandleFirePressed()
     {
         if (currentWeapon == null || !currentWeapon.CanShoot()) return;
 
         isFiringHeld = true;
-        StopReloading(); // Cancel both coroutines
+        StopReloading();
+
+        if (currentWeapon.HandlesInput) return; // ✅ Skip if weapon handles its own input
 
         if (!currentWeapon.isAutomatic && Time.time >= nextFireTime)
         {
