@@ -103,9 +103,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   explosionRadius: 5
-  explosionDamage: 50
+  explosionDamage: 70
   selfDestructTime: 5
-  explosionEffectPrefab: {fileID: 120980, guid: 37b2ccf5e6f6ef841aea86828cfde63f, type: 3}
+  explosionEffectPrefab: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664, type: 3}
 --- !u!136 &7555526477976347269
 CapsuleCollider:
   m_ObjectHideFlags: 0

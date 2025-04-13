@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System;
 using System.Collections;
 
 public class EntityHealth : NetworkBehaviour
@@ -21,6 +22,8 @@ public class EntityHealth : NetworkBehaviour
     [SerializeField] private AudioSource audioSource;
 
     private Coroutine regenCoroutine; // Store coroutine to avoid duplicates
+
+    public event Action OnTakeDamage;
 
     public override void OnNetworkSpawn()
     {
@@ -44,6 +47,7 @@ public class EntityHealth : NetworkBehaviour
         TakeDamageClientRpc();
 
         currentHealth.Value -= effectiveDamage;
+        OnTakeDamage?.Invoke();
         Debug.Log($"{gameObject.name} took {damage} damage! Health: {currentHealth.Value}");
 
         // If health reaches 0, determine whether to down or die.

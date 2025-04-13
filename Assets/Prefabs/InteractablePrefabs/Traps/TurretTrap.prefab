@@ -171,7 +171,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   activeDuration: 50
   activeLoopClip: {fileID: 8300000, guid: 159c243c463e72441a3488c9ba718bfa, type: 3}
-  loopingAudioSource: {fileID: 0}
+  loopingAudioSource: {fileID: 2477507468496301852}
   isActive: 0
   turretHead: {fileID: 4196325511177094589}
   muzzlePoint: {fileID: 5505935066081620156}

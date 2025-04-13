@@ -998,6 +998,7 @@ MonoBehaviour:
   attackDamage: 17
   attackCooldown: 1.2
   attackRange: 1.5
+  rotationSpeed: 10
   hitSound: {fileID: 8300000, guid: c804233a555acab468b4e8bb581fd319, type: 3}
 --- !u!114 &4308550124934727242
 MonoBehaviour:
@@ -1014,8 +1015,10 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   destroyDelay: 10
   animator: {fileID: 8681897807220252526}
-  scriptsToDisable:
-  - {fileID: 6620292362452675395}
+  componentsToDisable:
+  - {fileID: 2687736489795902232}
+  objectsToDisable:
+  - {fileID: 6124882321794179547}
   deathClips:
   - {fileID: 8300000, guid: 9ad5ff0a4fb40514c990b86a6def6ab1, type: 3}
   - {fileID: 8300000, guid: c804233a555acab468b4e8bb581fd319, type: 3}

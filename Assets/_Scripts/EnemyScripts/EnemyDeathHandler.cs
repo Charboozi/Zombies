@@ -12,8 +12,11 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
 
     [SerializeField]private Animator animator;
 
-    [Header("Scripts to Disable on Death")]
-    [SerializeField] private MonoBehaviour[] scriptsToDisable;
+    [Header("Components to Disable on Death")]
+    [SerializeField] private Component[] componentsToDisable;
+
+    [Header("GameObjects to Disable on Death")]
+    [SerializeField] private GameObject[] objectsToDisable;
 
     private NavMeshAgent agent;
     private CapsuleCollider capsule;
@@ -51,7 +54,7 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         agent.enabled = false;
         capsule.enabled = false;
 
-        DisableScripts();
+        DisableComponents();
 
         enemyAnimation.PlayDeath();
         randomSoundPlayer?.StopSounds();
@@ -69,16 +72,60 @@ public class EnemyDeathHandler : NetworkBehaviour, IKillable
         OnEnemyDeath?.Invoke();
     }
 
-    private void DisableScripts()
+private void DisableComponents()
+{
+    foreach (var component in componentsToDisable)
     {
-        foreach (var script in scriptsToDisable)
+        if (component == null) continue;
+
+        switch (component)
         {
-            if (script != null)
-            {
-                script.enabled = false;
-            }
+            case MonoBehaviour monoBehaviour:
+                monoBehaviour.enabled = false;
+                break;
+
+            case Collider collider:
+                collider.enabled = false;
+                break;
+
+            case Rigidbody rigidbody:
+                rigidbody.isKinematic = true;
+                rigidbody.linearVelocity = Vector3.zero;
+                break;
+
+            case AudioSource audioSource:
+                audioSource.enabled = false;
+                break;
+
+            case NavMeshAgent navMeshAgent:
+                navMeshAgent.enabled = false;
+                break;
+
+            case ParticleSystem particleSystem:
+                particleSystem.Stop();
+                break;
+
+            case Renderer renderer:
+                renderer.enabled = false;
+                break;
+
+            // Add more types if needed!
+
+            default:
+                Debug.LogWarning($"Component type '{component.GetType().Name}' is not handled in DisableComponents(). Add support if needed.");
+                break;
         }
     }
+
+    foreach (var obj in objectsToDisable)
+    {
+        if (obj != null)
+        {
+            obj.SetActive(false);
+        }
+    }
+}
+
 
     [ClientRpc]
     private void PlayDeathClipClientRpc(int clipIndex)

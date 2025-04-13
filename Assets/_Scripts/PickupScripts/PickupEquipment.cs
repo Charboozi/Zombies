@@ -47,10 +47,4 @@ public class PickupEquipment : MonoBehaviour
             pickup.Despawn();
         }
     }
-    
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, transform.position + transform.forward * pickupRange);
-    }
 }

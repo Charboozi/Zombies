@@ -11,12 +11,9 @@ public class ExplosiveProjectile : NetworkBehaviour
     public GameObject explosionEffectPrefab;    // Name of the impact effect prefab (in Resources/ImpactEffects)
 
     private bool hasExploded = false;
-    private NetworkImpactSpawner networkImpactSpawner;
 
     void Start()
     {
-        // Optionally, the projectile is local so we only need the impact effect to be networked.
-        networkImpactSpawner = FindFirstObjectByType<NetworkImpactSpawner>();
         Destroy(gameObject, selfDestructTime); // Ensure it doesn't live forever.
     }
 
@@ -27,10 +24,10 @@ public class ExplosiveProjectile : NetworkBehaviour
         hasExploded = true;
 
         // Use the NetworkImpactSpawner to spawn the explosion effect across all clients.
-        if (networkImpactSpawner != null && explosionEffectPrefab != null)
+        if (NetworkImpactSpawner.Instance != null && explosionEffectPrefab != null)
         {
             // You can pass the projectile's position and the collision's contact normal.
-            networkImpactSpawner.SpawnImpactEffectServerRpc(transform.position, collision.contacts[0].normal, explosionEffectPrefab.name);
+            NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(transform.position, collision.contacts[0].normal, explosionEffectPrefab.name);
         }
 
         // Apply splash damage to entities within the explosion radius.
@@ -40,7 +37,6 @@ public class ExplosiveProjectile : NetworkBehaviour
             EntityHealth entity = hit.GetComponent<EntityHealth>();
             if (entity != null)
             {
-                // Optional: Apply damage falloff based on distance.
                 float distance = Vector3.Distance(transform.position, hit.transform.position);
                 float multiplier = Mathf.Clamp01(1f - (distance / explosionRadius));
                 int damageToApply = Mathf.RoundToInt(explosionDamage * multiplier);

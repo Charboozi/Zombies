@@ -20,11 +20,6 @@ public abstract class TrapBase : NetworkBehaviour, IInteractableAction
         ActivateTrap();
     }
 
-    void Awake()
-    {
-        loopingAudioSource = GetComponent<AudioSource>();
-    }
-
     protected void ActivateTrap()
     {
         isActive = true;

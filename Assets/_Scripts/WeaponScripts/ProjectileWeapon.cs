@@ -16,15 +16,14 @@ public class ProjectileWeapon : WeaponBase
         UpdateEmissionIntensity();
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-    RaycastHit[] hits = Physics.RaycastAll(ray, range);
+        RaycastHit[] hits = Physics.RaycastAll(ray, range);
 
-    // ✅ Sort hits by distance!
-    System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        // ✅ Sort hits by distance!
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
-    foreach (var hit in hits)
-    {
-        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        foreach (var hit in hits)
         {
+            // ✅ Try to damage any entity with EntityHealth
             if (hit.collider.TryGetComponent(out EntityHealth entity))
             {
                 entity.TakeDamageServerRpc(damage);
@@ -33,30 +32,27 @@ public class ProjectileWeapon : WeaponBase
                 {
                     NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
                 }
-            }
 
-            if (canPierceEnemies)
-                continue;
+                if (canPierceEnemies)
+                    continue;
+                else
+                    break;
+            }
             else
-                break;
-        }
-        else
-        {
-            // Hit non-enemy object (wall, etc.)
-            if (NetworkImpactSpawner.Instance != null)
             {
-                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
+                // Hit non-entity object (wall, etc.)
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
+                }
+
+                break;
             }
-
-            break;
         }
-    }
-
 
         if (muzzleFlash != null)
         {
             muzzleFlash.Play();
         }
     }
-
 }

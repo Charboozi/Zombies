@@ -31,6 +31,12 @@ public class HealthProxy : NetworkBehaviour
             RequestFullHealServerRpc();
     }
 
+    public void MultiplyRegenInterval(float multiplier)
+    {
+        if (NetworkManager.Singleton.IsClient)
+            RequestMultiplyRegenIntervalServerRpc(multiplier);
+    }
+
     [ServerRpc(RequireOwnership = false)]
     private void RequestAddArmorServerRpc(int bonus, ServerRpcParams rpcParams = default)
     {
@@ -47,5 +53,12 @@ public class HealthProxy : NetworkBehaviour
     private void RequestFullHealServerRpc(ServerRpcParams rpcParams = default)
     {
         entityHealth.FullHeal();
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestMultiplyRegenIntervalServerRpc(float multiplier, ServerRpcParams rpcParams = default)
+    {
+        entityHealth.regenInterval *= multiplier;
+        Debug.Log($"{gameObject.name}: Regen interval modified by multiplier {multiplier}. New regen interval: {entityHealth.regenInterval}");
     }
 }
