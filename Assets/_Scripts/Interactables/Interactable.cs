@@ -2,6 +2,7 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(NetworkObject))]
 public class Interactable : NetworkBehaviour
 {
     [SerializeField] private float cooldownDuration = 5f;

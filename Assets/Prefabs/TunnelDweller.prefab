@@ -172,13 +172,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7258956464550662980}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.99907404, z: -0, w: 0.04302603}
+  m_LocalRotation: {x: 0, y: 0.9990739, z: 0, w: 0.043026652}
   m_LocalPosition: {x: -11.642, y: 1.751, z: 27.566}
   m_LocalScale: {x: 1.6147608, y: 1.6147608, z: 1.6147608}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5936930280623479063}
   - {fileID: 8356488268404988945}
+  - {fileID: 7234461036585542222}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 175.068, z: 0}
 --- !u!114 &4476183246169368326
@@ -200,8 +201,8 @@ MonoBehaviour:
     m_Bits: 4294967295
   gravityMultiplier: 2
   groundAdjustRotationSpeed: 6
-  wallAdjustRotationSpeed: 2
-  forwardRayLength: 0.4
+  wallAdjustRotationSpeed: 8.79
+  forwardRayLength: 0.874
   downRayLength: 1
   showDebug: 0
 --- !u!114 &3512709808135806563
@@ -243,7 +244,7 @@ MonoBehaviour:
   stepLayer:
     serializedVersion: 2
     m_Bits: 4294967295
-  stepHeight: 0.333
+  stepHeight: 0.439
   stepCurve:
     serializedVersion: 2
     m_Curve:
@@ -284,47 +285,47 @@ MonoBehaviour:
   - asyncChains:
     - {fileID: 3297725286193925255}
     - {fileID: 7017977304875867439}
-    anchorReach: 0.1
-    anchorStride: 0
+    anchorReach: -0.129
+    anchorStride: -0.676
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 8812720685614401091}
     - {fileID: 6812508658615710734}
-    anchorReach: 0.1
+    anchorReach: -0.354
     anchorStride: 0
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 6812508658615710734}
     - {fileID: 1458254713091274945}
-    anchorReach: 0.1
+    anchorReach: -0.465
     anchorStride: 0
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 7017977304875867439}
     - {fileID: 2392246024458271403}
-    anchorReach: 0.1
+    anchorReach: -0.429
     anchorStride: 0
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 2392246024458271403}
     - {fileID: 7248623351307515443}
-    anchorReach: 0.1
-    anchorStride: 0
+    anchorReach: -0.035
+    anchorStride: -0.159
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 1458254713091274945}
     - {fileID: 3544015514522040975}
-    anchorReach: 0.1
-    anchorStride: 0
+    anchorReach: 0.2
+    anchorStride: 0.435
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 8812720685614401091}
-    anchorReach: 0.1
+    anchorReach: 0.106
     anchorStride: 0
     anchorMultiplier: 1.3
   - asyncChains:
     - {fileID: 3297725286193925255}
-    anchorReach: 0.1
+    anchorReach: 0.224
     anchorStride: 0
     anchorMultiplier: 1.3
   ikChains:
@@ -401,7 +402,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 2.38
+  m_Height: 1.96
   m_Direction: 2
   m_Center: {x: 0, y: 0.48, z: -0.02}
 --- !u!195 &9209780019002954703
@@ -413,10 +414,10 @@ NavMeshAgent:
   m_GameObject: {fileID: 7258956464550662980}
   m_Enabled: 1
   m_AgentTypeID: 1479372276
-  m_Radius: 1.5
+  m_Radius: 1
   m_Speed: 5.5
   m_Acceleration: 40
-  avoidancePriority: 56
+  avoidancePriority: 99
   m_AngularSpeed: 120
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
@@ -425,7 +426,7 @@ NavMeshAgent:
   m_Height: 1
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 0
+  m_ObstacleAvoidanceType: 4
 --- !u!114 &272879090165997764
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -487,8 +488,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3111178349
-  InScenePlacedSourceGlobalObjectIdHash: 3435504059
+  GlobalObjectIdHash: 803077466
+  InScenePlacedSourceGlobalObjectIdHash: 3111178349
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
@@ -533,8 +534,10 @@ MonoBehaviour:
   componentsToDisable:
   - {fileID: 4476183246169368326}
   - {fileID: 1113827101455557938}
+  - {fileID: -2124072943450334911}
   objectsToDisable:
   - {fileID: 5983418691888313}
+  - {fileID: 7947376124494353109}
   deathClips: []
 --- !u!114 &-1151094817036392357
 MonoBehaviour:
@@ -749,6 +752,59 @@ MonoBehaviour:
   footstepClips:
   - {fileID: 8300000, guid: f228f0474ce6d3142b944431bcce5db5, type: 3}
   footstepAudioSource: {fileID: 4850711125356383992}
+--- !u!1 &7947376124494353109
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7234461036585542222}
+  - component: {fileID: 5624027210265142055}
+  m_Layer: 0
+  m_Name: HeadshotHitbox
+  m_TagString: Headshot
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7234461036585542222
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7947376124494353109}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: 0.211, z: 0.963}
+  m_LocalScale: {x: 0.40860873, y: 0.40860873, z: 0.40860873}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3357987348537325135}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &5624027210265142055
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7947376124494353109}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.50000066
+  m_Center: {x: 0.000007629404, y: 0, z: -0.00001716616}
 --- !u!1001 &6989717475041408689
 PrefabInstance:
   m_ObjectHideFlags: 0

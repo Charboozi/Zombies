@@ -1,20 +1,24 @@
 using UnityEngine;
-using Unity.Netcode;
 
 public class ExplosiveWeapon : WeaponBase
 {
     [Header("Explosive Weapon Settings")]
     [Tooltip("The explosive projectile prefab. This should have an ExplosiveProjectile script attached.")]
     public GameObject explosiveProjectilePrefab;
-    
+
     [Tooltip("The force to apply to the projectile when fired.")]
     public float projectileForce = 1000f;
+
+    [Header("Multi-Shot Settings")]
+    [Tooltip("Number of projectiles to fire at once.")]
+    public int projectileCount = 1;
+
+    [Tooltip("Spread angle in degrees.")]
+    public float spreadAngle = 5f;
 
     protected override void Start()
     {
         base.Start();
-        // Make sure any weapon-specific values are set in the Inspector.
-        // For example: maxAmmo, currentAmmo, reserveAmmo, damage, range, fireRate, etc.
     }
 
     public override void Shoot()
@@ -22,21 +26,26 @@ public class ExplosiveWeapon : WeaponBase
         if (!CanShoot())
             return;
 
-        // Deduct ammo.
         currentAmmo--;
-
         UpdateEmissionIntensity();
 
-        // Instantiate the projectile at the muzzle position and rotation.
         if (explosiveProjectilePrefab != null && muzzleTransform != null)
         {
-            GameObject projectileObj = Instantiate(explosiveProjectilePrefab, muzzleTransform.position, muzzleTransform.rotation);
-
-            // Apply force to the projectile so it is fired.
-            Rigidbody rb = projectileObj.GetComponent<Rigidbody>();
-            if (rb != null)
+            for (int i = 0; i < projectileCount; i++)
             {
-                rb.AddForce(muzzleTransform.forward * projectileForce);
+                GameObject projectileObj = Instantiate(explosiveProjectilePrefab, muzzleTransform.position, muzzleTransform.rotation);
+
+                Rigidbody rb = projectileObj.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    // Add slight random spread to direction
+                    Vector3 spreadDirection = muzzleTransform.forward;
+                    spreadDirection += muzzleTransform.right * Random.Range(-spreadAngle, spreadAngle) * 0.01f;
+                    spreadDirection += muzzleTransform.up * Random.Range(-spreadAngle, spreadAngle) * 0.01f;
+                    spreadDirection.Normalize();
+
+                    rb.AddForce(spreadDirection * projectileForce);
+                }
             }
         }
         else
@@ -44,7 +53,6 @@ public class ExplosiveWeapon : WeaponBase
             Debug.LogWarning("Explosive projectile prefab or muzzle transform not assigned!");
         }
 
-        // Play muzzle flash effect if available.
         if (muzzleFlash != null)
         {
             muzzleFlash.Play();

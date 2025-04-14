@@ -4,6 +4,8 @@ using System.Linq;
 [RequireComponent(typeof(WeaponInventory))]
 public class WeaponSwitcher : MonoBehaviour
 {
+    public static WeaponSwitcher Instance { get; private set; }
+
     public int CurrentWeaponIndex { get; private set; } = 0;
 
     [SerializeField] private Transform rightHand;
@@ -15,6 +17,15 @@ public class WeaponSwitcher : MonoBehaviour
 
     void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
         inventory = GetComponent<WeaponInventory>();
         inventory.OnWeaponAdded += HandleWeaponAdded;
         inventory.OnWeaponLimitReached += HandleWeaponLimitReached;

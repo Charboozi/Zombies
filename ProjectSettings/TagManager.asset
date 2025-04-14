@@ -12,6 +12,7 @@ TagManager:
   - PW - Nature
   - StartPosition
   - Lift
+  - Headshot
   layers:
   - Default
   - TransparentFX
@@ -28,7 +29,7 @@ TagManager:
   - Bilboard
   - AI Non-Walkable
   - Ammo
-  - 
+  - Projectile
   - 
   - 
   - 

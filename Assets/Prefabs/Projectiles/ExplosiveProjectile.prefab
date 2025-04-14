@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -6412884307940781849}
   - component: {fileID: 7555526477976347269}
   - component: {fileID: 2465984224192087990}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: ExplosiveProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102,7 +102,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  explosionRadius: 5
+  explosionRadius: 4
   explosionDamage: 70
   selfDestructTime: 5
   explosionEffectPrefab: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664, type: 3}
@@ -119,7 +119,7 @@ CapsuleCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 4
+    m_Bits: 32772
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0

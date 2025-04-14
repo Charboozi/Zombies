@@ -8,15 +8,14 @@ public class ShotgunWeapon : WeaponBase
 
     protected override void Start()
     {
-        base.Start(); // Ensure base class initialization
+        base.Start();
     }
 
     public override void Shoot()
     {
         if (!CanShoot()) return;
 
-        currentAmmo--; // Deduct ammo
-
+        currentAmmo--;
         UpdateEmissionIntensity();
 
         Debug.Log("Shotgun fired!");
@@ -26,7 +25,6 @@ public class ShotgunWeapon : WeaponBase
             FirePellet();
         }
 
-        // Play muzzle flash effect
         if (muzzleFlash != null)
         {
             muzzleFlash.Play();
@@ -36,35 +34,56 @@ public class ShotgunWeapon : WeaponBase
     private void FirePellet()
     {
         Ray ray = new Ray(playerCamera.transform.position, GetSpreadDirection());
-        if (Physics.Raycast(ray, out RaycastHit hit, range))
+        RaycastHit[] hits = Physics.RaycastAll(ray, range);
+
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (var hit in hits)
         {
-            Debug.Log("Shotgun pellet hit: " + hit.collider.name);
+            float finalDamage = damage / pelletsPerShot;
 
-            EntityHealth entity = hit.collider.GetComponent<EntityHealth>();
-            if (entity != null)
+            // ✅ Headshot check first
+            if (hit.collider.CompareTag("Headshot"))
             {
-                entity.TakeDamageServerRpc(damage / pelletsPerShot);
+                if (hit.collider.transform.parent.TryGetComponent(out EntityHealth headEntity))
+                {
+                    finalDamage *= headshotMultiplier;
+                    headEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
 
-                // Spawn blood effect
+                    if (NetworkImpactSpawner.Instance != null)
+                    {
+                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                    }
+
+                    continue; // No piercing for shotgun, continue to next pellet
+                }
+            }
+
+            // ✅ Body hit
+            if (hit.collider.TryGetComponent(out EntityHealth bodyEntity))
+            {
+                bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
+
                 if (NetworkImpactSpawner.Instance != null)
                 {
                     NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
                 }
+
+                break; // Stop at first valid hit
             }
-            else
+
+            // ✅ Environment hit
+            if (NetworkImpactSpawner.Instance != null)
             {
-                // Spawn regular impact effect
-                if (NetworkImpactSpawner.Instance != null)
-                {
-                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
-                }
+                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
             }
+
+            break;
         }
     }
 
     private Vector3 GetSpreadDirection()
     {
-        // Generate random spread within cone
         float spreadX = Random.Range(-spreadAngle, spreadAngle);
         float spreadY = Random.Range(-spreadAngle, spreadAngle);
         Quaternion spreadRotation = Quaternion.Euler(spreadY, spreadX, 0);

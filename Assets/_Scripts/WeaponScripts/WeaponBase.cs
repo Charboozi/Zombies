@@ -14,9 +14,13 @@ public abstract class WeaponBase : MonoBehaviour
     public float reloadDuration;
     public bool canPierceEnemies = false;
 
+    public WeaponBase upgradeWeapon; // Assign in inspector if upgradable
+    [HideInInspector] public bool CanUpgrade => upgradeWeapon != null;
+
     [Header("Shoot Settings")]
     public float range;
     public int damage;
+    public float headshotMultiplier = 1.5f;
 
     [Header("Effects")]
     public Transform muzzleTransform;
