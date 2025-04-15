@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System;
+using System.Collections.Generic;
 
 public class DayManager : NetworkBehaviour
 {
@@ -12,7 +13,7 @@ public class DayManager : NetworkBehaviour
 
     private NetworkVariable<float> currentTime = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    public float CurrentTime => currentTime.Value; // Read-only for clients
+    public float CurrentTime => currentTime.Value;
     public float CurrentDay => CurrentTime / dayLengthInSeconds;
     public int CurrentDayInt => Mathf.FloorToInt(CurrentDay);
 
@@ -20,10 +21,12 @@ public class DayManager : NetworkBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip dayChangeClip;
 
-
     public event Action<int> OnNewDayStarted;
 
     private int lastDayChecked = -1;
+
+    private Dictionary<int, Action> scheduledOneTimeEvents = new();
+    private List<RecurringDayEvent> recurringEvents = new();
 
     private void Awake()
     {
@@ -38,7 +41,7 @@ public class DayManager : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsServer) return; // Only the server updates time
+        if (!IsServer) return;
 
         currentTime.Value += Time.deltaTime;
 
@@ -47,7 +50,19 @@ public class DayManager : NetworkBehaviour
         {
             lastDayChecked = day;
             OnNewDayStarted?.Invoke(day);
-            Debug.Log($"🌞 New day: {day}");
+            InvokeScheduledEvents(day);
+
+            // ✅ Server tells all clients to play the day change sound
+            PlayDayChangeSoundClientRpc();
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            currentTime.Value = dayLengthInSeconds;
+            lastDayChecked = 0;
         }
     }
 
@@ -63,15 +78,47 @@ public class DayManager : NetworkBehaviour
 
     private void OnTimeChanged(float oldValue, float newValue)
     {
+        if (IsServer) return; // 🛑 Host/server already handled this
+
         int day = Mathf.FloorToInt(newValue / dayLengthInSeconds);
         if (day != lastDayChecked)
         {
             lastDayChecked = day;
             OnNewDayStarted?.Invoke(day);
             Debug.Log($"🌞 (Client) New day: {day}");
-
-            PlayDayChangeSoundClientRpc(); 
         }
+    }
+
+
+
+    private void InvokeScheduledEvents(int day)
+    {
+        if (scheduledOneTimeEvents.TryGetValue(day, out var oneTimeCallback))
+        {
+            oneTimeCallback?.Invoke();
+            scheduledOneTimeEvents.Remove(day);
+        }
+
+        foreach (var recurring in recurringEvents)
+        {
+            if (day >= recurring.startDay && (day - recurring.startDay) % recurring.interval == 0)
+            {
+                recurring.callback?.Invoke(day);
+            }
+        }
+    }
+
+    public void ScheduleEventForDay(int day, Action callback)
+    {
+        if (!scheduledOneTimeEvents.ContainsKey(day))
+            scheduledOneTimeEvents[day] = callback;
+        else
+            scheduledOneTimeEvents[day] += callback;
+    }
+
+    public void ScheduleRecurringEvent(int startDay, int interval, Action<int> callback)
+    {
+        recurringEvents.Add(new RecurringDayEvent(startDay, interval, callback));
     }
 
     public float GetDayFraction(float days)
@@ -93,4 +140,17 @@ public class DayManager : NetworkBehaviour
         }
     }
 
+    private class RecurringDayEvent
+    {
+        public int startDay;
+        public int interval;
+        public Action<int> callback;
+
+        public RecurringDayEvent(int startDay, int interval, Action<int> callback)
+        {
+            this.startDay = startDay;
+            this.interval = interval;
+            this.callback = callback;
+        }
+    }
 }

@@ -179,9 +179,9 @@ MonoBehaviour:
   impactEffectPrefab: {fileID: 5665346900197103622, guid: 1d4f16f2766ff3443b33a92d362dcf82, type: 3}
   rotationSpeed: 1
   detectionRange: 20
-  fireInterval: 0.12
-  scanInterval: 3
-  damagePerShot: 13
+  fireInterval: 0.15
+  scanInterval: 2
+  damagePerShot: 18
   enemyLayer:
     serializedVersion: 2
     m_Bits: 256

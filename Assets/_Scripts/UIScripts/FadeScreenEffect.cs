@@ -109,4 +109,43 @@ public class FadeScreenEffect : MonoBehaviour
         screenImage.color = new Color(0, 0, 0, 0);
         currentFadeCoroutine = null;
     }
+
+    /// <summary>
+    /// Show a persistent screen tint for a set duration, then clear it.
+    /// </summary>
+    public void ShowPersistentEffectForDuration(Color color, float duration, float targetAlpha = 0.04f, float fadeSpeed = 0.1f)
+    {
+        if (currentFadeCoroutine != null)
+            StopCoroutine(currentFadeCoroutine);
+
+        currentFadeCoroutine = StartCoroutine(PersistentEffectRoutine(color, duration, targetAlpha, fadeSpeed));
+    }
+
+    private IEnumerator PersistentEffectRoutine(Color color, float duration, float targetAlpha, float fadeSpeed)
+    {
+        // Fade in
+        float alpha = 0f;
+        while (alpha < targetAlpha)
+        {
+            alpha += Time.deltaTime * fadeSpeed;
+            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(alpha));
+            yield return null;
+        }
+
+        // Hold
+        screenImage.color = new Color(color.r, color.g, color.b, targetAlpha);
+        yield return new WaitForSeconds(duration);
+
+        // Fade out
+        while (alpha > 0f)
+        {
+            alpha -= Time.deltaTime * fadeSpeed;
+            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(alpha));
+            yield return null;
+        }
+
+        screenImage.color = new Color(0, 0, 0, 0);
+        currentFadeCoroutine = null;
+    }
+
 }

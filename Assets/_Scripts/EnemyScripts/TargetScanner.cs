@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using Unity.Netcode;
+using UnityEngine.AI;
 
 public class TargetScanner : NetworkBehaviour
 {
@@ -17,9 +18,17 @@ public class TargetScanner : NetworkBehaviour
     public event Action OnTargetInRange;
     public event Action OnTargetOutOfRange;
 
+    
+    private NavMeshAgent agent;
+
+    private void Awake()
+    {
+        agent = GetComponent<NavMeshAgent>();
+    }
+
     private void Update()
     {
-        if (!IsServer) return;
+        if (!IsServer || agent == null) return;
 
         checkTimer -= Time.deltaTime;
         if (checkTimer <= 0f)
@@ -48,7 +57,9 @@ public class TargetScanner : NetworkBehaviour
     }
 
     private void ScanForTargets()
-    {
+    {   
+        if (!agent.isOnNavMesh) return;
+
         Collider[] targets = Physics.OverlapSphere(transform.position, detectionRange, targetLayer);
         Transform closestTarget = null;
         float closestDist = Mathf.Infinity;
@@ -67,6 +78,17 @@ public class TargetScanner : NetworkBehaviour
             }
             
             float dist = Vector3.Distance(transform.position, candidate.transform.position);
+
+            NavMeshHit hit;
+            bool foundNavMesh = NavMesh.SamplePosition(candidate.transform.position, out hit, 1.5f, NavMesh.AllAreas);
+
+            if (!foundNavMesh)
+                continue; // Target not on navmesh
+
+            NavMeshPath path = new NavMeshPath();
+            if (!agent.CalculatePath(hit.position, path) || path.status != NavMeshPathStatus.PathComplete)
+                continue;
+
             if (dist < closestDist)
             {
                 closestDist = dist;

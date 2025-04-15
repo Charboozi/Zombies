@@ -31,8 +31,8 @@ Transform:
   m_GameObject: {fileID: 108794265575316646}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -4.43, y: 1.743, z: -4.7}
-  m_LocalScale: {x: 0.6499703, y: 0.6499703, z: 0.6499703}
+  m_LocalPosition: {x: 0, y: 0.21351, z: -7.67}
+  m_LocalScale: {x: 1.1958123, y: 1.1958123, z: 1.1958123}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3216173905772960122}
@@ -4819,8 +4819,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1.32
-  m_Center: {x: 0, y: 5.800446e-15, z: 0.4081702}
+  m_Radius: 0.57
+  m_Center: {x: 0, y: 0, z: 0.77}
 --- !u!114 &4027204034663786710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4833,7 +4833,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1117421858
+  GlobalObjectIdHash: 2234618085
   InScenePlacedSourceGlobalObjectIdHash: 1117421858
   DeferredDespawnTick: 0
   Ownership: 1
@@ -4860,8 +4860,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   applyToAll: 0
-  pickupSound: {fileID: 8300000, guid: d51312b38fab5484fa1b198c19b3cf7a, type: 3}
-  audioSource: {fileID: -4645771966013859657}
   consumableType: Keycard
   amount: 1
 --- !u!82 &-4645771966013859657

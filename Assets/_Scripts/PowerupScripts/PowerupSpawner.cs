@@ -7,7 +7,7 @@ public class PowerupSpawner : NetworkBehaviour
     [Range(0f, 1f)] public float spawnChance = 0.3f;
     public float powerupLifetime = 10f; 
 
-    private Vector3 localSpawnOffset = new Vector3(0, 0, 0);
+    private Vector3 localSpawnOffset = new Vector3(0, -1f, 0);
     private GameObject spawnedPowerup;
 
     public void TrySpawn()

@@ -29,14 +29,6 @@ public class AlarmSequenceManager : NetworkBehaviour
         Instance = this;
     }
 
-    void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.K))
-        {
-            StartAlarmSequence();
-        }
-    }
-
     // ✅ You call this from the server to trigger for everyone!
     public void StartAlarmSequence()
     {

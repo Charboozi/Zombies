@@ -31,7 +31,7 @@ public class PickupAmmo : MonoBehaviour
         WeaponBase weapon = CurrentWeaponHolder.Instance.CurrentWeapon;
         if (weapon != null)
         {
-            int amountToGive = weapon.maxAmmo * 3 * AmmoMultiplierManager.Instance.AmmoMultiplier; // You can also use ammoAmount if you want custom value
+            int amountToGive = weapon.maxAmmo * AmmoMultiplierManager.Instance.AmmoMultiplier; // You can also use ammoAmount if you want custom value
             weapon.reserveAmmo += amountToGive;
             Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Ammo pickup: +{amountToGive} reserve ammo.");
         }

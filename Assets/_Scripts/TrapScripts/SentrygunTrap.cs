@@ -75,23 +75,18 @@ public class SentrygunTrap : TrapBase
 
     private IEnumerator ScanForTargets()
     {
+        if (firingCoroutine == null)
+        {
+            firingCoroutine = StartCoroutine(FireContinuously());
+        }
+
         while (isActive)
         {
             FindNewTarget();
-
-            if (currentTarget != null && firingCoroutine == null)
-            {
-                firingCoroutine = StartCoroutine(FireAtTarget());
-            }
-            else if (currentTarget == null && firingCoroutine != null)
-            {
-                StopCoroutine(firingCoroutine);
-                firingCoroutine = null;
-            }
-
             yield return new WaitForSeconds(scanInterval);
         }
     }
+
 
     private void FindNewTarget()
     {
@@ -104,14 +99,25 @@ public class SentrygunTrap : TrapBase
         {
             if (hit.TryGetComponent<EntityHealth>(out var entity))
             {
-                // Optional: skip dead enemies
                 if (entity.currentHealth.Value <= 0)
                     continue;
 
-                float distance = Vector3.Distance(transform.position, hit.transform.position);
-                if (distance < closestDistance)
+                Vector3 dirToTarget = (hit.transform.position - muzzlePoint.position).normalized;
+                float distToTarget = Vector3.Distance(muzzlePoint.position, hit.transform.position);
+
+                // 🔎 Line of sight check
+                if (Physics.Raycast(muzzlePoint.position, dirToTarget, out RaycastHit rayHit, distToTarget))
                 {
-                    closestDistance = distance;
+                    if (rayHit.transform != hit.transform)
+                    {
+                        // Something is in the way (wall, etc.)
+                        continue;
+                    }
+                }
+
+                if (distToTarget < closestDistance)
+                {
+                    closestDistance = distToTarget;
                     bestTarget = hit.transform;
                 }
             }
@@ -120,14 +126,14 @@ public class SentrygunTrap : TrapBase
         currentTarget = bestTarget;
     }
 
-    private IEnumerator FireAtTarget()
-    {
-        // Initial delay to avoid instant raycast spike
-        yield return new WaitForSeconds(0.3f);
 
-        while (currentTarget != null && isActive)
+    private IEnumerator FireContinuously()
+    {
+        yield return new WaitForSeconds(0.3f); // optional initial delay
+
+        while (isActive)
         {
-            Vector3 direction = (currentTarget.position - muzzlePoint.position).normalized;
+            Vector3 direction = muzzlePoint.forward;
             Ray ray = new Ray(muzzlePoint.position, direction);
 
             if (Physics.Raycast(ray, out RaycastHit hit, detectionRange))
@@ -137,14 +143,15 @@ public class SentrygunTrap : TrapBase
                     victim.TakeDamageServerRpc(damagePerShot);
                 }
 
-                // Play effects
-                PlayMuzzleEffectClientRpc();
                 SpawnImpactEffectClientRpc(hit.point, hit.normal);
             }
+
+            PlayMuzzleEffectClientRpc();
 
             yield return new WaitForSeconds(fireInterval);
         }
     }
+
 
     [ClientRpc]
     private void PlayMuzzleEffectClientRpc()

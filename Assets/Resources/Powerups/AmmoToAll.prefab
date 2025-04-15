@@ -33886,7 +33886,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.21351, z: -7.67}
-  m_LocalScale: {x: 0.6499703, y: 0.6499703, z: 0.6499703}
+  m_LocalScale: {x: 1.1958123, y: 1.1958123, z: 1.1958123}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6618032167208217121}
@@ -38668,8 +38668,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   applyToAll: 1
-  pickupSound: {fileID: 8300000, guid: 7131d85668cfc944aa69a4ebb42b3e75, type: 3}
-  audioSource: {fileID: 2825150078609803491}
   fallbackAmount: 30
 --- !u!135 &5308263841388591090
 SphereCollider:
@@ -38690,8 +38688,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1.32
-  m_Center: {x: 0, y: 5.800446e-15, z: 0.4081702}
+  m_Radius: 0.57
+  m_Center: {x: 0, y: 0, z: 0.77}
 --- !u!114 &7078648145945364293
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38704,8 +38702,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1234350183
-  InScenePlacedSourceGlobalObjectIdHash: 3175115087
+  GlobalObjectIdHash: 1105906486
+  InScenePlacedSourceGlobalObjectIdHash: 1234350183
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0

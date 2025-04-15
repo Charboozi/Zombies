@@ -16,7 +16,7 @@ public class AmmoStation : NetworkBehaviour, IInteractableAction, IClientOnlyAct
         WeaponBase weapon = CurrentWeaponHolder.Instance.CurrentWeapon;
         if (weapon != null)
         {
-            int amountToGive = weapon.maxAmmo;
+            int amountToGive = weapon.maxAmmo * AmmoMultiplierManager.Instance.AmmoMultiplier;;
             weapon.reserveAmmo += amountToGive;
             Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] AmmoStation applied: +{amountToGive} reserve ammo.");
         }

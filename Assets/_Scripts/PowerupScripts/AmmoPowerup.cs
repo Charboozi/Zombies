@@ -19,7 +19,7 @@ public class AmmoPowerup : PowerupBase
         WeaponBase weapon = CurrentWeaponHolder.Instance.CurrentWeapon;
         if (weapon != null)
         {
-            int amountToGive = weapon.maxAmmo;
+            int amountToGive = weapon.maxAmmo * AmmoMultiplierManager.Instance.AmmoMultiplier;;
             weapon.reserveAmmo += amountToGive;
             Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Ammo powerup applied: +{effectValue} reserve ammo.");
         }
