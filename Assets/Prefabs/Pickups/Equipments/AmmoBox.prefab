@@ -4848,6 +4848,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   autoDespawnTime: 10
+  pickupSound: {fileID: 8300000, guid: 7131d85668cfc944aa69a4ebb42b3e75, type: 3}
 --- !u!114 &173749334960707276
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14724,3 +14725,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   autoDespawnTime: 10
+  pickupSound: {fileID: 0}

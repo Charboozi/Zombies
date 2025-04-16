@@ -6,6 +6,9 @@ public class NetworkedPickupableItem : NetworkBehaviour
 {
     [SerializeField] private float autoDespawnTime = 10f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip pickupSound;
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -22,6 +25,11 @@ public class NetworkedPickupableItem : NetworkBehaviour
 
     public void Despawn()
     {
+        if (IsOwner && pickupSound != null)
+        {
+            AudioSource.PlayClipAtPoint(pickupSound, transform.position);
+        }
+
         if (IsServer)
         {
             Debug.Log($"✅ Server despawning pickup: {gameObject.name}");

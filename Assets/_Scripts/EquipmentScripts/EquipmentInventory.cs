@@ -48,5 +48,36 @@ public class EquipmentInventory : MonoBehaviour
         return equippedItems.Any(e => e.name == equipmentName);
     }
 
+    public void Unequip(string equipmentName)
+    {
+        GameObject equipment = allEquipment.Find(e => e.name == equipmentName);
+
+        if (equipment == null || !equippedItems.Contains(equipment))
+        {
+            Debug.LogWarning($"[Unequip] Equipment '{equipmentName}' not found or not active.");
+            return;
+        }
+
+        equipment.SetActive(false);
+        equippedItems.Remove(equipment);
+
+        BaseEquipment baseEquip = equipment.GetComponent<BaseEquipment>();
+        if (baseEquip != null && uiManager != null)
+        {
+            uiManager.HideIcon(baseEquip.equipmentIcon);
+        }
+
+        Debug.Log($"🛑 Equipment '{equipmentName}' unequipped.");
+    }
+    public string UnequipRandom()
+    {
+        if (equippedItems.Count == 0) return null;
+
+        GameObject random = equippedItems.ToList()[UnityEngine.Random.Range(0, equippedItems.Count)];
+        Unequip(random.name);
+        return random.name;
+    }
+
+
     public IReadOnlyCollection<GameObject> EquippedItems => equippedItems;
 }

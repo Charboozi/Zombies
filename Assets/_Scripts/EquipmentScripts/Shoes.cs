@@ -12,6 +12,11 @@ public class Shoes : BaseEquipment
         ApplySpeedBonus();
     }
 
+    private void OnDisable()
+    {
+        RemoveSpeedBonus();
+    }
+
     private void ApplySpeedBonus()
     {
         if (effectApplied) return;
@@ -25,6 +30,26 @@ public class Shoes : BaseEquipment
                 movement.moveSpeed += speedBonus;
                 effectApplied = true;
                 Debug.Log($"{gameObject.name} applied speed bonus: +{speedBonus}");
+            }
+        }
+    }
+
+    private void RemoveSpeedBonus()
+    {
+        if (!effectApplied) return;
+
+        if (NetworkManager.Singleton == null || NetworkManager.Singleton.LocalClient == null)
+            return;
+
+        var localPlayerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+        if (localPlayerObj != null)
+        {
+            var movement = localPlayerObj.GetComponent<NetworkedCharacterMovement>();
+            if (movement != null)
+            {
+                movement.moveSpeed -= speedBonus;
+                effectApplied = false;
+                Debug.Log($"{gameObject.name} removed speed bonus: -{speedBonus}");
             }
         }
     }

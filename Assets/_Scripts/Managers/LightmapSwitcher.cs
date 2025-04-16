@@ -162,6 +162,7 @@ public class LightmapSwitcher : NetworkBehaviour
             InteractableChargeManager.Instance.FullyRechargeAll();
         }
 
+        AnnouncerVoiceManager.Instance.PlayVoiceLine("Power_Online");
         Debug.Log("💡 Lights On applied.");
     }
 
@@ -192,6 +193,7 @@ public class LightmapSwitcher : NetworkBehaviour
         if (audioSource != null && clip != null)
         {
             audioSource.PlayOneShot(clip);
+            AnnouncerVoiceManager.Instance.PlayVoiceLine("Power_Offline");
         }
     }
 

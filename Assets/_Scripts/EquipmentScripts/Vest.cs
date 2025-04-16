@@ -12,7 +12,6 @@ public class Vest : BaseEquipment
     {
         if (!effectApplied)
         {
-            // Find the local player's network object.
             var localPlayerObj = NetworkManager.Singleton.LocalClient?.PlayerObject;
             if (localPlayerObj != null)
             {
@@ -22,6 +21,24 @@ public class Vest : BaseEquipment
                     healthProxy.AddArmor(armorBonus);
                     effectApplied = true;
                     Debug.Log($"{gameObject.name} applied its armor bonus: +{armorBonus}");
+                }
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (effectApplied)
+        {
+            var localPlayerObj = NetworkManager.Singleton.LocalClient?.PlayerObject;
+            if (localPlayerObj != null)
+            {
+                var healthProxy = localPlayerObj.GetComponent<HealthProxy>();
+                if (healthProxy != null)
+                {
+                    healthProxy.RemoveArmor(armorBonus);
+                    effectApplied = false;
+                    Debug.Log($"{gameObject.name} removed its armor bonus: -{armorBonus}");
                 }
             }
         }

@@ -41,10 +41,15 @@ public class ArmorPowerup : PowerupBase
         Debug.Log($"🛡️ Temporary armor applied: +{armorBonus}");
         proxy.AddArmor(armorBonus);
         FadeScreenEffect.Instance.ShowPersistentEffectForDuration(Color.blue, duration);
+        GameObject loopAudio = PlayLoopedEffectSound(duration);
 
         yield return new WaitForSeconds(duration);
 
         proxy.RemoveArmor(armorBonus);
         Debug.Log($"🛡️ Temporary armor expired: -{armorBonus}");
+        if (loopAudio != null)
+        {
+            Destroy(loopAudio);
+        }
     }
 }

@@ -27,6 +27,8 @@ public class DayManager : NetworkBehaviour
 
     private Dictionary<int, Action> scheduledOneTimeEvents = new();
     private List<RecurringDayEvent> recurringEvents = new();
+    private List<TimedDayEvent> timedDayEvents = new();
+
 
     private void Awake()
     {
@@ -54,6 +56,15 @@ public class DayManager : NetworkBehaviour
 
             // ✅ Server tells all clients to play the day change sound
             PlayDayChangeSoundClientRpc();
+        }
+
+        foreach (var evt in timedDayEvents)
+        {
+            if (!evt.triggered && CurrentDayInt == evt.targetDay && currentTime.Value >= evt.targetDay * dayLengthInSeconds + evt.timeIntoDay)
+            {
+                evt.callback?.Invoke();
+                evt.triggered = true;
+            }
         }
     }
 
@@ -115,11 +126,15 @@ public class DayManager : NetworkBehaviour
         else
             scheduledOneTimeEvents[day] += callback;
     }
-
     public void ScheduleRecurringEvent(int startDay, int interval, Action<int> callback)
     {
         recurringEvents.Add(new RecurringDayEvent(startDay, interval, callback));
     }
+    public void ScheduleEventForDayTime(int day, float secondsIntoDay, Action callback)
+    {
+        timedDayEvents.Add(new TimedDayEvent(day, secondsIntoDay, callback));
+    }
+
 
     public float GetDayFraction(float days)
     {
@@ -151,6 +166,22 @@ public class DayManager : NetworkBehaviour
             this.startDay = startDay;
             this.interval = interval;
             this.callback = callback;
+        }
+    }
+
+    private class TimedDayEvent
+    {
+        public int targetDay;
+        public float timeIntoDay;
+        public Action callback;
+        public bool triggered;
+
+        public TimedDayEvent(int day, float seconds, Action callback)
+        {
+            targetDay = day;
+            timeIntoDay = seconds;
+            this.callback = callback;
+            triggered = false;
         }
     }
 }

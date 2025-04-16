@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using Unity.Netcode;
+using System.Linq;
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Collider))]
@@ -14,6 +15,9 @@ public class EnemyAttack : NetworkBehaviour
 
     [Header("Audio")]
     public AudioClip hitSound;
+
+    [Header("Equipment Disruption")]
+    public bool canRemoveEquipment = false;
 
     private AudioSource audioSource;
     private RandomSoundPlayer randomSoundPlayer;
@@ -167,6 +171,9 @@ public class EnemyAttack : NetworkBehaviour
             {
                 PlayHitSoundClientRpc();
                 health.TakeDamageServerRpc(attackDamage);
+                
+                // Try to remove equipment if this is the local player
+                TryRemoveRandomEquipmentFromLocalPlayer(target);
             }
         }
     }
@@ -201,4 +208,36 @@ public class EnemyAttack : NetworkBehaviour
         if (hitSound != null)
             audioSource.PlayOneShot(hitSound);
     }
+
+    //For Snatchers
+    private void TryRemoveRandomEquipmentFromLocalPlayer(Transform hitTarget)
+    {
+        if (!IsServer) return;
+
+        if (hitTarget.TryGetComponent(out NetworkObject targetNetObj) && targetNetObj.IsOwner)
+        {
+            var localInventory = FindFirstObjectByType<EquipmentInventory>();
+            if (localInventory == null) return;
+
+            var equippedItems = localInventory.EquippedItems.ToList();
+            if (equippedItems.Count == 0) return;
+
+            int index = UnityEngine.Random.Range(0, equippedItems.Count);
+            GameObject itemToRemove = equippedItems[index];
+
+            // Disable equipment
+            itemToRemove.SetActive(false);
+
+            // Remove the icon
+            var baseEquip = itemToRemove.GetComponent<BaseEquipment>();
+            if (baseEquip != null && localInventory.uiManager != null)
+            {
+                localInventory.uiManager.HideIcon(baseEquip.equipmentIcon);
+            }
+
+            Debug.Log($"❌ Enemy removed equipment: {itemToRemove.name}");
+        }
+    }
+
+
 }

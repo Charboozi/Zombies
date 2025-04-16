@@ -16,6 +16,10 @@ public class WeaponController : MonoBehaviour
     public static event Action OnReloadStart;
     public static event Action OnReloadEnd;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource chargingLoopAudioSource;
+    [SerializeField] private AudioClip chargingLoopClip;
+
     private void OnEnable()
     {
         PlayerInput.OnFirePressed += HandleFirePressed;
@@ -90,6 +94,18 @@ public class WeaponController : MonoBehaviour
     {
         OnReloadStart?.Invoke();
 
+        if (chargingLoopAudioSource != null && chargingLoopClip != null)
+        {
+            if (fadeOutCoroutine != null)
+                StopCoroutine(fadeOutCoroutine);
+
+            chargingLoopAudioSource.clip = chargingLoopClip;
+            chargingLoopAudioSource.volume = 0f;
+            chargingLoopAudioSource.loop = true;
+            chargingLoopAudioSource.Play();
+            StartCoroutine(FadeInAudio(chargingLoopAudioSource, 0.2f)); // Fade in over 0.5s
+        }
+
         while (currentWeapon.currentAmmo < currentWeapon.maxAmmo && currentWeapon.reserveAmmo > 0)
         {
             yield return new WaitForSeconds(0.1f);
@@ -97,9 +113,10 @@ public class WeaponController : MonoBehaviour
             currentWeapon.reserveAmmo--;
             currentWeapon.UpdateEmissionIntensity();
         }
-
+        
         OnReloadEnd?.Invoke();
         autoReloadCoroutine = null;
+        StopReloading();
     }
 
     public void OnWeaponSwitched()
@@ -115,6 +132,14 @@ public class WeaponController : MonoBehaviour
 
     private void StopReloading()
     {
+        if (chargingLoopAudioSource != null && chargingLoopAudioSource.isPlaying)
+        {
+            if (fadeOutCoroutine != null)
+                StopCoroutine(fadeOutCoroutine);
+
+            fadeOutCoroutine = StartCoroutine(FadeOutAudio(chargingLoopAudioSource, 0.5f)); // 0.5s fade
+        }
+
         if (delayBeforeReloadCoroutine != null)
         {
             StopCoroutine(delayBeforeReloadCoroutine);
@@ -130,4 +155,39 @@ public class WeaponController : MonoBehaviour
     }
 
     public bool IsReloading => autoReloadCoroutine != null;
+
+
+    private Coroutine fadeOutCoroutine;
+    private IEnumerator FadeOutAudio(AudioSource source, float duration)
+    {
+        float startVolume = source.volume;
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            source.volume = Mathf.Lerp(startVolume, 0f, t / duration);
+            yield return null;
+        }
+
+        source.Stop();
+        source.clip = null;
+        source.volume = startVolume; // Reset volume
+    }
+
+    private IEnumerator FadeInAudio(AudioSource source, float duration)
+    {
+        float t = 0f;
+        float targetVolume = 0.2f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            source.volume = Mathf.Lerp(0f, targetVolume, t / duration);
+            yield return null;
+        }
+
+        source.volume = targetVolume;
+    }
+
 }
