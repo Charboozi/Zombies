@@ -38,17 +38,17 @@ public class SpeedPowerup : PowerupBase
 
     private IEnumerator ApplySpeedBoost(NetworkedCharacterMovement movement)
     {
-        float originalSpeed = movement.moveSpeed;
-
         Debug.Log($"⚡ Speed boost applied: +{speedBoost}");
         FadeScreenEffect.Instance.ShowPersistentEffectForDuration(Color.yellow, duration);
-        movement.moveSpeed = originalSpeed + speedBoost;
+
+        movement.AddBonusSpeed(speedBoost);
         GameObject loopAudio = PlayLoopedEffectSound(duration);
 
         yield return new WaitForSeconds(duration);
 
-        movement.moveSpeed = originalSpeed;
-        Debug.Log($"⚡ Speed boost ended. Restored to: {originalSpeed}");
+        movement.RemoveBonusSpeed(speedBoost);
+        Debug.Log($"⚡ Speed boost ended. Removed: -{speedBoost}");
+
         if (loopAudio != null)
         {
             Destroy(loopAudio);

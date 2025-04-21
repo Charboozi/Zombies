@@ -1,12 +1,13 @@
+using System.Collections;
+using System.Linq;
 using UnityEngine;
 using Unity.Netcode;
-using System.Collections;
 
 public class AlarmSequenceManager : NetworkBehaviour
 {
     public static AlarmSequenceManager Instance { get; private set; }
 
-    [Header("Lights to Flicker")]
+    [Header("Lights to Flicker (will toggle GameObject.active)")]
     [SerializeField] private Light[] lights;
 
     [Header("Audio")]
@@ -14,22 +15,49 @@ public class AlarmSequenceManager : NetworkBehaviour
 
     [Header("Sequence Settings")]
     [SerializeField] private float sequenceDuration = 20f;
-    [SerializeField] private float flickerInterval = 0.1f;
+    [SerializeField] private float flickerInterval  = 0.1f;
 
-    private Coroutine activeSequence;
+    [Header("Rotation Settings")]
+    [Tooltip("Degrees per second to spin each light on Y during the alarm.")]
+    [SerializeField] private float rotationSpeedY = 45f;
+
+    private GameObject[] lightObjects;
+    private Coroutine    activeSequence;
+    private bool         sequenceActive = false;
 
     private void Awake()
     {
+        // Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
+
+        // Cache the light GameObjects
+        lightObjects = lights
+            .Where(l => l != null)
+            .Select(l => l.gameObject)
+            .ToArray();
     }
 
-    // ✅ You call this from the server to trigger for everyone!
+    private void Update()
+    {
+        // Smoothly rotate all light GameObjects while the sequence is active
+        if (sequenceActive)
+        {
+            float deltaY = rotationSpeedY * Time.deltaTime;
+            foreach (var go in lightObjects)
+            {
+                go.transform.Rotate(0f, deltaY, 0f, Space.World);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Call this on the server to start the alarm sequence for everyone.
+    /// </summary>
     public void StartAlarmSequence()
     {
         if (!IsServer)
@@ -41,64 +69,59 @@ public class AlarmSequenceManager : NetworkBehaviour
         // Tell all clients to start
         StartAlarmSequenceClientRpc();
 
-        // Optional: Start on server too (in case you need logic here)
-        if (activeSequence != null)
-        {
-            StopCoroutine(activeSequence);
-        }
-        activeSequence = StartCoroutine(FlickerRoutine());
+        // Start it on the server as well
+        RestartSequence();
     }
 
     [ClientRpc]
     private void StartAlarmSequenceClientRpc()
     {
-        // Skip server, we already started locally.
+        // Server already started it locally
         if (IsServer) return;
 
-        if (activeSequence != null)
-        {
-            StopCoroutine(activeSequence);
-        }
-        activeSequence = StartCoroutine(FlickerRoutine());
+        RestartSequence();
     }
 
-    private IEnumerator FlickerRoutine()
+    private void RestartSequence()
     {
-        float elapsed = 0f;
-        bool lightsOn = false;
+        // Stop any existing routine
+        if (activeSequence != null)
+            StopCoroutine(activeSequence);
 
+        // Begin new flicker & rotation coroutine
+        activeSequence    = StartCoroutine(FlickerAndRotateRoutine());
+        sequenceActive    = true;
+    }
+
+    private IEnumerator FlickerAndRotateRoutine()
+    {
+        float elapsed   = 0f;
+        bool  lightsOn  = false;
+
+        // Play audio once
         if (flickerAudioSource != null && !flickerAudioSource.isPlaying)
-        {
             flickerAudioSource.Play();
-        }
 
+        // Loop toggling on/off at the given interval
         while (elapsed < sequenceDuration)
         {
-            lightsOn = !lightsOn; // Toggle the lights
-
-            foreach (var light in lights)
-            {
-                if (light != null)
-                    light.enabled = lightsOn;
-            }
+            lightsOn = !lightsOn;
+            foreach (var go in lightObjects)
+                go.SetActive(lightsOn);
 
             yield return new WaitForSeconds(flickerInterval);
             elapsed += flickerInterval;
         }
 
-        // ✅ At the end, make sure ALL lights are OFF
-        foreach (var light in lights)
-        {
-            if (light != null)
-                light.enabled = false;
-        }
+        // Ensure everything is off at the end
+        foreach (var go in lightObjects)
+            go.SetActive(false);
 
         if (flickerAudioSource != null && flickerAudioSource.isPlaying)
-        {
             flickerAudioSource.Stop();
-        }
 
+        // Tear down
+        sequenceActive = false;
         activeSequence = null;
     }
-
 }

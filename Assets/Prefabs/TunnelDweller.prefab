@@ -441,10 +441,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   detectionRange: 10
-  inRangeThreshold: 3.5
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
+  inRangeThreshold: 3.5
 --- !u!114 &1113827101455557938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -460,7 +460,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   attackDamage: 30
   attackCooldown: 1.2
-  attackRange: 3.5
   rotationSpeed: 10
   hitSound: {fileID: 8300000, guid: 08054c7ea18d946b49df5d2e7bd55a26, type: 3}
 --- !u!114 &7771675281392896969
@@ -515,7 +514,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   spawnChance: 0.79
-  powerupLifetime: 20
+  powerupLifetime: 19
 --- !u!114 &1564522451099145672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -529,7 +528,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  destroyDelay: 5
+  destroyDelay: 20
   animator: {fileID: 1147593676904502055}
   componentsToDisable:
   - {fileID: 4476183246169368326}

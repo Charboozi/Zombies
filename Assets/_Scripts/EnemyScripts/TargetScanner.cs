@@ -6,8 +6,9 @@ using UnityEngine.AI;
 public class TargetScanner : NetworkBehaviour
 {
     [SerializeField] private float detectionRange = 10f;
-    [SerializeField] private float inRangeThreshold = 2f;
     [SerializeField] private LayerMask targetLayer;
+
+    public float inRangeThreshold = 2f;
 
     private Transform currentTarget;
     private float checkInterval = 1f;

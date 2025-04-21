@@ -7,22 +7,19 @@ public class ParticleSoundController : MonoBehaviour
     private ParticleSystem ps;
     private AudioSource audioSource;
     private int lastParticleCount = 0;
-    private bool isLooping = false;
-    private bool isPlaying = false; 
 
-    private float fadeInSpeed = 2f;  // Speed of fade in
-    private float fadeOutSpeed = 2f; // Speed of fade out
+    [Header("Settings")]
+    [SerializeField] private bool isLooping = false;
+    [SerializeField] private float fadeInSpeed = 2f;
+    [SerializeField] private float fadeOutSpeed = 2f;
+
     private Coroutine fadeCoroutine;
+    private bool isPlaying = false;
 
-    void Start()
+    void Awake()
     {
         ps = GetComponent<ParticleSystem>();
         audioSource = GetComponent<AudioSource>();
-
-        if (audioSource != null)
-        {
-            isLooping = audioSource.loop; // Check if the sound is looping
-        }
     }
 
     void Update()
@@ -31,7 +28,6 @@ public class ParticleSoundController : MonoBehaviour
         {
             if (isLooping)
             {
-                // Looping sounds (flamethrowers, lasers)
                 if (!isPlaying)
                 {
                     isPlaying = true;
@@ -40,7 +36,6 @@ public class ParticleSoundController : MonoBehaviour
             }
             else
             {
-                // Single-shot sounds (bullets, explosions)
                 if (ps.particleCount > lastParticleCount)
                 {
                     PlayGunshotSound();
@@ -49,7 +44,6 @@ public class ParticleSoundController : MonoBehaviour
         }
         else
         {
-            // Stop looping sounds when no particles
             if (isLooping && isPlaying)
             {
                 isPlaying = false;
@@ -64,42 +58,37 @@ public class ParticleSoundController : MonoBehaviour
     {
         if (audioSource != null && audioSource.clip != null)
         {
-            audioSource.PlayOneShot(audioSource.clip);
+            AudioSource.PlayClipAtPoint(audioSource.clip, transform.position);
         }
     }
 
     private void StartFadeIn()
     {
-        if (fadeCoroutine != null)
-        {
-            StopCoroutine(fadeCoroutine);
-        }
-        fadeCoroutine = StartCoroutine(FadeAudio(1f, fadeInSpeed)); // Fade to full volume
+        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeAudio(1f, fadeInSpeed));
     }
 
     private void StartFadeOut()
     {
-        if (fadeCoroutine != null)
-        {
-            StopCoroutine(fadeCoroutine);
-        }
-        fadeCoroutine = StartCoroutine(FadeAudio(0f, fadeOutSpeed)); // Fade to zero volume
+        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeAudio(0f, fadeOutSpeed));
     }
 
     private IEnumerator FadeAudio(float targetVolume, float speed)
     {
         if (targetVolume > 0f && !audioSource.isPlaying)
         {
+            audioSource.volume = 0f;
             audioSource.Play();
         }
 
         float startVolume = audioSource.volume;
-        float time = 0f;
+        float t = 0f;
 
-        while (time < 1f)
+        while (t < 1f)
         {
-            time += Time.deltaTime * speed;
-            audioSource.volume = Mathf.Lerp(startVolume, targetVolume, time);
+            t += Time.deltaTime * speed;
+            audioSource.volume = Mathf.Lerp(startVolume, targetVolume, t);
             yield return null;
         }
 
@@ -108,6 +97,15 @@ public class ParticleSoundController : MonoBehaviour
         if (targetVolume == 0f)
         {
             audioSource.Stop();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (isLooping && isPlaying)
+        {
+            isPlaying = false;
+            audioSource.Stop(); // Stop loop immediately when object is disabled
         }
     }
 }

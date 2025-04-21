@@ -4,37 +4,36 @@ using System.Collections;
 
 public class ReviveSystem : NetworkBehaviour
 {
-    [Tooltip("Time required to complete revival")]
     public float reviveTime = 3f;
-
-    [Tooltip("Distance within which revival is possible.")]
     public float reviveRange = 2f;
-
     private bool isReviving = false;
 
-    private void Update()
-    {
-        if (!IsOwner) return;
+    private void OnEnable() => PlayerInput.OnInteractPressed += TryFindAndReviveNearbyPlayer;
+    private void OnDisable() => PlayerInput.OnInteractPressed -= TryFindAndReviveNearbyPlayer;
 
-        if (Input.GetKeyDown(KeyCode.E))
+    private ReviveUI reviveUI;
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
         {
-            TryFindAndReviveNearbyPlayer();
+            reviveUI = FindFirstObjectByType<ReviveUI>();
         }
     }
 
     private void TryFindAndReviveNearbyPlayer()
     {
-        if (isReviving) return;
+        if (!IsOwner || isReviving) return;
 
         Collider[] hits = Physics.OverlapSphere(transform.position, reviveRange);
         foreach (var hit in hits)
         {
             if (hit.TryGetComponent<EntityHealth>(out var entityHealth))
             {
-                if (entityHealth.isDowned.Value && hit.gameObject != gameObject) // Don't revive self
+                if (entityHealth.isDowned.Value && hit.gameObject != gameObject)
                 {
                     StartCoroutine(ReviveCoroutine(hit.gameObject, entityHealth));
-                    break; // Only revive one player at a time
+                    break;
                 }
             }
         }
@@ -43,17 +42,27 @@ public class ReviveSystem : NetworkBehaviour
     private IEnumerator ReviveCoroutine(GameObject downedPlayer, EntityHealth entityHealth)
     {
         isReviving = true;
+        reviveUI.Show();
 
         float timer = 0f;
         while (timer < reviveTime)
         {
-            // Optionally update UI progress here.
+            if (Vector3.Distance(transform.position, downedPlayer.transform.position) > reviveRange ||
+                !entityHealth.isDowned.Value)
+            {
+                reviveUI.Hide();
+                isReviving = false;
+                yield break;
+            }
+
             timer += Time.deltaTime;
+            reviveUI.SetProgress(timer / reviveTime);
             yield return null;
         }
 
-        RevivePlayerServerRpc(downedPlayer.GetComponent<NetworkObject>().NetworkObjectId);
+        reviveUI.Hide();
 
+        RevivePlayerServerRpc(downedPlayer.GetComponent<NetworkObject>().NetworkObjectId);
         isReviving = false;
     }
 
@@ -71,3 +80,4 @@ public class ReviveSystem : NetworkBehaviour
         }
     }
 }
+

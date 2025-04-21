@@ -27,7 +27,7 @@ public class Shoes : BaseEquipment
             var movement = localPlayerObj.GetComponent<NetworkedCharacterMovement>();
             if (movement != null)
             {
-                movement.moveSpeed += speedBonus;
+                movement.AddBonusSpeed(speedBonus);
                 effectApplied = true;
                 Debug.Log($"{gameObject.name} applied speed bonus: +{speedBonus}");
             }
@@ -47,7 +47,7 @@ public class Shoes : BaseEquipment
             var movement = localPlayerObj.GetComponent<NetworkedCharacterMovement>();
             if (movement != null)
             {
-                movement.moveSpeed -= speedBonus;
+                movement.RemoveBonusSpeed(speedBonus);
                 effectApplied = false;
                 Debug.Log($"{gameObject.name} removed speed bonus: -{speedBonus}");
             }

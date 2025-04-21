@@ -13,12 +13,14 @@ public class PlayerInput : MonoBehaviour
     // Combat
     public static event Action OnFirePressed;
     public static event Action OnFireReleased;
-    public static event Action OnReloadPressed;
 
     // Weapons
-    public static event Action OnInteractPressed;
     public static event Action<int> OnSwitchWeapon;
     public static event Action<int> OnCycleWeapon; // -1 = previous, +1 = next
+
+    // Misc
+    public static event Action OnInteractPressed;
+    public static event Action OnPausePressed;
 
     [Header("Controller Bindings")]
     public string horizontalAxis = "Horizontal";
@@ -26,10 +28,18 @@ public class PlayerInput : MonoBehaviour
     public string jumpButton = "Jump";
     public string fireButton = "Fire1";
     public string interactButton = "Interact";
-    public string reloadButton = "Reload";
+    public string pauseButton = "Pause";
+    
 
     private void Update()
     {
+        // Pause
+        if (Input.GetButtonDown(pauseButton))
+            OnPausePressed?.Invoke();
+
+        if (PauseManager.IsPaused)
+        return;
+
         // Mouse Look
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
@@ -51,13 +61,9 @@ public class PlayerInput : MonoBehaviour
         if (Input.GetButtonUp(fireButton))
             OnFireReleased?.Invoke();
 
-        // Reload
-        if (Input.GetButtonDown(reloadButton))
-        OnReloadPressed?.Invoke();
-
         // Interact
         if (Input.GetButtonDown(interactButton))
-            OnInteractPressed?.Invoke();
+            OnInteractPressed?.Invoke(); 
 
         // Weapon switching: Number keys 1–3
         for (int i = 1; i <= 4; i++)

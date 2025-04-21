@@ -28,19 +28,20 @@ public class Vest : BaseEquipment
 
     private void OnDisable()
     {
-        if (effectApplied)
-        {
-            var localPlayerObj = NetworkManager.Singleton.LocalClient?.PlayerObject;
-            if (localPlayerObj != null)
-            {
-                var healthProxy = localPlayerObj.GetComponent<HealthProxy>();
-                if (healthProxy != null)
-                {
-                    healthProxy.RemoveArmor(armorBonus);
-                    effectApplied = false;
-                    Debug.Log($"{gameObject.name} removed its armor bonus: -{armorBonus}");
-                }
-            }
-        }
+        // If we never applied the effect, or we aren't on a running client, do nothing:
+        if (!effectApplied 
+        || NetworkManager.Singleton == null 
+        || !NetworkManager.Singleton.IsClient)
+            return;
+
+        var localPlayerObj = NetworkManager.Singleton.LocalClient?.PlayerObject;
+        if (localPlayerObj == null) return;
+
+        var healthProxy = localPlayerObj.GetComponent<HealthProxy>();
+        if (healthProxy == null) return;
+
+        healthProxy.RemoveArmor(armorBonus);
+        effectApplied = false;
+        Debug.Log($"{gameObject.name} removed its armor bonus: -{armorBonus}");
     }
 }

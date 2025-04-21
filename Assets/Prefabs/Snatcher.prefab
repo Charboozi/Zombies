@@ -954,6 +954,7 @@ GameObject:
   - component: {fileID: 6409366685395738078}
   - component: {fileID: 8082185565440557445}
   - component: {fileID: 8479206169010333038}
+  - component: {fileID: 6345601966137469345}
   m_Layer: 8
   m_Name: Snatcher
   m_TagString: Enemy
@@ -1248,11 +1249,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  detectionRange: 10
-  inRangeThreshold: 2
+  detectionRange: 30
   targetLayer:
     serializedVersion: 2
     m_Bits: 64
+  inRangeThreshold: 2
 --- !u!114 &8550540974723488933
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1268,10 +1269,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   attackDamage: 150
   attackCooldown: 1.2
-  attackRange: 2
   rotationSpeed: 10
   hitSound: {fileID: 0}
-  canRemoveEquipment: 1
 --- !u!114 &2384623849511316329
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1285,7 +1284,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  destroyDelay: 10
+  destroyDelay: 20
   animator: {fileID: 2501521367474783562}
   componentsToDisable:
   - {fileID: 8550540974723488933}
@@ -1312,7 +1311,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   spawnChance: 1
-  powerupLifetime: 20
+  powerupLifetime: 19
 --- !u!114 &6409366685395738078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1367,6 +1366,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &6345601966137469345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3840907493935578043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 508b03c05003a1c4c931304eb85807c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  canRemoveEquipment: 1
 --- !u!1 &3938991619295405397
 GameObject:
   m_ObjectHideFlags: 0

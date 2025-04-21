@@ -27,12 +27,17 @@ public class NetworkedPickupableItem : NetworkBehaviour
     {
         if (IsOwner && pickupSound != null)
         {
-            AudioSource.PlayClipAtPoint(pickupSound, transform.position);
+            // Try to get the local player object (owned by this client)
+            var localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            if (localPlayer != null && localPlayer.TryGetComponent<AudioSource>(out var audioSource))
+            {
+                // Play as 2D (make sure AudioSource on the player has spatialBlend = 0)
+                audioSource.PlayOneShot(pickupSound);
+            }
         }
 
         if (IsServer)
         {
-            Debug.Log($"✅ Server despawning pickup: {gameObject.name}");
             GetComponent<NetworkObject>().Despawn();
         }
         else

@@ -6,7 +6,7 @@ using System.Collections;
 public class NetworkedCharacterMovement : NetworkBehaviour
 {
     [Header("Movement Settings")]
-    public float moveSpeed = 5f;
+    public float baseMoveSpeed = 5f;
     public float jumpForce = 2.0f;
     public float gravity = 9.8f;
     public float groundCheckRadius = 0.3f;
@@ -21,18 +21,18 @@ public class NetworkedCharacterMovement : NetworkBehaviour
 
     public bool IsGrounded => isGrounded;
 
-    private float originalMoveSpeed;
+    private float bonusSpeed = 0f;
+    private float slowMultiplier = 1f;
     private Coroutine slowCoroutine;
 
     private Transform currentLift;
     private Vector3 lastLiftPosition;
 
-
     public Vector3 MovementVelocity { get; private set; }
 
     private EntityHealth entityHealth;
 
-    void Start()
+    private void Start()
     {
         controller = GetComponent<CharacterController>();
         entityHealth = GetComponent<EntityHealth>();
@@ -41,26 +41,22 @@ public class NetworkedCharacterMovement : NetworkBehaviour
         {
             velocity = Vector3.zero;
         }
-
-        originalMoveSpeed = moveSpeed;
     }
 
-    void Update()
+    private void Update()
     {
         if (!IsOwner) return;
 
         if (currentLift != null)
         {
             Vector3 liftDelta = currentLift.position - lastLiftPosition;
-            controller.Move(liftDelta); // ✅ Apply platform movement
-
+            controller.Move(liftDelta);
             lastLiftPosition = currentLift.position;
         }
 
         if (entityHealth != null && entityHealth.isDowned.Value)
         {
-            // Player is downed, disable movement.
-            return;
+            return; // Player is downed, disable movement
         }
 
         CheckGrounded();
@@ -75,11 +71,11 @@ public class NetworkedCharacterMovement : NetworkBehaviour
 
         Vector3 moveDir = (transform.forward * moveZ + transform.right * moveX).normalized;
 
-        MovementVelocity = moveDir * moveSpeed;
+        MovementVelocity = moveDir * CurrentMoveSpeed;
 
         if (moveDir.sqrMagnitude > 0.01f)
         {
-            controller.Move(moveDir * moveSpeed * Time.deltaTime);
+            controller.Move(moveDir * CurrentMoveSpeed * Time.deltaTime);
         }
     }
 
@@ -115,19 +111,33 @@ public class NetworkedCharacterMovement : NetworkBehaviour
 
     private IEnumerator SlowDownCoroutine(float slowFactor, float duration)
     {
-        moveSpeed = originalMoveSpeed * (1f - slowFactor);
+        slowMultiplier = 1f - slowFactor;
         yield return new WaitForSeconds(duration);
-        moveSpeed = originalMoveSpeed;
+        slowMultiplier = 1f;
     }
+
+    public void AddBonusSpeed(float amount)
+    {
+        bonusSpeed += amount;
+    }
+
+    public void RemoveBonusSpeed(float amount)
+    {
+        bonusSpeed -= amount;
+        if (bonusSpeed < 0f) bonusSpeed = 0f;
+    }
+
+    public float CurrentMoveSpeed => (baseMoveSpeed + bonusSpeed) * slowMultiplier;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Lift")) // Make sure your lift platform has the "Lift" tag
+        if (other.CompareTag("Lift"))
         {
             currentLift = other.transform;
             lastLiftPosition = currentLift.position;
         }
     }
+
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Lift"))
@@ -135,5 +145,4 @@ public class NetworkedCharacterMovement : NetworkBehaviour
             currentLift = null;
         }
     }
-
 }

@@ -1,45 +1,44 @@
 using UnityEngine;
 using UnityEngine.AI;
 using Unity.Netcode;
-using System.Linq;
+using System;
 
 [RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(TargetScanner))]
 public class EnemyAttack : NetworkBehaviour
 {
     [Header("Attack Settings")]
     public int attackDamage = 10;
     public float attackCooldown = 1.2f;
-    public float attackRange = 2f;
     public float rotationSpeed = 10f;
 
     [Header("Audio")]
     public AudioClip hitSound;
 
-    [Header("Equipment Disruption")]
-    public bool canRemoveEquipment = false;
-
     private AudioSource audioSource;
     private RandomSoundPlayer randomSoundPlayer;
     private Collider enemyCollider;
+    private NavMeshAgent agent;
+    private IEnemyAnimationHandler enemyAnimation;
 
     private Transform target;
     private bool isAttacking = false;
     private float cooldownTimer = 0f;
-
-    private NavMeshAgent agent;
-    private IEnemyAnimationHandler enemyAnimation;
-
     private bool isDead = false;
+
+    public event Action<Transform> OnTargetHit;
+
+    private TargetScanner scanner;
 
     private void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
-        enemyAnimation = GetComponent<IEnemyAnimationHandler>() ?? NullEnemyAnimationHandler.Instance;
-
-        audioSource = GetComponent<AudioSource>();
+        agent           = GetComponent<NavMeshAgent>();
+        scanner         = GetComponent<TargetScanner>();
+        enemyCollider   = GetComponent<Collider>();
+        audioSource     = GetComponent<AudioSource>();
         randomSoundPlayer = GetComponent<RandomSoundPlayer>();
-        enemyCollider = GetComponent<Collider>();
+        enemyAnimation  = GetComponent<IEnemyAnimationHandler>() 
+                          ?? NullEnemyAnimationHandler.Instance;
 
         if (TryGetComponent(out EnemyDeathHandler deathHandler))
         {
@@ -119,7 +118,7 @@ public class EnemyAttack : NetworkBehaviour
             return;
 
         float distanceToTarget = Vector3.Distance(transform.position, target.position);
-        if (distanceToTarget > attackRange)
+        if (distanceToTarget > scanner.inRangeThreshold)
             return;
 
         bool hitConfirmed = false;
@@ -132,7 +131,7 @@ public class EnemyAttack : NetworkBehaviour
         Vector3 direction = (target.position - origin).normalized;
 
         // First: try SphereCast ✅ (bigger radius to catch enemies of different sizes)
-        if (Physics.SphereCast(origin, 0.5f, direction, out RaycastHit sphereHit, attackRange))
+        if (Physics.SphereCast(origin, 0.5f, direction, out RaycastHit sphereHit, scanner.inRangeThreshold))
         {
             Debug.DrawRay(origin, direction * sphereHit.distance, Color.green, 1f);
 
@@ -151,7 +150,7 @@ public class EnemyAttack : NetworkBehaviour
                 if (collider.transform == target)
                 {
                     // Check line of sight
-                    if (Physics.Raycast(origin, direction, out RaycastHit losHit, attackRange))
+                    if (Physics.Raycast(origin, direction, out RaycastHit losHit, scanner.inRangeThreshold))
                     {
                         Debug.DrawRay(origin, direction * losHit.distance, Color.yellow, 1f);
 
@@ -169,16 +168,14 @@ public class EnemyAttack : NetworkBehaviour
         {
             if (target.TryGetComponent(out EntityHealth health))
             {
+                // 2) Fire the event instead of calling TryRemoveRandomEquipmentFromLocalPlayer
+                OnTargetHit?.Invoke(target);
+
                 PlayHitSoundClientRpc();
                 health.TakeDamageServerRpc(attackDamage);
-                
-                // Try to remove equipment if this is the local player
-                TryRemoveRandomEquipmentFromLocalPlayer(target);
             }
         }
     }
-
-
 
     public void OnAttackAnimationComplete()
     {
@@ -208,36 +205,4 @@ public class EnemyAttack : NetworkBehaviour
         if (hitSound != null)
             audioSource.PlayOneShot(hitSound);
     }
-
-    //For Snatchers
-    private void TryRemoveRandomEquipmentFromLocalPlayer(Transform hitTarget)
-    {
-        if (!IsServer) return;
-
-        if (hitTarget.TryGetComponent(out NetworkObject targetNetObj) && targetNetObj.IsOwner)
-        {
-            var localInventory = FindFirstObjectByType<EquipmentInventory>();
-            if (localInventory == null) return;
-
-            var equippedItems = localInventory.EquippedItems.ToList();
-            if (equippedItems.Count == 0) return;
-
-            int index = UnityEngine.Random.Range(0, equippedItems.Count);
-            GameObject itemToRemove = equippedItems[index];
-
-            // Disable equipment
-            itemToRemove.SetActive(false);
-
-            // Remove the icon
-            var baseEquip = itemToRemove.GetComponent<BaseEquipment>();
-            if (baseEquip != null && localInventory.uiManager != null)
-            {
-                localInventory.uiManager.HideIcon(baseEquip.equipmentIcon);
-            }
-
-            Debug.Log($"❌ Enemy removed equipment: {itemToRemove.name}");
-        }
-    }
-
-
 }

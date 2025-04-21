@@ -15,14 +15,14 @@ public class PickupConsumable : MonoBehaviour
 
         if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, pickupRange, consumableLayer))
         {
-            var pickup = hit.collider.GetComponent<ConsumablePickupItem>();
+            var pickup = hit.collider.GetComponent<NetworkedPickupableItem>();
             if (pickup == null) return;
 
             // ✅ Add to consumable manager
             if (ConsumableManager.Instance != null)
             {
-                ConsumableManager.Instance.Add(pickup.ConsumableType, pickup.Amount);
-                Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Picked up {pickup.Amount}x {pickup.ConsumableType}");
+                ConsumableManager.Instance.Add(pickup.name, 1);
+                Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Picked up {1}x {pickup.name}");
             }
 
             // ✅ Request server to despawn
