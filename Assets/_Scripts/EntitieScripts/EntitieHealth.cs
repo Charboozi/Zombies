@@ -32,6 +32,19 @@ public class EntityHealth : NetworkBehaviour
             currentHealth.Value = maxHealth;
             isDowned.Value = false;
         }
+
+        if (IsServer && CompareTag("Player"))
+        {
+            GameOverManager.Instance?.RegisterPlayer(this);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsServer && CompareTag("Player"))
+        {
+            GameOverManager.Instance?.UnregisterPlayer(this);
+        }
     }
 
     //Client that got hit to server:"I got shot"
@@ -48,7 +61,7 @@ public class EntityHealth : NetworkBehaviour
 
         currentHealth.Value -= effectiveDamage;
         OnTakeDamage?.Invoke();
-        Debug.Log($"{gameObject.name} took {damage} damage! Health: {currentHealth.Value}");
+        //Debug.Log($"{gameObject.name} took {damage} damage! Health: {currentHealth.Value}");
 
         // If health reaches 0, determine whether to down or die.
         if (currentHealth.Value <= 0)

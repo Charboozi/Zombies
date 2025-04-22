@@ -71,7 +71,7 @@ public class EnemySpawner : NetworkBehaviour
             spawnInterval = Mathf.Max(0.5f, spawnInterval * spawnIntervalDecreaseRate);
             maxEnemies += maxEnemiesIncreaseAmount;
 
-            Debug.Log($"[Spawner] Day {day}: spawnInterval = {spawnInterval}, maxEnemies = {maxEnemies}");
+            //Debug.Log($"[Spawner] Day {day}: spawnInterval = {spawnInterval}, maxEnemies = {maxEnemies}");
         }
     }
 

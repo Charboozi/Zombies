@@ -3,7 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// Show a fade screen effect. e.g. healing shows green, damage red, downed dark, etc.
+/// Handles quick visual screen fades (e.g. damage flash, healing pulse, downed black overlay).
+/// Persistent tints should use PersistentScreenTint instead.
 /// </summary>
 public class FadeScreenEffect : MonoBehaviour
 {
@@ -22,11 +23,11 @@ public class FadeScreenEffect : MonoBehaviour
 
         Instance = this;
         screenImage = GetComponent<Image>();
-        screenImage.color = new Color(0, 0, 0, 0); // Start fully transparent
+        screenImage.color = new Color(0, 0, 0, 0); // Fully transparent at start
     }
 
     /// <summary>
-    /// Show a screen tint effect using the specified color, alpha, and fade speed. Called for damage, healing, etc.
+    /// Show a fast screen flash using the specified color and alpha.
     /// </summary>
     public void ShowEffect(Color effectColor, float initialAlpha = 0.5f, float fadeSpeed = 2f)
     {
@@ -55,7 +56,7 @@ public class FadeScreenEffect : MonoBehaviour
     }
 
     /// <summary>
-    /// Fades the screen to semi-transparent black for downed state.
+    /// Fade screen to semi-black for downed state.
     /// </summary>
     public void ShowDownedEffect()
     {
@@ -72,7 +73,7 @@ public class FadeScreenEffect : MonoBehaviour
 
         while (alpha < targetColor.a)
         {
-            alpha += Time.deltaTime * 1f; // Speed of fade in
+            alpha += Time.deltaTime * 1f;
             alpha = Mathf.Clamp(alpha, 0, targetColor.a);
             screenImage.color = new Color(0, 0, 0, alpha);
             yield return null;
@@ -83,7 +84,7 @@ public class FadeScreenEffect : MonoBehaviour
     }
 
     /// <summary>
-    /// Fades the screen back to clear after being revived.
+    /// Fade screen from black to clear after revival.
     /// </summary>
     public void ShowReviveEffect()
     {
@@ -100,7 +101,7 @@ public class FadeScreenEffect : MonoBehaviour
 
         while (alpha > 0f)
         {
-            alpha -= Time.deltaTime * 1.5f; // Speed of fade out
+            alpha -= Time.deltaTime * 1.5f;
             alpha = Mathf.Clamp01(alpha);
             screenImage.color = new Color(color.r, color.g, color.b, alpha);
             yield return null;
@@ -109,43 +110,4 @@ public class FadeScreenEffect : MonoBehaviour
         screenImage.color = new Color(0, 0, 0, 0);
         currentFadeCoroutine = null;
     }
-
-    /// <summary>
-    /// Show a persistent screen tint for a set duration, then clear it.
-    /// </summary>
-    public void ShowPersistentEffectForDuration(Color color, float duration, float targetAlpha = 0.04f, float fadeSpeed = 0.1f)
-    {
-        if (currentFadeCoroutine != null)
-            StopCoroutine(currentFadeCoroutine);
-
-        currentFadeCoroutine = StartCoroutine(PersistentEffectRoutine(color, duration, targetAlpha, fadeSpeed));
-    }
-
-    private IEnumerator PersistentEffectRoutine(Color color, float duration, float targetAlpha, float fadeSpeed)
-    {
-        // Fade in
-        float alpha = 0f;
-        while (alpha < targetAlpha)
-        {
-            alpha += Time.deltaTime * fadeSpeed;
-            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(alpha));
-            yield return null;
-        }
-
-        // Hold
-        screenImage.color = new Color(color.r, color.g, color.b, targetAlpha);
-        yield return new WaitForSeconds(duration);
-
-        // Fade out
-        while (alpha > 0f)
-        {
-            alpha -= Time.deltaTime * fadeSpeed;
-            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(alpha));
-            yield return null;
-        }
-
-        screenImage.color = new Color(0, 0, 0, 0);
-        currentFadeCoroutine = null;
-    }
-
 }

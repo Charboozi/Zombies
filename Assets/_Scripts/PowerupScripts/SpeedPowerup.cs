@@ -28,7 +28,7 @@ public class SpeedPowerup : PowerupBase
         var movement = player.GetComponent<NetworkedCharacterMovement>();
         if (movement != null)
         {
-            player.GetComponent<MonoBehaviour>().StartCoroutine(ApplySpeedBoost(movement));
+            StartCoroutine(ApplySpeedBoost(movement)); // ✅ run coroutine here
         }
         else
         {
@@ -39,7 +39,11 @@ public class SpeedPowerup : PowerupBase
     private IEnumerator ApplySpeedBoost(NetworkedCharacterMovement movement)
     {
         Debug.Log($"⚡ Speed boost applied: +{speedBoost}");
-        FadeScreenEffect.Instance.ShowPersistentEffectForDuration(Color.yellow, duration);
+        PersistentScreenTint.Instance.SetPersistentTintForDuration(
+            new Color(1f, 0.85f, 0f), // Yellow/orange
+            duration,
+            0.05f
+        );
 
         movement.AddBonusSpeed(speedBoost);
         GameObject loopAudio = PlayLoopedEffectSound(duration);

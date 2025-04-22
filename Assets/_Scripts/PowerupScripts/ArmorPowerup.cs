@@ -28,7 +28,7 @@ public class ArmorPowerup : PowerupBase
         var proxy = player.GetComponent<HealthProxy>();
         if (proxy != null)
         {
-            player.GetComponent<MonoBehaviour>().StartCoroutine(ApplyTemporaryArmor(proxy));
+            StartCoroutine(ApplyTemporaryArmor(proxy)); // ✅ run locally
         }
         else
         {
@@ -40,13 +40,18 @@ public class ArmorPowerup : PowerupBase
     {
         Debug.Log($"🛡️ Temporary armor applied: +{armorBonus}");
         proxy.AddArmor(armorBonus);
-        FadeScreenEffect.Instance.ShowPersistentEffectForDuration(Color.blue, duration);
+
+        PersistentScreenTint.Instance.SetPersistentTintForDuration(
+            new Color(0.2f, 0.8f, 0.2f), duration, 0.05f
+        );
+
         GameObject loopAudio = PlayLoopedEffectSound(duration);
 
         yield return new WaitForSeconds(duration);
 
         proxy.RemoveArmor(armorBonus);
         Debug.Log($"🛡️ Temporary armor expired: -{armorBonus}");
+
         if (loopAudio != null)
         {
             Destroy(loopAudio);

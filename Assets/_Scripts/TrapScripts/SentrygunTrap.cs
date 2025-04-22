@@ -20,6 +20,8 @@ public class SentrygunTrap : TrapBase
     [SerializeField] private float fireInterval = 1f;
     [SerializeField] private float scanInterval = 3f;
     [SerializeField] private int damagePerShot = 15;
+    [SerializeField] private float headshotMultiplier = 1.5f;
+
 
     [Header("Detection")]
     [SerializeField] private LayerMask enemyLayer;
@@ -138,19 +140,54 @@ public class SentrygunTrap : TrapBase
 
             if (Physics.Raycast(ray, out RaycastHit hit, detectionRange))
             {
-                if (hit.collider.TryGetComponent<EntityHealth>(out var victim))
+                float finalDamage = damagePerShot;
+
+                // 🧠 Headshot check
+                if (hit.collider.CompareTag("Headshot"))
                 {
-                    victim.TakeDamageServerRpc(damagePerShot);
+                    if (hit.collider.transform.parent.TryGetComponent<EntityHealth>(out var headEntity))
+                    {
+                        finalDamage *= headshotMultiplier;
+                        headEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
+
+                        if (NetworkImpactSpawner.Instance != null)
+                        {
+                            NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpactHeadshot");
+                        }
+
+                        PlayMuzzleEffectClientRpc();
+                        yield return new WaitForSeconds(fireInterval);
+                        continue;
+                    }
                 }
 
-                SpawnImpactEffectClientRpc(hit.point, hit.normal);
+                // 🧠 Body shot
+                if (hit.collider.TryGetComponent<EntityHealth>(out var bodyEntity))
+                {
+                    bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
+
+                    if (NetworkImpactSpawner.Instance != null)
+                    {
+                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                    }
+
+                    PlayMuzzleEffectClientRpc();
+                    yield return new WaitForSeconds(fireInterval);
+                    continue;
+                }
+
+                // 🧱 Hit environment
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");
+                }
             }
 
             PlayMuzzleEffectClientRpc();
-
             yield return new WaitForSeconds(fireInterval);
         }
     }
+
 
 
     [ClientRpc]
@@ -159,16 +196,6 @@ public class SentrygunTrap : TrapBase
         if (muzzleEffect != null)
         {
             muzzleEffect.Play();
-        }
-    }
-
-    [ClientRpc]
-    private void SpawnImpactEffectClientRpc(Vector3 position, Vector3 normal)
-    {
-        if (impactEffectPrefab != null)
-        {
-            var impact = Instantiate(impactEffectPrefab, position, Quaternion.LookRotation(normal));
-            Destroy(impact, 2f);
         }
     }
 

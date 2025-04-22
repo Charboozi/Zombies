@@ -5,48 +5,26 @@ using UnityEngine.SceneManagement;
 
 public class StartGame : MonoBehaviour
 {
-    private Button startButton;
-    [SerializeField] private GameObject playerPrefab; // Drag your player prefab here
+    [SerializeField] private Button startButton;
+    [Tooltip("Exact name of your game scene")]
+    [SerializeField] private string gameSceneName = "GameScene";
 
-    void Start()
+    private void Start()
     {
-        startButton = GetComponent<Button>();
-        startButton.onClick.AddListener(ChangeScene);
+        startButton.onClick.AddListener(OnStartClicked);
     }
 
-    private void ChangeScene()
+    private void OnStartClicked()
     {
-        if (NetworkManager.Singleton.IsServer) // Only the server/host can change scenes
+        if (!NetworkManager.Singleton.IsServer)
         {
-            NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoaded;
-            NetworkManager.Singleton.SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
+            Debug.LogWarning("Only host can start the game.");
+            return;
         }
-        else
-        {
-            Debug.LogWarning("Only the host can start the game.");
-        }
-    }
 
-    private void OnSceneLoaded(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
-    {
-        if (sceneName == "GameScene" && NetworkManager.Singleton.IsServer)
-        {
-            // Spawn players for all connected clients
-            foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
-            {
-                Vector3 spawnPosition = GetSpawnPosition(client.ClientId);
-                GameObject playerInstance = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
-                playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(client.ClientId);
-            }
-
-            // Optional: Unsubscribe from the event to avoid duplicate calls
-            NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnSceneLoaded;
-        }
-    }
-
-    private Vector3 GetSpawnPosition(ulong clientId)
-    {
-        // TODO: Customize spawn position per client if needed
-        return new Vector3(clientId * -2f, 2f, 5f); // Simple example: spread out players
+        NetworkManager.Singleton.SceneManager.LoadScene(
+            gameSceneName,
+            LoadSceneMode.Single
+        );
     }
 }

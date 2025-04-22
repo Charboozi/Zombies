@@ -80,18 +80,21 @@ public class Interactable : NetworkBehaviour
     {
         if (isCoolingDown.Value) return;
 
-        // Execute all interaction actions (e.g. spawn weapon)
         var actions = GetComponents<IInteractableAction>();
         foreach (var action in actions)
         {
-            action.DoAction(); // already server-side
+            action.DoAction();
         }
 
         TryTriggerBlackout();
 
-        PlayInteractionSoundClientRpc();
+        // Only play audio on the client who interacted
+        PlayInteractionSoundClientRpc(new ClientRpcParams {
+            Send = new ClientRpcSendParams {
+                TargetClientIds = new ulong[] { rpcParams.Receive.SenderClientId }
+            }
+        });
 
-        // Start server-side cooldown
         isCoolingDown.Value = true;
         StartCoroutine(CooldownRoutine());
     }
@@ -136,7 +139,7 @@ public class Interactable : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void PlayInteractionSoundClientRpc()
+    private void PlayInteractionSoundClientRpc(ClientRpcParams rpcParams = default)
     {
         var audioSource = GetComponent<AudioSource>();
         if (audioSource != null)

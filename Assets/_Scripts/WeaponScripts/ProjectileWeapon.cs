@@ -45,7 +45,7 @@ public class ProjectileWeapon : WeaponBase
 
                     if (NetworkImpactSpawner.Instance != null)
                     {
-                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpactHeadshot");
                     }
 
                     if (!canPierceEnemies)

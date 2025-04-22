@@ -52,7 +52,7 @@ public class ShotgunWeapon : WeaponBase
 
                     if (NetworkImpactSpawner.Instance != null)
                     {
-                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpactHeadshot");
                     }
 
                     continue; // No piercing for shotgun, continue to next pellet
