@@ -24239,8 +24239,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   applyToAll: 1
-  pickupSound: {fileID: 8300000, guid: 7f7840711ef2ecf4d86669f52d247a47, type: 3}
-  loopedEffectSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 25196e16560cd7145a4d08699188f42a, type: 3}
+  loopedEffectSound: {fileID: 8300000, guid: f357969ce9c4a654d866886b35e70215, type: 3}
   speedBoost: 3
   duration: 20
 --- !u!1001 &6870173438586756765

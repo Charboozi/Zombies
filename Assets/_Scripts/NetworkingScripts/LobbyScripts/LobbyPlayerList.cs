@@ -28,10 +28,23 @@ public class LobbyPlayerList : NetworkBehaviour
     public static LobbyPlayerList Instance;
 
     public NetworkList<LobbyPlayerData> Players = new NetworkList<LobbyPlayerData>();
+    
+    private void Start()
+    {
+        // When scene changes back to menu, force a refresh
+        OnListChanged(default);
+    }
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+        DontDestroyOnLoad(gameObject); // persists across scenes
     }
 
     public override void OnNetworkSpawn()

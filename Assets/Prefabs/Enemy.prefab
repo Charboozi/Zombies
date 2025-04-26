@@ -1219,7 +1219,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  spawnChance: 0.202
+  spawnChance: 0.2
   powerupLifetime: 19
 --- !u!114 &81822821103942844
 MonoBehaviour:

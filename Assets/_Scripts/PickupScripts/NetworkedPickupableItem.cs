@@ -6,9 +6,6 @@ public class NetworkedPickupableItem : NetworkBehaviour
 {
     [SerializeField] private float autoDespawnTime = 10f;
 
-    [Header("Audio")]
-    [SerializeField] private AudioClip pickupSound;
-
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -25,17 +22,6 @@ public class NetworkedPickupableItem : NetworkBehaviour
 
     public void Despawn()
     {
-        if (IsOwner && pickupSound != null)
-        {
-            // Try to get the local player object (owned by this client)
-            var localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-            if (localPlayer != null && localPlayer.TryGetComponent<AudioSource>(out var audioSource))
-            {
-                // Play as 2D (make sure AudioSource on the player has spatialBlend = 0)
-                audioSource.PlayOneShot(pickupSound);
-            }
-        }
-
         if (IsServer)
         {
             GetComponent<NetworkObject>().Despawn();

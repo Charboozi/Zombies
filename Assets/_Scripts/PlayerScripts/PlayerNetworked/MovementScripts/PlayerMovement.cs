@@ -83,15 +83,21 @@ public class NetworkedCharacterMovement : NetworkBehaviour
     {
         bool jumpPressed = Input.GetKeyDown(KeyCode.Space);
 
+        if (isGrounded && velocity.y < 0f)
+        {
+            // 👇 Reset downward velocity when grounded
+            velocity.y = -2f; // Small downward force to keep grounded
+        }
+
         if (isGrounded && jumpPressed)
         {
             velocity.y = Mathf.Sqrt(jumpForce * 2f * gravity);
         }
-        else
-        {
-            velocity.y -= gravity * Time.deltaTime;
-        }
 
+        // Apply gravity every frame
+        velocity.y -= gravity * Time.deltaTime;
+
+        // Move with vertical velocity
         controller.Move(velocity * Time.deltaTime);
     }
 

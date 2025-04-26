@@ -177,11 +177,12 @@ MonoBehaviour:
   muzzlePoint: {fileID: 5505935066081620156}
   muzzleEffect: {fileID: 4187036968622167558}
   impactEffectPrefab: {fileID: 5665346900197103622, guid: 1d4f16f2766ff3443b33a92d362dcf82, type: 3}
-  rotationSpeed: 1
+  rotationSpeed: 3
   detectionRange: 20
-  fireInterval: 0.15
+  fireInterval: 0.2
   scanInterval: 2
-  damagePerShot: 18
+  damagePerShot: 25
+  headshotMultiplier: 1.5
   enemyLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -20150,6 +20151,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb6a00948c5720f48997b0bc4f5d5fc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isLooping: 0
+  fadeInSpeed: 2
+  fadeOutSpeed: 2
 --- !u!1 &8954560238154599063
 GameObject:
   m_ObjectHideFlags: 0

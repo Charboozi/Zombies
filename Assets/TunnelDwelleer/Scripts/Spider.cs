@@ -5,6 +5,7 @@ If purchased through stores (such as the Unity Asset Store) the corresponding EU
 */
 
 using UnityEngine;
+using Unity.Netcode;
 
 namespace ProceduralSpider
 {
@@ -18,7 +19,7 @@ namespace ProceduralSpider
 
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(CapsuleCollider))]
-    public class Spider : MonoBehaviour
+    public class Spider : NetworkBehaviour
     {
         [Header("Movement")]
         [Tooltip("The turn speed of the spider. Determines how fast the spider will turn.")]
@@ -148,31 +149,36 @@ namespace ProceduralSpider
             }
         }
 
-        private GroundInfo GroundCheck()
-        {
-            GroundInfo result = GroundInfo.CreateEmpty();
-            Vector3 c = GetColliderCenter();
-            QueryTriggerInteraction q = QueryTriggerInteraction.Ignore;
 
-            if (isWallWalking)
+    private GroundInfo GroundCheck()
+    {
+        GroundInfo result = GroundInfo.CreateEmpty();
+        Vector3 c = GetColliderCenter();
+        QueryTriggerInteraction q = QueryTriggerInteraction.Ignore;
+
+        if (isWallWalking)
+        {
+            if (Physics.SphereCast(transform.position, GetForwardRayRadius(), transform.forward, out hitInfo, GetForwardRayLength() * clientRaycastMultiplier, walkableLayer, q))
             {
-                if (Physics.SphereCast(transform.position, GetForwardRayRadius(), transform.forward, out hitInfo, GetForwardRayLength(), walkableLayer, q))
-                {
-                    result = new GroundInfo(GroundType.Wall, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderLength() / 2);
-                }
-                else if (Physics.SphereCast(transform.position, GetDownRayRadius(), -transform.up, out hitInfo, GetDownRayLength(), walkableLayer, q))
-                {
-                    result = new GroundInfo(GroundType.Ground, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderHeight() / 2);
-                }
+                result = new GroundInfo(GroundType.Wall, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderLength() / 2);
+            }
+            else if (Physics.SphereCast(transform.position, GetDownRayRadius(), -transform.up, out hitInfo, GetDownRayLength() * clientRaycastMultiplier, walkableLayer, q))
+            {
+                result = new GroundInfo(GroundType.Ground, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderHeight() / 2);
             }
             else
             {
-                result.normal = Vector3.up;
+                // Fallback if both rays miss (clients only)
+                result = new GroundInfo(GroundType.Ground, transform.up, GetColliderHeight() / 2);
             }
-
-            return result;
+        }
+        else
+        {
+            result.normal = Vector3.up;
         }
 
+        return result;
+    }
         /*
         * Returns the rotation with specified right and up direction
         */
@@ -225,15 +231,20 @@ namespace ProceduralSpider
             return timeStandingStill;
         }
 
-        public float GetDownRayLength()
+        public float clientRaycastMultiplier = 1.2f; // Adjust in Inspector if needed
+
+        private float GetRaycastMultiplier() => IsServer ? 1f : clientRaycastMultiplier;
+
+        private float GetDownRayLength()
         {
-            return downRayLength * GetColliderHeight() * 2.5f;
+            return downRayLength * GetColliderHeight() * 2.5f * GetRaycastMultiplier();
         }
 
-        public float GetForwardRayLength()
+        private float GetForwardRayLength()
         {
-            return forwardRayLength * GetColliderLength() * 2.5f;
+            return forwardRayLength * GetColliderLength() * 2.5f * GetRaycastMultiplier();
         }
+
 
         public float GetDownRayRadius()
         {

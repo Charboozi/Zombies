@@ -28,33 +28,12 @@ public class ArmorPowerup : PowerupBase
         var proxy = player.GetComponent<HealthProxy>();
         if (proxy != null)
         {
-            StartCoroutine(ApplyTemporaryArmor(proxy)); // ✅ run locally
+            proxy.AddTemporaryArmor(armorBonus, duration);  // ✅ now safe
+            PlayLoopedEffectSound(duration);
         }
         else
         {
             Debug.LogWarning("ArmorPowerup: No HealthProxy found on player.");
-        }
-    }
-
-    private IEnumerator ApplyTemporaryArmor(HealthProxy proxy)
-    {
-        Debug.Log($"🛡️ Temporary armor applied: +{armorBonus}");
-        proxy.AddArmor(armorBonus);
-
-        PersistentScreenTint.Instance.SetPersistentTintForDuration(
-            new Color(0.2f, 0.8f, 0.2f), duration, 0.05f
-        );
-
-        GameObject loopAudio = PlayLoopedEffectSound(duration);
-
-        yield return new WaitForSeconds(duration);
-
-        proxy.RemoveArmor(armorBonus);
-        Debug.Log($"🛡️ Temporary armor expired: -{armorBonus}");
-
-        if (loopAudio != null)
-        {
-            Destroy(loopAudio);
         }
     }
 }

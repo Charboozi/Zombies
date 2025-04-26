@@ -112,4 +112,26 @@ public class FireTrap : TrapBase
             trigger.fireTrap = this;
         }
     }
+
+    public override void Prewarm()
+    {
+        base.Prewarm(); // Prewarm physics/audio first
+
+        // Prewarm all fire effects
+        foreach (var fireEffect in fireEffects)
+        {
+            if (fireEffect != null)
+            {
+                fireEffect.Play();
+                fireEffect.Stop();
+            }
+        }
+
+        // Prewarm trigger collider query
+        if (detectionTrigger != null)
+        {
+            Physics.OverlapBox(detectionTrigger.bounds.center, detectionTrigger.bounds.extents, detectionTrigger.transform.rotation);
+        }
+    }
+
 }

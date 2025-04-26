@@ -44,7 +44,11 @@ public class ExplosiveWeapon : WeaponBase
                     spreadDirection += muzzleTransform.up * Random.Range(-spreadAngle, spreadAngle) * 0.01f;
                     spreadDirection.Normalize();
 
-                    rb.AddForce(spreadDirection * projectileForce);
+                    // 🎯 Apply random force variation
+                    float randomForceMultiplier = Random.Range(0.8f, 1.2f); // +/-10% variation
+                    float finalForce = projectileForce * randomForceMultiplier;
+
+                    rb.AddForce(spreadDirection * finalForce);
                 }
             }
         }

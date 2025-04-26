@@ -31,16 +31,14 @@ public class LightmapSwitcher : NetworkBehaviour
 
     private void Awake()
     {
-        // Singleton setup
         if (Instance != null && Instance != this)
         {
             Destroy(this.gameObject);
             return;
         }
+
         Instance = this;
-
         audioSource = GetComponent<AudioSource>();
-
         PrepareLightmaps();
     }
 
@@ -48,13 +46,19 @@ public class LightmapSwitcher : NetworkBehaviour
     {
         if (IsServer)
         {
-            RequestLightsOn();
+            // Wait until InteractableChargeManager is ready
+            InteractableChargeManager.OnInteractablesReady += OnInteractablesReady;
         }
+    }
+
+    private void OnInteractablesReady()
+    {
+        InteractableChargeManager.OnInteractablesReady -= OnInteractablesReady;
+        ApplyLightsOnServerSide(); // 🔁 This will now always run AFTER charges are found
     }
 
     private void PrepareLightmaps()
     {
-        // Prepare Lights On Lightmaps
         lightsOnLightmaps = new LightmapData[lightsOnColor.Length];
         for (int i = 0; i < lightsOnColor.Length; i++)
         {
@@ -65,7 +69,6 @@ public class LightmapSwitcher : NetworkBehaviour
             lightsOnLightmaps[i] = data;
         }
 
-        // Prepare Blackout Lightmaps
         blackoutLightmaps = new LightmapData[blackoutColor.Length];
         for (int i = 0; i < blackoutColor.Length; i++)
         {
@@ -77,13 +80,13 @@ public class LightmapSwitcher : NetworkBehaviour
         }
     }
 
-    // === PUBLIC METHODS ===
+    // === PUBLIC ===
 
     public void RequestBlackout()
     {
         if (IsServer)
         {
-            ApplyBlackoutClientRpc();
+            ApplyBlackoutServerSide();
         }
         else
         {
@@ -95,7 +98,7 @@ public class LightmapSwitcher : NetworkBehaviour
     {
         if (IsServer)
         {
-            ApplyLightsOnClientRpc();
+            ApplyLightsOnServerSide();
         }
         else
         {
@@ -106,15 +109,45 @@ public class LightmapSwitcher : NetworkBehaviour
     // === SERVER RPCS ===
 
     [ServerRpc(RequireOwnership = false)]
-    private void RequestBlackoutServerRpc(ServerRpcParams rpcParams = default)
+    private void RequestBlackoutServerRpc()
     {
-        ApplyBlackoutClientRpc();
+        ApplyBlackoutServerSide();
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RequestLightsOnServerRpc(ServerRpcParams rpcParams = default)
+    private void RequestLightsOnServerRpc()
     {
+        ApplyLightsOnServerSide();
+    }
+
+    // === SERVER-ONLY LOGIC ===
+
+    private void ApplyBlackoutServerSide()
+    {
+        FullyDischargeAllInteractables(); // ✅ Server-side only
+        ApplyBlackoutClientRpc();
+    }
+
+    private void ApplyLightsOnServerSide()
+    {
+        FullyRechargeAllInteractables(); // ✅ Server-side only
         ApplyLightsOnClientRpc();
+    }
+
+    private void FullyDischargeAllInteractables()
+    {
+        if (InteractableChargeManager.Instance != null)
+        {
+            InteractableChargeManager.Instance.FullyDischargeAll();
+        }
+    }
+
+    private void FullyRechargeAllInteractables()
+    {
+        if (InteractableChargeManager.Instance != null)
+        {
+            InteractableChargeManager.Instance.FullyRechargeAll();
+        }
     }
 
     // === CLIENT RPCS ===
@@ -131,20 +164,13 @@ public class LightmapSwitcher : NetworkBehaviour
         ApplyLightsOn();
     }
 
-    // === LOCAL APPLICATION ===
+    // === LOCAL ===
 
     private void ApplyBlackout()
     {
         ApplyLightmaps(blackoutLightmaps);
         ApplyReflectionProbes(blackoutReflectionTextures);
         ApplyLightProbes(blackoutLightProbes);
-
-        // Discharge interactables
-        if (InteractableChargeManager.Instance != null)
-        {
-            InteractableChargeManager.Instance.FullyDischargeAll();
-        }
-
         PlaySound(blackoutSound);
 
         Debug.Log("🕶️ Blackout applied.");
@@ -155,12 +181,6 @@ public class LightmapSwitcher : NetworkBehaviour
         ApplyLightmaps(lightsOnLightmaps);
         ApplyReflectionProbes(lightsOnReflectionTextures);
         ApplyLightProbes(lightsOnLightProbes);
-
-        // Recharge interactables
-        if (InteractableChargeManager.Instance != null)
-        {
-            InteractableChargeManager.Instance.FullyRechargeAll();
-        }
 
         Debug.Log("💡 Lights On applied.");
     }
@@ -194,5 +214,4 @@ public class LightmapSwitcher : NetworkBehaviour
             audioSource.PlayOneShot(clip);
         }
     }
-
 }

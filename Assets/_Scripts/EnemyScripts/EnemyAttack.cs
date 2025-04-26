@@ -81,6 +81,23 @@ public class EnemyAttack : NetworkBehaviour
     {
         if (isDead || isAttacking || target == null || cooldownTimer > 0f) return;
 
+        // ✅ Prevent attacking downed targets
+        if (target.TryGetComponent<EntityHealth>(out var health))
+        {
+            if (health.isDowned.Value)
+            {
+                StopAttack();
+
+                // ✅ Optionally tell movement to clear target and roam
+                if (TryGetComponent<EnemyMovement>(out var movement))
+                {
+                    movement.ClearTarget();
+                }
+
+                return;
+            }
+        }
+
         StartAttack();
     }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class HealthProxy : NetworkBehaviour
 {
@@ -53,6 +54,24 @@ public class HealthProxy : NetworkBehaviour
     private void RequestFullHealServerRpc(ServerRpcParams rpcParams = default)
     {
         entityHealth.FullHeal();
+    }
+
+    public void AddTemporaryArmor(int armorAmount, float duration)
+    {
+        StartCoroutine(TemporaryArmorCoroutine(armorAmount, duration));
+    }
+
+    private IEnumerator TemporaryArmorCoroutine(int armorAmount, float duration)
+    {
+        AddArmor(armorAmount);
+
+        PersistentScreenTint.Instance.SetPersistentTintForDuration(
+            new Color(0.2f, 0.8f, 0.2f), duration, 0.05f
+        );
+
+        yield return new WaitForSeconds(duration);
+
+        RemoveArmor(armorAmount);
     }
     
     [ServerRpc(RequireOwnership = false)]

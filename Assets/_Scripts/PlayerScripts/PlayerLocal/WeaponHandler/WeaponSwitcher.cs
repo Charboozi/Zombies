@@ -66,7 +66,6 @@ public class WeaponSwitcher : MonoBehaviour
 
     public void EquipWeapon(int index)
     {
-        weaponController.OnWeaponSwitched();
         if (index < 0 || index >= inventory.Weapons.Count)
         {
             Debug.LogWarning("Weapon index out of range.");
@@ -91,6 +90,8 @@ public class WeaponSwitcher : MonoBehaviour
         {
             CurrentWeaponHolder.Instance.SetWeapon(inventory.Weapons[index]);
         }
+
+        weaponController.OnWeaponSwitched();
 
         Debug.Log("Equipped weapon: " + inventory.Weapons[index].name);
         OnWeaponSwitched?.Invoke();

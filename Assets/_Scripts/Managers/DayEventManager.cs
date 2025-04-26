@@ -11,25 +11,25 @@ public class DayEventManager : MonoBehaviour
             return;
         }
 
-        DayManager.Instance.ScheduleEventForDayTime(1, 3f, () =>
+        DayManager.Instance.ScheduleEventForDayTime(1, 7f, () =>
         {
-            Debug.Log("🚨 3 seconds into Day 3: Triggering Start Sequence!");
+            Debug.Log("🚨 7 seconds into Day 1: Triggering Start Sequence!");
             LightmapSwitcher.Instance.RequestBlackout();
-            AnnouncerVoiceManager.Instance.PlayVoiceLine("Power_Offline");
+            AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Power_Offline");
         });
 
         DayManager.Instance.ScheduleEventForDay(3, () =>
         {
             Debug.Log("🎉 Day 3 Event Triggered!, Unknown entitie has entered the area, going in to lockdown mode");
             AlarmSequenceManager.Instance.StartAlarmSequence();
-            AnnouncerVoiceManager.Instance.PlayVoiceLine("Unknown_Entity");
+            AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Unknown_Entity");
         });
 
         DayManager.Instance.ScheduleEventForDay(8, () =>
         {
             Debug.Log("🎉 Day 8 Event Triggered!, Unknown entitie has entered the area, going in to lockdown mode");
             AlarmSequenceManager.Instance.StartAlarmSequence();
-            AnnouncerVoiceManager.Instance.PlayVoiceLine("Unknown_Entity");
+            AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Unknown_Entity");
         });
 
         DayManager.Instance.ScheduleRecurringEvent(5, 5, day =>

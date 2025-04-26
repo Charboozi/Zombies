@@ -157,6 +157,7 @@ GameObject:
   - component: {fileID: 3946328567269968560}
   - component: {fileID: -2601521166317895499}
   - component: {fileID: -2124072943450334911}
+  - component: {fileID: -3005933903493224946}
   m_Layer: 8
   m_Name: TunnelDweller
   m_TagString: Enemy
@@ -194,6 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62a17a1cdc778704d81c6704c2446b6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   turnSpeed: 2
   isWallWalking: 1
   walkableLayer:
@@ -205,6 +207,7 @@ MonoBehaviour:
   forwardRayLength: 0.874
   downRayLength: 1
   showDebug: 0
+  clientRaycastMultiplier: 1.2
 --- !u!114 &3512709808135806563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,7 +347,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7258956464550662980}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bfc522eb6058c4e50afcfbb838a9c31f, type: 3}
   m_Name: 
@@ -587,10 +590,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 400
+  maxHealth: 500
   armor: 0
   currentHealth:
-    m_InternalValue: 400
+    m_InternalValue: 500
   isDowned:
     m_InternalValue: 0
   enableRegeneration: 0
@@ -727,8 +730,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 17026f58bed9742319693397e093ac13, type: 3}
   - {fileID: 8300000, guid: 08054c7ea18d946b49df5d2e7bd55a26, type: 3}
   - {fileID: 8300000, guid: 991fd6430e17d4f5888c02cabc48f035, type: 3}
-  minInterval: 5
-  maxInterval: 15
+  minInterval: 3
+  maxInterval: 8
   minPitch: 0.5
   maxPitch: 0.8
 --- !u!114 &-2124072943450334911
@@ -751,6 +754,18 @@ MonoBehaviour:
   footstepClips:
   - {fileID: 8300000, guid: f228f0474ce6d3142b944431bcce5db5, type: 3}
   footstepAudioSource: {fileID: 4850711125356383992}
+--- !u!114 &-3005933903493224946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7258956464550662980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d5eca5ad184b5d4696956eec25919af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7947376124494353109
 GameObject:
   m_ObjectHideFlags: 0

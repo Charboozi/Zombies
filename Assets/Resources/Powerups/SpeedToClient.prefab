@@ -24240,7 +24240,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   applyToAll: 0
   pickupSound: {fileID: 8300000, guid: 25196e16560cd7145a4d08699188f42a, type: 3}
-  loopedEffectSound: {fileID: 0}
+  loopedEffectSound: {fileID: 8300000, guid: f357969ce9c4a654d866886b35e70215, type: 3}
   speedBoost: 3
   duration: 20
 --- !u!1001 &6870173438586756765

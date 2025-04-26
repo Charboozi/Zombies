@@ -219,4 +219,35 @@ public class EntityHealth : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Server‐only damage application. Call this from server code.
+    /// </summary>
+    public void ApplyDamage(int amount)
+    {
+        if (!IsServer) return;
+
+        int effective = Mathf.Max(amount - armor, 1);
+        currentHealth.Value -= effective;
+        OnTakeDamage?.Invoke();
+        TakeDamageClientRpc();
+
+        if (currentHealth.Value <= 0)
+        {
+            if (CompareTag("Player") && !isDowned.Value)
+            {
+                isDowned.Value = true;
+                DownedClientRpc();
+            }
+            else if (!CompareTag("Player"))
+            {
+                DieClientRpc();
+            }
+        }
+
+        // restart regen, slow effect, etc.
+        RestartHealthRegen();
+        if (CompareTag("Player"))
+            ApplySlowEffectClientRpc(0.3f, 2f);
+    }
+
 }

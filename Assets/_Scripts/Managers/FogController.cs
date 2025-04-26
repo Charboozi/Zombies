@@ -1,7 +1,8 @@
 using UnityEngine;
+using Unity.Netcode;
 using System.Collections;
 
-public class FogController : MonoBehaviour
+public class FogController : NetworkBehaviour
 {
     public static FogController Instance { get; private set; }
 
@@ -20,11 +21,24 @@ public class FogController : MonoBehaviour
 
         Instance = this;
 
-        RenderSettings.fog = true; // Keep always enabled
+        RenderSettings.fog = true; // Always enabled
         RenderSettings.fogDensity = 0f;
     }
 
     public void FadeInFog()
+    {
+        if (IsServer) // Only server can order the fade
+            FadeInFogClientRpc();
+    }
+
+    public void FadeOutFog()
+    {
+        if (IsServer)
+            FadeOutFogClientRpc();
+    }
+
+    [ClientRpc]
+    private void FadeInFogClientRpc()
     {
         if (fadeRoutine != null)
             StopCoroutine(fadeRoutine);
@@ -32,7 +46,8 @@ public class FogController : MonoBehaviour
         fadeRoutine = StartCoroutine(FadeFog(RenderSettings.fogDensity, targetFogDensity));
     }
 
-    public void FadeOutFog()
+    [ClientRpc]
+    private void FadeOutFogClientRpc()
     {
         if (fadeRoutine != null)
             StopCoroutine(fadeRoutine);

@@ -49,8 +49,12 @@ namespace ProceduralSpider
         private float[] waitForStepTime;
         private Spider spider;
 
+        private SpiderLocalMotionEstimator motionEstimator;
+
         private void Awake()
         {
+            motionEstimator = GetComponent<SpiderLocalMotionEstimator>();
+
             Debug.Assert(ikChains.Length == ikSteppers.Length, "There should be exactly one IKStepper for each IKChain.");
             n = ikChains.Length;
             spider = GetComponent<Spider>();
@@ -100,18 +104,14 @@ namespace ProceduralSpider
 
         private void Update()
         {
-            // Iterate through all legs and update them and potentially enqueue them for a step.
+            Vector3 smoothVelocity = motionEstimator.LocalVelocity;
+
             for (int i = 0; i < n; i++)
             {
                 UpdateStep(i, Time.deltaTime);
-                EnqueueForStepIfNeeded(i);
+                EnqueueForStepIfNeeded(i, smoothVelocity);
             }
 
-#if ENABLE_DEBUG_LOGGING
-            DebugLogQueue();
-#endif
-
-            // Iterate through the queue and step if eligible
             for (int i = 0; i < n; i++)
             {
                 if (IsWaiting(i))
@@ -122,10 +122,12 @@ namespace ProceduralSpider
             }
         }
 
-        private void EnqueueForStepIfNeeded(int i)
+
+        private void EnqueueForStepIfNeeded(int i, Vector3 velocity)
         {
             if (IsWaiting(i)) return;
             if (IsStepping(i)) return;
+            if (velocity.magnitude < 0.01f) return; // Optional: only step if actually moving
             if (spider.GetTimeStandingStill() > disallowSteppingAfterSecondsStill) return;
             if (!ikSteppers[i].IsStepNeeded()) return;
             waitForStep[i] = true;

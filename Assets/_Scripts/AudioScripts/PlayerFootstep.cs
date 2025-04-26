@@ -42,7 +42,10 @@ public class PlayerFootstep : MonoBehaviour
         bool isGrounded = movement.IsGrounded;
         bool isMoving = movement.MovementVelocity.sqrMagnitude > 0.1f;
 
-        return isGrounded && isMoving;
+        var health = GetComponent<EntityHealth>();
+        bool isDowned = health != null && health.isDowned.Value;
+
+        return !isDowned && isGrounded && isMoving;
     }
 
     private void PlayFootstep()

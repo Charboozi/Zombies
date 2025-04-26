@@ -1197,10 +1197,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 600
+  maxHealth: 800
   armor: 0
   currentHealth:
-    m_InternalValue: 120
+    m_InternalValue: 800
   isDowned:
     m_InternalValue: 0
   enableRegeneration: 0

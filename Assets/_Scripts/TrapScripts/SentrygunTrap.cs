@@ -204,4 +204,15 @@ public class SentrygunTrap : TrapBase
         // Auto-assign enemy layer on reset
         enemyLayer = LayerMask.GetMask("Enemy");
     }
+
+    public override void Prewarm()
+    {
+        base.Prewarm(); // Prewarm physics/audio
+
+        // Prewarm turret head rotation (optional but clean)
+        turretHead.rotation = Quaternion.identity;
+
+        // Prewarm a scan ray
+        Physics.Raycast(muzzlePoint.position, muzzlePoint.forward, detectionRange, enemyLayer);
+    }
 }

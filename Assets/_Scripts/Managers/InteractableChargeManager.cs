@@ -2,13 +2,25 @@ using UnityEngine;
 using System.Collections.Generic;
 using Unity.Netcode;
 
-public class InteractableChargeManager : MonoBehaviour
+public class InteractableChargeManager : NetworkBehaviour
 {
     public static InteractableChargeManager Instance { get; private set; }
 
-    [SerializeField] private LayerMask interactableLayer;
+    public static event System.Action OnInteractablesReady;
 
-    private readonly List<InteractableCharge> charges = new List<InteractableCharge>();
+    [SerializeField] private LayerMask interactableLayer;
+    private readonly List<InteractableCharge> charges = new();
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            FindAllInteractables();
+
+            // 🔔 Notify listeners
+            OnInteractablesReady?.Invoke();
+        }
+    }
 
     private void Awake()
     {
@@ -19,15 +31,12 @@ public class InteractableChargeManager : MonoBehaviour
         }
 
         Instance = this;
-
-        FindAllInteractables();
     }
 
     private void FindAllInteractables()
     {
         charges.Clear();
 
-        // Find all colliders in the scene on the interactable layer
         var colliders = FindObjectsByType<Collider>(FindObjectsSortMode.None);
 
         foreach (var collider in colliders)
@@ -36,9 +45,7 @@ public class InteractableChargeManager : MonoBehaviour
             {
                 var charge = collider.GetComponent<InteractableCharge>();
                 if (charge != null)
-                {
                     charges.Add(charge);
-                }
             }
         }
 
@@ -47,34 +54,21 @@ public class InteractableChargeManager : MonoBehaviour
 
     public void FullyRechargeAll()
     {
-        if (!IsServer()) return;
+        if (!IsServer) return;
 
         foreach (var charge in charges)
-        {
             charge.FullyRecharge();
-        }
 
         Debug.Log("🔋 Fully recharged all interactables.");
     }
 
     public void FullyDischargeAll()
     {
-        if (!IsServer()) return;
+        if (!IsServer) return;
 
         foreach (var charge in charges)
-        {
             charge.FullyDischarge();
-        }
 
         Debug.Log("⚡ Fully discharged all interactables.");
-    }
-
-    private bool IsServer()
-    {
-#if UNITY_SERVER || UNITY_EDITOR
-        return NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
-#else
-        return false;
-#endif
     }
 }

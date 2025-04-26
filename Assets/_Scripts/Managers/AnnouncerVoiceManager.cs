@@ -1,7 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Netcode;
 
-public class AnnouncerVoiceManager : MonoBehaviour
+public class AnnouncerVoiceManager : NetworkBehaviour
 {
     public static AnnouncerVoiceManager Instance { get; private set; }
 
@@ -37,7 +38,7 @@ public class AnnouncerVoiceManager : MonoBehaviour
         }
     }
 
-    public void PlayVoiceLine(string key)
+    void PlayVoiceLine(string key)
     {
         if (voiceAudioSource == null)
         {
@@ -56,4 +57,11 @@ public class AnnouncerVoiceManager : MonoBehaviour
             Debug.LogWarning($"🔍 Voice line '{key}' not found!");
         }
     }
+
+    [ClientRpc]
+    public void PlayVoiceLineClientRpc(string key)
+    {
+        PlayVoiceLine(key);
+    }
+
 }

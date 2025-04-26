@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SpeedPowerup : PowerupBase
 {
@@ -9,6 +10,9 @@ public class SpeedPowerup : PowerupBase
 
     [Tooltip("Duration of the speed boost in seconds.")]
     [SerializeField] private float duration = 20f;
+
+    // Tracks active speed boosts per player
+    private static Dictionary<ulong, Coroutine> activeBoosts = new();
 
     protected override int GetEffectValue()
     {
@@ -26,36 +30,55 @@ public class SpeedPowerup : PowerupBase
         }
 
         var movement = player.GetComponent<NetworkedCharacterMovement>();
-        if (movement != null)
-        {
-            StartCoroutine(ApplySpeedBoost(movement)); // ✅ run coroutine here
-        }
-        else
+        if (movement == null)
         {
             Debug.LogWarning("SpeedPowerup: No movement component found.");
+            return;
         }
+
+        ulong playerId = player.OwnerClientId;
+
+        // Stop any existing speed boost coroutine
+        if (activeBoosts.TryGetValue(playerId, out var existingBoost))
+        {
+            Debug.Log("⚠️ Canceling existing speed boost");
+            player.GetComponent<MonoBehaviour>().StopCoroutine(existingBoost);
+            movement.RemoveBonusSpeed(speedBoost); // Always remove the previous instance
+        }
+
+        // Start new coroutine and track it
+        Coroutine newBoost = player.GetComponent<MonoBehaviour>().StartCoroutine(ApplySpeedBoost(playerId, movement));
+        activeBoosts[playerId] = newBoost;
     }
 
-    private IEnumerator ApplySpeedBoost(NetworkedCharacterMovement movement)
+    private IEnumerator ApplySpeedBoost(ulong playerId, NetworkedCharacterMovement movement)
     {
         Debug.Log($"⚡ Speed boost applied: +{speedBoost}");
-        PersistentScreenTint.Instance.SetPersistentTintForDuration(
+
+        PersistentScreenTint.Instance?.SetPersistentTintForDuration(
             new Color(1f, 0.85f, 0f), // Yellow/orange
             duration,
             0.05f
         );
 
-        movement.AddBonusSpeed(speedBoost);
         GameObject loopAudio = PlayLoopedEffectSound(duration);
+
+        movement.AddBonusSpeed(speedBoost);
 
         yield return new WaitForSeconds(duration);
 
         movement.RemoveBonusSpeed(speedBoost);
-        Debug.Log($"⚡ Speed boost ended. Removed: -{speedBoost}");
+        Debug.Log($"✅ Speed boost ended: -{speedBoost}");
 
         if (loopAudio != null)
         {
             Destroy(loopAudio);
+        }
+
+        // Clean up from tracking
+        if (activeBoosts.ContainsKey(playerId))
+        {
+            activeBoosts.Remove(playerId);
         }
     }
 }

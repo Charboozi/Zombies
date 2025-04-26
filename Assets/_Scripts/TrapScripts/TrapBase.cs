@@ -72,4 +72,18 @@ public abstract class TrapBase : NetworkBehaviour, IInteractableAction
             loopingAudioSource.Stop();
         }
     }
+
+    public virtual void Prewarm()
+    {
+        // Prewarm Physics
+        Physics.OverlapSphere(transform.position, 0.1f);
+
+        // Prewarm looping audio
+        if (loopingAudioSource != null && activeLoopClip != null)
+        {
+            loopingAudioSource.clip = activeLoopClip;
+            loopingAudioSource.Play();
+            loopingAudioSource.Stop();
+        }
+    }
 }

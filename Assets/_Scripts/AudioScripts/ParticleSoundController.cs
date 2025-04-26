@@ -6,7 +6,6 @@ public class ParticleSoundController : MonoBehaviour
 {
     private ParticleSystem ps;
     private AudioSource audioSource;
-    private int lastParticleCount = 0;
 
     [Header("Settings")]
     [SerializeField] private bool isLooping = false;
@@ -15,11 +14,17 @@ public class ParticleSoundController : MonoBehaviour
 
     private Coroutine fadeCoroutine;
     private bool isPlaying = false;
+    private int lastParticleCount = 0;
 
     void Awake()
     {
         ps = GetComponent<ParticleSystem>();
         audioSource = GetComponent<AudioSource>();
+    }
+
+    private void OnEnable()
+    {
+        lastParticleCount = ps.particleCount;
     }
 
     void Update()
@@ -38,7 +43,7 @@ public class ParticleSoundController : MonoBehaviour
             {
                 if (ps.particleCount > lastParticleCount)
                 {
-                    PlayGunshotSound();
+                    PlayGunshotSound(); // ✅ PLAY immediately on particle spawn
                 }
             }
         }
@@ -58,7 +63,18 @@ public class ParticleSoundController : MonoBehaviour
     {
         if (audioSource != null && audioSource.clip != null)
         {
-            AudioSource.PlayClipAtPoint(audioSource.clip, transform.position);
+            // Spawn a detached GameObject to play the sound
+            GameObject tempAudio = new GameObject("TempGunshotSound");
+            tempAudio.transform.position = transform.position;
+
+            AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+            tempSource.clip = audioSource.clip;
+            tempSource.volume = audioSource.volume;
+            tempSource.spatialBlend = audioSource.spatialBlend;
+            tempSource.priority = audioSource.priority;
+            tempSource.Play();
+
+            Destroy(tempAudio, tempSource.clip.length);
         }
     }
 
@@ -105,7 +121,7 @@ public class ParticleSoundController : MonoBehaviour
         if (isLooping && isPlaying)
         {
             isPlaying = false;
-            audioSource.Stop(); // Stop loop immediately when object is disabled
+            audioSource.Stop();
         }
     }
 }
