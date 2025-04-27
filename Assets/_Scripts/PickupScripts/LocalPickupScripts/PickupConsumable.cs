@@ -7,14 +7,25 @@ public class PickupConsumable : BaseLocalPickup
     {
         if (ConsumableManager.Instance != null)
         {
-            ConsumableManager.Instance.Add(pickup.name, 1);
-            Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Picked up 1x {pickup.name}");
+            var consumableInfo = pickup.GetComponent<ConsumablePickupItem>();
+            if (consumableInfo != null)
+            {
+                ConsumableManager.Instance.Add(consumableInfo.ConsumableType, consumableInfo.Amount);
+                Debug.Log($"[Client {NetworkManager.Singleton.LocalClientId}] Picked up {consumableInfo.Amount}x {consumableInfo.ConsumableType}");
 
-            DespawnPickup(pickup);
-            return true; // ✅ Successful pickup, play sound
+                DespawnPickup(pickup);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning("[PickupConsumable] No ConsumablePickupItem component found on pickup!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[PickupConsumable] ConsumableManager not found, cannot pick up item.");
         }
 
-        Debug.LogWarning("ConsumableManager not found, cannot pick up item.");
         return false; // ❌ Pickup failed
     }
 }

@@ -6,6 +6,7 @@ public class WeaponNetworkEffects : NetworkBehaviour
 {
     public ParticleSystem muzzleFlash;
     private bool isFiring = false;
+    [SerializeField] private CameraShakeController cameraShake;
 
     void OnEnable()
     {
@@ -40,6 +41,11 @@ public class WeaponNetworkEffects : NetworkBehaviour
             // ✅ Fix for automatic weapons (ensures effect is triggered every shot)
             RequestMuzzleFlashServerRpc(true);
             Invoke(nameof(StopMuzzleFlash), currentWeapon.fireRate); // Ensures flash stops correctly
+        }
+
+        if (cameraShake != null)
+        {
+            cameraShake.Shake(0.03f, 0.07f);
         }
     }
 

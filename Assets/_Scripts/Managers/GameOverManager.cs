@@ -42,8 +42,6 @@ public class GameOverManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        Debug.Log("🧪 GameOverManager: Checking if all players are downed...");
-
         foreach (var player in playerEntities)
         {
             if (player == null)
@@ -52,11 +50,8 @@ public class GameOverManager : NetworkBehaviour
                 continue;
             }
 
-            Debug.Log($"🔍 Checking player {player.name} | Downed: {player.isDowned.Value}");
-
             if (!player.isDowned.Value)
             {
-                Debug.Log("❌ Not all players are downed yet.");
                 return;
             }
         }

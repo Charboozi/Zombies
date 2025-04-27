@@ -8,11 +8,20 @@ public class Interactor : MonoBehaviour
 {
     public event Action<string> OnInteractTextChanged;
 
-    [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private float interactRange = 3f;
     [SerializeField] private LayerMask interactLayer;
 
     private Interactable currentInteractable;
+
+    private void OnEnable()
+    {
+        PlayerInput.OnInteractPressed += TryInteract;
+    }
+
+    private void OnDisable()
+    {
+        PlayerInput.OnInteractPressed -= TryInteract;
+    }
 
     private void Update()
     {
@@ -21,11 +30,6 @@ public class Interactor : MonoBehaviour
         if (currentInteractable != null)
         {
             OnInteractTextChanged?.Invoke(currentInteractable.GetInteractText());
-
-            if (Input.GetKeyDown(interactKey) && !currentInteractable.isCoolingDown.Value)
-            {
-                currentInteractable.Interact();
-            }
         }
         else
         {
@@ -49,7 +53,15 @@ public class Interactor : MonoBehaviour
             }
         }
 
-        // If we get here, nothing valid was hit
+        // No valid interactable hit
         currentInteractable = null;
+    }
+
+    private void TryInteract()
+    {
+        if (currentInteractable != null && !currentInteractable.isCoolingDown.Value)
+        {
+            currentInteractable.Interact();
+        }
     }
 }

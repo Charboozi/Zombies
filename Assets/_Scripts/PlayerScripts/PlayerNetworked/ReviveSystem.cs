@@ -74,7 +74,7 @@ public class ReviveSystem : NetworkBehaviour
             var entityHealth = no.GetComponent<EntityHealth>();
             if (entityHealth != null && entityHealth.isDowned.Value)
             {
-                entityHealth.FullHeal();
+                entityHealth.Revive();
                 Debug.Log($"Player {downedNetworkObjectId} revived.");
             }
         }

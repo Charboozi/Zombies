@@ -141,7 +141,6 @@ GameObject:
   - component: {fileID: 4476183246169368326}
   - component: {fileID: 3512709808135806563}
   - component: {fileID: 5973141481737700106}
-  - component: {fileID: 1866143317335592492}
   - component: {fileID: 5599449293474435032}
   - component: {fileID: 3238762893385494189}
   - component: {fileID: 9209780019002954703}
@@ -231,7 +230,7 @@ MonoBehaviour:
   useBreathing: 1
   breathePeriod: 10
   breatheMagnitude: 0.1
-  showDebug: 0
+  showDebug: 1
 --- !u!114 &5973141481737700106
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,54 +282,54 @@ MonoBehaviour:
     m_RotationOrder: 4
   stepTimeMultiplier: 0.38
   stepTimeMax: 0.215
-  showDebug: 0
+  showDebug: 1
   ikSteppers:
   - asyncChains:
     - {fileID: 3297725286193925255}
     - {fileID: 7017977304875867439}
-    anchorReach: -0.129
+    anchorReach: -0.166
     anchorStride: -0.676
-    anchorMultiplier: 1.3
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 8812720685614401091}
     - {fileID: 6812508658615710734}
-    anchorReach: -0.354
+    anchorReach: -0.532
     anchorStride: 0
-    anchorMultiplier: 1.3
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 6812508658615710734}
     - {fileID: 1458254713091274945}
-    anchorReach: -0.465
+    anchorReach: -0.474
     anchorStride: 0
-    anchorMultiplier: 1.3
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 7017977304875867439}
     - {fileID: 2392246024458271403}
-    anchorReach: -0.429
+    anchorReach: -0.447
     anchorStride: 0
-    anchorMultiplier: 1.3
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 2392246024458271403}
     - {fileID: 7248623351307515443}
-    anchorReach: -0.035
-    anchorStride: -0.159
-    anchorMultiplier: 1.3
+    anchorReach: -0.154
+    anchorStride: -0.205
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 1458254713091274945}
     - {fileID: 3544015514522040975}
-    anchorReach: 0.2
+    anchorReach: 0.117
     anchorStride: 0.435
-    anchorMultiplier: 1.3
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 8812720685614401091}
-    anchorReach: 0.106
+    anchorReach: 0.152
     anchorStride: 0
-    anchorMultiplier: 1.3
+    anchorMultiplier: 1
   - asyncChains:
     - {fileID: 3297725286193925255}
-    anchorReach: 0.224
-    anchorStride: 0
-    anchorMultiplier: 1.3
+    anchorReach: -0.098
+    anchorStride: -0.404
+    anchorMultiplier: 1
   ikChains:
   - {fileID: 6812508658615710734}
   - {fileID: 7017977304875867439}
@@ -340,24 +339,6 @@ MonoBehaviour:
   - {fileID: 7248623351307515443}
   - {fileID: 3297725286193925255}
   - {fileID: 8812720685614401091}
---- !u!114 &1866143317335592492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7258956464550662980}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bfc522eb6058c4e50afcfbb838a9c31f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  useCameraDistanceCulling: 1
-  cullDistance: 50
-  monoBehavioursToDisable:
-  - {fileID: 5973141481737700106}
-  - {fileID: 4476183246169368326}
-  - {fileID: 3512709808135806563}
 --- !u!54 &5599449293474435032
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -490,7 +471,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3111178349
+  GlobalObjectIdHash: 1215271722
   InScenePlacedSourceGlobalObjectIdHash: 3111178349
   DeferredDespawnTick: 0
   Ownership: 1
@@ -556,8 +537,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkTransformExpanded: 0
   AuthorityMode: 0
-  TickSyncChildren: 0
-  UseUnreliableDeltas: 0
+  TickSyncChildren: 1
+  UseUnreliableDeltas: 1
   SyncPositionX: 1
   SyncPositionY: 1
   SyncPositionZ: 1

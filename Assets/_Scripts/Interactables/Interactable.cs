@@ -80,10 +80,18 @@ public class Interactable : NetworkBehaviour
     {
         if (isCoolingDown.Value) return;
 
+        ulong interactorId = rpcParams.Receive.SenderClientId;
         var actions = GetComponents<IInteractableAction>();
         foreach (var action in actions)
         {
-            action.DoAction();
+            if (action is IInteractorAwareAction aware)
+            {
+                aware.DoAction(interactorId);
+            }
+            else
+            {
+                action.DoAction();
+            }
         }
 
         TryTriggerBlackout();

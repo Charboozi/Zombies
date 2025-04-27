@@ -29,6 +29,8 @@ public class PlayerInput : MonoBehaviour
     public string fireButton = "Fire1";
     public string interactButton = "Interact";
     public string pauseButton = "Pause";
+
+    public static bool CanInteract = true;
     
 
     private void Update()
@@ -62,8 +64,10 @@ public class PlayerInput : MonoBehaviour
             OnFireReleased?.Invoke();
 
         // Interact
-        if (Input.GetButtonDown(interactButton))
-            OnInteractPressed?.Invoke(); 
+        if (CanInteract && Input.GetButtonDown(interactButton))
+        {
+            OnInteractPressed?.Invoke();
+        }
 
         // Weapon switching: Number keys 1–3
         for (int i = 1; i <= 4; i++)
