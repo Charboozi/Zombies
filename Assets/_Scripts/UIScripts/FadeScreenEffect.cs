@@ -110,4 +110,34 @@ public class FadeScreenEffect : MonoBehaviour
         screenImage.color = new Color(0, 0, 0, 0);
         currentFadeCoroutine = null;
     }
+
+    /// <summary>
+    /// Fades the screen to a deep red color for death/gameover.
+    /// </summary>
+    public void ShowDeathEffect(float duration = 4f)
+    {
+        if (currentFadeCoroutine != null)
+            StopCoroutine(currentFadeCoroutine);
+
+        currentFadeCoroutine = StartCoroutine(FadeToDeathRed(duration));
+    }
+
+    private IEnumerator FadeToDeathRed(float duration)
+    {
+        float elapsed = 0f;
+        Color startColor = screenImage.color;
+        Color targetColor = new Color(0.3f, 0f, 0f, 1f); // Dark red, fully opaque
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            screenImage.color = Color.Lerp(startColor, targetColor, t);
+            yield return null;
+        }
+
+        screenImage.color = targetColor;
+        currentFadeCoroutine = null;
+    }
+
 }

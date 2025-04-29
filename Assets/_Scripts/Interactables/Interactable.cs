@@ -1,20 +1,22 @@
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 using System.Collections;
 
 [RequireComponent(typeof(NetworkObject))]
 public class Interactable : NetworkBehaviour
 {
+    [Header("Interact Settings")]
     [SerializeField] private float cooldownDuration = 5f;
     [SerializeField] private string interactText = "Use Terminal";
 
     [Header("Blackout Settings")]
     [SerializeField, Range(0f, 1f)] private float blackoutChanceOnUse = 0.02f; // 2% chance
 
-    public NetworkVariable<bool> isCoolingDown = new NetworkVariable<bool>(false);
-
-    [Header("Access Settings (only for no battery interactables)")]
+    [Header("Access Settings")]
     [SerializeField] private bool requiresKeycard = true;
+    [SerializeField] private int keycardsRequired = 1;
+
+    public NetworkVariable<bool> isCoolingDown = new NetworkVariable<bool>(false);
 
     public string GetInteractText()
     {
@@ -23,13 +25,20 @@ public class Interactable : NetworkBehaviour
 
     public void Interact()
     {
+        // Check if this object allows interaction (dynamic check)
+        var checker = GetComponent<ICheckIfInteractable>();
+        if (checker != null && !checker.CanCurrentlyInteract())
+        {
+            Debug.Log("❌ Interaction checker said NO. Blocking.");
+            return;
+        }
+
         if (isCoolingDown.Value) return;
 
         var battery = GetComponent<InteractableCharge>();
 
         if (battery != null)
         {
-            // ✅ PRIORITY 1: If we have battery, check if it's drained
             if (battery.IsDrained)
             {
                 var manager = ConsumableManager.Instance;
@@ -38,40 +47,46 @@ public class Interactable : NetworkBehaviour
                     Debug.Log("🔒 Battery is drained and no keycard available.");
                     return;
                 }
-
                 Debug.Log("🔓 Used keycard to override battery lock.");
             }
         }
-        else
+        else if (requiresKeycard)
         {
-            // ✅ PRIORITY 2: If no battery, check if interactable manually requires keycard
-            if (requiresKeycard)
+            var manager = ConsumableManager.Instance;
+            if (manager == null)
             {
-                var manager = ConsumableManager.Instance;
-                if (manager == null || !manager.Use("Keycard"))
-                {
-                    Debug.Log("🔒 Keycard required but not available.");
-                    return;
-                }
-
-                Debug.Log("🔓 Used keycard to access interactable.");
+                Debug.Log("🔒 Keycard manager not found.");
+                return;
             }
+
+            int keycardsConsumed = 0;
+            for (int i = 0; i < keycardsRequired; i++)
+            {
+                if (manager.Use("Keycard"))
+                    keycardsConsumed++;
+                else
+                    break;
+            }
+
+            if (keycardsConsumed < keycardsRequired)
+            {
+                Debug.Log($"🔒 Not enough keycards. Needed {keycardsRequired}, but only had {keycardsConsumed}.");
+                return;
+            }
+
+            Debug.Log($"🔓 Used {keycardsConsumed} keycard(s) to access interactable.");
         }
 
-
-        // 👇 Special case: if the object wants to run client-side logic only on local client
+        // Client-only logic (runs immediately)
         var localOnly = GetComponent<IClientOnlyAction>();
         if (localOnly != null)
-        {
             localOnly.DoClientAction();
-        }
 
-        // 👇 Everyone triggers this, but server will broadcast it
+        // Server-only logic
         var broadcast = GetComponent<IBroadcastClientAction>();
         if (broadcast != null)
-        {
             RequestBroadcastClientRpcServerRpc();
-        }
+
         RequestInteractServerRpc();
     }
 
@@ -81,27 +96,19 @@ public class Interactable : NetworkBehaviour
         if (isCoolingDown.Value) return;
 
         ulong interactorId = rpcParams.Receive.SenderClientId;
+
         var actions = GetComponents<IInteractableAction>();
         foreach (var action in actions)
         {
             if (action is IInteractorAwareAction aware)
-            {
                 aware.DoAction(interactorId);
-            }
             else
-            {
                 action.DoAction();
-            }
         }
 
         TryTriggerBlackout();
 
-        // Only play audio on the client who interacted
-        PlayInteractionSoundClientRpc(new ClientRpcParams {
-            Send = new ClientRpcSendParams {
-                TargetClientIds = new ulong[] { rpcParams.Receive.SenderClientId }
-            }
-        });
+        PlayInteractionSoundClientRpc();
 
         isCoolingDown.Value = true;
         StartCoroutine(CooldownRoutine());
@@ -111,16 +118,8 @@ public class Interactable : NetworkBehaviour
     {
         if (Random.value <= blackoutChanceOnUse)
         {
-            Debug.Log("⚡ Random blackout triggered by interactable use!");
-
-            if (LightmapSwitcher.Instance != null)
-            {
-                LightmapSwitcher.Instance.RequestBlackout();
-            }
-            else
-            {
-                Debug.LogWarning("⚠️ LightmapSwitcher not found in scene.");
-            }
+            Debug.Log("⚡ Random blackout triggered!");
+            LightmapSwitcher.Instance?.RequestBlackout();
         }
     }
 
@@ -133,11 +132,8 @@ public class Interactable : NetworkBehaviour
     [ClientRpc]
     private void RunAllClientsActionClientRpc()
     {
-        var allClientsAction = GetComponent<IBroadcastClientAction>();
-        if (allClientsAction != null)
-        {
-            allClientsAction.DoAllClientsAction();
-        }
+        var broadcast = GetComponent<IBroadcastClientAction>();
+        broadcast?.DoAllClientsAction();
     }
 
     private IEnumerator CooldownRoutine()
@@ -147,7 +143,7 @@ public class Interactable : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void PlayInteractionSoundClientRpc(ClientRpcParams rpcParams = default)
+    private void PlayInteractionSoundClientRpc()
     {
         var audioSource = GetComponent<AudioSource>();
         if (audioSource != null)

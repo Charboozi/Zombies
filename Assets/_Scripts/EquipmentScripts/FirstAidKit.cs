@@ -3,7 +3,9 @@ using Unity.Netcode;
 
 public class RegenerationBooster : BaseEquipment
 {
-    [SerializeField] private float regenSpeedMultiplier = 0.5f; // Example: 0.5f makes regen twice as fast
+    [Header("Regeneration Booster Settings")]
+    [SerializeField] private float regenSpeedMultiplier = 0.5f; // Example: 0.5x makes regen twice as fast
+    [SerializeField] private float upgradeMultiplierReduction = 0.1f; // How much we improve when upgraded
 
     private bool effectApplied = false;
 
@@ -38,14 +40,13 @@ public class RegenerationBooster : BaseEquipment
     {
         if (!effectApplied) return;
 
-        // 🧩 Check if shutting down
         if (NetworkManager.Singleton == null || NetworkManager.Singleton.ShutdownInProgress || NetworkManager.Singleton.LocalClient == null)
         {
             effectApplied = false;
             return;
         }
 
-        var localPlayerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+        var localPlayerObj = NetworkManager.Singleton.LocalClient?.PlayerObject;
         if (localPlayerObj != null)
         {
             var healthProxy = localPlayerObj.GetComponent<HealthProxy>();
@@ -59,4 +60,25 @@ public class RegenerationBooster : BaseEquipment
         effectApplied = false;
     }
 
+    public override void Upgrade()
+    {
+        if (HasBeenUpgraded)
+        {
+            Debug.LogWarning($"{gameObject.name} is already upgraded. Ignoring.");
+            return;
+        }
+
+        base.Upgrade(); // 🧩 This sets HasBeenUpgraded = true
+
+        // Remove old regen boost first
+        RemoveRegenBoost();
+
+        // Improve regen speed by reducing the regen interval multiplier
+        regenSpeedMultiplier = Mathf.Max(0.1f, regenSpeedMultiplier - upgradeMultiplierReduction);
+
+        Debug.Log($"{gameObject.name} upgraded! New regen speed multiplier: x{regenSpeedMultiplier}");
+
+        // Re-apply the better regen boost
+        ApplyRegenBoost();
+    }
 }

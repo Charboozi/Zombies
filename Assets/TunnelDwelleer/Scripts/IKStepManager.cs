@@ -8,6 +8,7 @@ If purchased through stores (such as the Unity Asset Store) the corresponding EU
 
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
 namespace ProceduralSpider
 {
@@ -22,7 +23,7 @@ namespace ProceduralSpider
     */
 
     [RequireComponent(typeof(Spider))]
-    public class IKStepManager : MonoBehaviour
+    public class IKStepManager : NetworkBehaviour
     {
         /*
         We store the legs that want to step in a queue and perform the stepping in the order of the queue.
@@ -104,20 +105,32 @@ namespace ProceduralSpider
 
         private void Update()
         {
-            Vector3 smoothVelocity = motionEstimator.LocalVelocity;
-
-            for (int i = 0; i < n; i++)
+            if (IsServer)
             {
-                UpdateStep(i, Time.deltaTime);
-                EnqueueForStepIfNeeded(i, smoothVelocity);
-            }
+                // Only the server decides stepping
+                Vector3 smoothVelocity = motionEstimator.LocalVelocity;
 
-            for (int i = 0; i < n; i++)
-            {
-                if (IsWaiting(i))
+                for (int i = 0; i < n; i++)
                 {
-                    if (IsAllowedToStep(i)) StartStep(i);
-                    else WaitStep(i);
+                    UpdateStep(i, Time.deltaTime);
+                    EnqueueForStepIfNeeded(i, smoothVelocity);
+                }
+
+                for (int i = 0; i < n; i++)
+                {
+                    if (IsWaiting(i))
+                    {
+                        if (IsAllowedToStep(i)) StartStep(i);
+                        else WaitStep(i);
+                    }
+                }
+            }
+            else
+            {
+                // Clients only animate existing steps
+                for (int i = 0; i < n; i++)
+                {
+                    UpdateStep(i, Time.deltaTime);
                 }
             }
         }
@@ -160,6 +173,20 @@ namespace ProceduralSpider
             stepAnimation[i] = ikSteppers[i].CreateStep(duration, height, stepCurve, stepLayer);
             waitForStep[i] = false;
             waitForStepTime[i] = 0;
+
+            // --- ADD THIS ---
+            NotifyStartStepClientRpc(i, ikChains[i].GetEndEffector().position, height, duration);
+        }
+
+        [ClientRpc]
+        void NotifyStartStepClientRpc(int legIndex, Vector3 targetPos, float height, float duration)
+        {
+            if (IsServer) return; // Server already did step locally
+
+            var target = new IKTargetInfo(targetPos, spider.transform.up, true);
+            ikChains[legIndex].SetTarget(target);
+
+            stepAnimation[legIndex] = ikSteppers[legIndex].CreateStep(duration, height, stepCurve, stepLayer);
         }
 
         private void UpdateStep(int i, float dt)

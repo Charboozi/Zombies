@@ -1,7 +1,9 @@
 using UnityEngine;
+using Unity.Netcode;
+using System.Linq;
 
 [RequireComponent(typeof(AudioSource))]
-public class PlayerFootstep : MonoBehaviour
+public class PlayerFootstep : NetworkBehaviour
 {
     [Header("Settings")]
     [SerializeField] private float baseStepInterval = 0.4f;
@@ -27,7 +29,8 @@ public class PlayerFootstep : MonoBehaviour
 
         if (stepTimer <= 0f)
         {
-            PlayFootstep();
+            PlayFootstepLocal(); // Local footstep
+            RequestFootstepServerRpc(); // Tell server to play for others
 
             // Randomize next step interval slightly
             float randomInterval = baseStepInterval * Random.Range(1f - stepRandomness, 1f + stepRandomness);
@@ -48,17 +51,46 @@ public class PlayerFootstep : MonoBehaviour
         return !isDowned && isGrounded && isMoving;
     }
 
-    private void PlayFootstep()
+    private void PlayFootstepLocal()
     {
         if (footstepClips.Length == 0) return;
 
-        // Pick random clip
-        AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
+        int randomIndex = Random.Range(0, footstepClips.Length);
+        float randomPitch = Random.Range(0.95f, 1.05f);
+        float randomVolume = Random.Range(volumeRange.x, volumeRange.y);
 
-        // Randomize pitch and volume
-        audioSource.pitch = Random.Range(0.95f, 1.05f);
-        audioSource.volume = Random.Range(volumeRange.x, volumeRange.y);
+        PlayFootstepAudio(randomIndex, randomPitch, randomVolume);
+    }
+    
+    private void PlayFootstepAudio(int clipIndex, float pitch, float volume)
+    {
+        if (footstepClips.Length == 0) return;
+        if (clipIndex < 0 || clipIndex >= footstepClips.Length) return;
 
+        AudioClip clip = footstepClips[clipIndex];
+        audioSource.pitch = pitch;
+        audioSource.volume = volume;
         audioSource.PlayOneShot(clip);
+    }
+
+    [ServerRpc]
+    private void RequestFootstepServerRpc(ServerRpcParams rpcParams = default)
+    {
+        // Send to everyone EXCEPT sender
+        PlayFootstepClientRpc(new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = NetworkManager.Singleton.ConnectedClientsIds
+                    .Where(id => id != rpcParams.Receive.SenderClientId)
+                    .ToArray()
+            }
+        });
+    }
+
+    [ClientRpc]
+    private void PlayFootstepClientRpc(ClientRpcParams clientRpcParams = default)
+    {
+        PlayFootstepLocal();
     }
 }

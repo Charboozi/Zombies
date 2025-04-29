@@ -11,8 +11,6 @@ public class EquipmentInventory : MonoBehaviour
 
     public event Action<GameObject> OnEquipped;
 
-    public EquipmentUI uiManager;
-
     private void Awake()
     {
         // Find all children (can be on different bones) except self.
@@ -37,9 +35,9 @@ public class EquipmentInventory : MonoBehaviour
         OnEquipped?.Invoke(equipment);
         
         BaseEquipment baseEquip = equipment.GetComponent<BaseEquipment>();
-        if (baseEquip != null && uiManager != null)
+        if (baseEquip != null && EquipmentUIManager.Instance != null)
         {
-            uiManager.DisplayIcon(baseEquip.equipmentIcon);
+            EquipmentUIManager.Instance.DisplayIcon(baseEquip.equipmentIcon);
         }
     }
 
@@ -62,9 +60,9 @@ public class EquipmentInventory : MonoBehaviour
         equippedItems.Remove(equipment);
 
         BaseEquipment baseEquip = equipment.GetComponent<BaseEquipment>();
-        if (baseEquip != null && uiManager != null)
+        if (baseEquip != null && EquipmentUIManager.Instance != null)
         {
-            uiManager.HideIcon(baseEquip.equipmentIcon);
+            EquipmentUIManager.Instance.HideIcon(baseEquip.equipmentIcon);
         }
 
         Debug.Log($"🛑 Equipment '{equipmentName}' unequipped.");

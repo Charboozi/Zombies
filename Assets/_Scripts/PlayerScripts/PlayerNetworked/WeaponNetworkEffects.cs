@@ -4,9 +4,14 @@ using System.Collections.Generic;
 
 public class WeaponNetworkEffects : NetworkBehaviour
 {
+    [Header("Effects")]
     public ParticleSystem muzzleFlash;
-    private bool isFiring = false;
+
+    [Header("Camera")]
     [SerializeField] private CameraShakeController cameraShake;
+
+    private bool isFiring = false;
+    private bool isLoopingWeapon = false;
 
     void OnEnable()
     {
@@ -16,10 +21,20 @@ public class WeaponNetworkEffects : NetworkBehaviour
         WeaponController.OnStopShooting -= StopFiring;
         WeaponController.OnStopShooting += StopFiring;
     }
+
     void OnDisable()
     {
         WeaponController.OnShoot -= TriggerMuzzleFlash;
         WeaponController.OnStopShooting -= StopFiring;
+    }
+
+    // Ensure remote instances start with no particles alive
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner && muzzleFlash != null)
+        {
+            muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
     }
 
     public void TriggerMuzzleFlash()
@@ -27,8 +42,11 @@ public class WeaponNetworkEffects : NetworkBehaviour
         if (!IsOwner) return;
 
         WeaponBase currentWeapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
+        if (currentWeapon == null) return;
 
-        if (currentWeapon is ContinuousFireWeapon)
+        isLoopingWeapon = currentWeapon is ContinuousFireWeapon;
+
+        if (isLoopingWeapon)
         {
             if (!isFiring)
             {
@@ -38,28 +56,39 @@ public class WeaponNetworkEffects : NetworkBehaviour
         }
         else
         {
-            // ✅ Fix for automatic weapons (ensures effect is triggered every shot)
+            // one-shot: play then schedule stop after fireRate
             RequestMuzzleFlashServerRpc(true);
-            Invoke(nameof(StopMuzzleFlash), currentWeapon.fireRate); // Ensures flash stops correctly
+            Invoke(nameof(StopMuzzleFlash), currentWeapon.fireRate);
         }
 
+        // Always shake camera on owner
         if (cameraShake != null)
         {
-            cameraShake.Shake(0.03f, 0.07f);
+            cameraShake.Shake(0.06f, 0.14f);
         }
     }
 
     private void StopMuzzleFlash()
     {
-        if (CurrentWeaponHolder.Instance?.CurrentWeapon is ContinuousFireWeapon) return;
-        RequestMuzzleFlashServerRpc(false);
+        if (isLoopingWeapon)
+        {
+            if (isFiring)
+            {
+                isFiring = false;
+                RequestMuzzleFlashServerRpc(false);
+            }
+        }
+        else
+        {
+            RequestMuzzleFlashServerRpc(false);
+        }
     }
 
     public void StopFiring()
     {
         if (!IsOwner) return;
 
-        if (CurrentWeaponHolder.Instance?.CurrentWeapon is ContinuousFireWeapon && isFiring)
+        if (isLoopingWeapon && isFiring)
         {
             isFiring = false;
             RequestMuzzleFlashServerRpc(false);
@@ -69,36 +98,37 @@ public class WeaponNetworkEffects : NetworkBehaviour
     [ServerRpc]
     private void RequestMuzzleFlashServerRpc(bool playEffect, ServerRpcParams rpcParams = default)
     {
-        List<ulong> targetClientIds = new List<ulong>();
+        // Send to all other clients
+        var targetIds = new List<ulong>();
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
             if (clientId != rpcParams.Receive.SenderClientId)
-            {
-                targetClientIds.Add(clientId);
-            }
+                targetIds.Add(clientId);
         }
 
-        ClientRpcParams clientRpcParams = new ClientRpcParams
+        var rpcParamsOut = new ClientRpcParams
         {
-            Send = new ClientRpcSendParams { TargetClientIds = targetClientIds.ToArray() }
+            Send = new ClientRpcSendParams { TargetClientIds = targetIds.ToArray() }
         };
 
-        PlayMuzzleFlashClientRpc(playEffect, clientRpcParams);
+        PlayMuzzleFlashClientRpc(playEffect, rpcParamsOut);
     }
 
     [ClientRpc]
     private void PlayMuzzleFlashClientRpc(bool playEffect, ClientRpcParams clientRpcParams = default)
     {
-        if (muzzleFlash != null)
+        if (muzzleFlash == null) return;
+
+        if (playEffect)
         {
-            if (playEffect)
-            {
-                    muzzleFlash.Play();
-            }
-            else
-            {
-                    muzzleFlash.Stop();
-            }
+            // Reset and play (works for both looping and one-shot)
+            muzzleFlash.Clear(true);
+            muzzleFlash.Play(true);
+        }
+        else
+        {
+            // Stop and clear all particles
+            muzzleFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
     }
 }

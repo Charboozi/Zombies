@@ -150,35 +150,59 @@ namespace ProceduralSpider
         }
 
 
-    private GroundInfo GroundCheck()
-    {
-        GroundInfo result = GroundInfo.CreateEmpty();
-        Vector3 c = GetColliderCenter();
-        QueryTriggerInteraction q = QueryTriggerInteraction.Ignore;
-
-        if (isWallWalking)
+        private GroundInfo GroundCheck()
         {
-            if (Physics.SphereCast(transform.position, GetForwardRayRadius(), transform.forward, out hitInfo, GetForwardRayLength() * clientRaycastMultiplier, walkableLayer, q))
+            if (IsServer)
             {
-                result = new GroundInfo(GroundType.Wall, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderLength() / 2);
-            }
-            else if (Physics.SphereCast(transform.position, GetDownRayRadius(), -transform.up, out hitInfo, GetDownRayLength() * clientRaycastMultiplier, walkableLayer, q))
-            {
-                result = new GroundInfo(GroundType.Ground, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderHeight() / 2);
+                // Server does real physics raycast
+                GroundInfo result = GroundInfo.CreateEmpty();
+                Vector3 c = GetColliderCenter();
+                QueryTriggerInteraction q = QueryTriggerInteraction.Ignore;
+
+                if (isWallWalking)
+                {
+                    if (Physics.SphereCast(transform.position, GetForwardRayRadius(), transform.forward, out hitInfo, GetForwardRayLength(), walkableLayer, q))
+                    {
+                        result = new GroundInfo(GroundType.Wall, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderLength() / 2);
+                    }
+                    else if (Physics.SphereCast(transform.position, GetDownRayRadius(), -transform.up, out hitInfo, GetDownRayLength(), walkableLayer, q))
+                    {
+                        result = new GroundInfo(GroundType.Ground, hitInfo.normal.normalized, Vector3.Distance(c, hitInfo.point) - GetColliderHeight() / 2);
+                    }
+                    else
+                    {
+                        result = new GroundInfo(GroundType.Ground, transform.up, GetColliderHeight() / 2);
+                    }
+                }
+                else
+                {
+                    result.normal = Vector3.up;
+                }
+
+                // Update a NetworkVariable with the result here
+                UpdateGroundInfoClientRpc(result.normal, result.distance, (int)result.groundType);
+
+                return result;
             }
             else
             {
-                // Fallback if both rays miss (clients only)
-                result = new GroundInfo(GroundType.Ground, transform.up, GetColliderHeight() / 2);
+                // On Clients: use synced ground normal
+                return new GroundInfo((GroundType)groundType.Value, groundNormal.Value, groundDistance.Value);
             }
         }
-        else
+
+        private NetworkVariable<Vector3> groundNormal = new NetworkVariable<Vector3>();
+        private NetworkVariable<float> groundDistance = new NetworkVariable<float>();
+        private NetworkVariable<int> groundType = new NetworkVariable<int>();
+
+        [ClientRpc]
+        private void UpdateGroundInfoClientRpc(Vector3 normal, float distance, int type)
         {
-            result.normal = Vector3.up;
+            groundNormal.Value = normal;
+            groundDistance.Value = distance;
+            groundType.Value = type;
         }
 
-        return result;
-    }
         /*
         * Returns the rotation with specified right and up direction
         */

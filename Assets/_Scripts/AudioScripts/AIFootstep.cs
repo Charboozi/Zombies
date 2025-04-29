@@ -7,14 +7,12 @@ public class AIFootstep : NetworkBehaviour
     [Header("Footstep Settings")]
     [SerializeField] private float baseStepInterval = 0.5f;
     [SerializeField] private float stepRandomness = 0.2f;
-    [SerializeField] private float audibleRange = 20f;
     [SerializeField] private Vector2 volumeRange = new Vector2(0.8f, 1f);
     [SerializeField] private AudioClip[] footstepClips;
     [SerializeField] private AudioSource footstepAudioSource;
 
     private EnemyMovement movement;
     private float stepTimer;
-    private Transform localPlayerTransform;
 
     public override void OnNetworkSpawn()
     {
@@ -26,28 +24,16 @@ public class AIFootstep : NetworkBehaviour
 
         movement = GetComponent<EnemyMovement>();
         stepTimer = Random.Range(0f, baseStepInterval); // Desync footsteps
-
-        // Cache the local player's transform (client only!)
-        var playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-        if (playerObject != null)
-        {
-            localPlayerTransform = playerObject.transform;
-        }
     }
 
     private void Update()
     {
         // Validate dependencies
-        if (movement == null || footstepClips.Length == 0 || footstepAudioSource == null || localPlayerTransform == null)
+        if (movement == null || footstepClips.Length == 0 || footstepAudioSource == null)
             return;
 
-        // Check distance to local player
-        float distanceToPlayer = Vector3.Distance(transform.position, localPlayerTransform.position);
-        if (distanceToPlayer > audibleRange)
-            return; // Skip if too far away
-
         float speed = movement.GetSyncedSpeed();
-        if (speed <= 0.1f)
+        if (speed <= 0.5f)
             return; // Skip if enemy is not moving
 
         stepTimer -= Time.deltaTime;

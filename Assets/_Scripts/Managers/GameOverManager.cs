@@ -63,21 +63,14 @@ public class GameOverManager : NetworkBehaviour
 
     private void TriggerGameOver()
     {
+        if (!IsServer) return;
+
         if (NetworkManager.Singleton.SceneManager != null)
         {
-            // 🛠 Safely loop by creating a copy first
-            var playersToDespawn = new List<EntityHealth>(playerEntities);
+            Debug.Log("✅ Triggering game over visuals...");
+            ShowGameOverEffectClientRpc();
 
-            foreach (var player in playersToDespawn)
-            {
-                if (player != null && player.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
-                {
-                    netObj.Despawn(true);
-                }
-            }
-
-            NetworkManager.Singleton.SceneManager.LoadScene("GameOver", LoadSceneMode.Single);
-            StartCoroutine(ShutdownAfterDelay(10f));
+            StartCoroutine(DelayedGameOverSceneLoad(4f)); // ⏱ Wait 4s for screen fade
         }
         else
         {
@@ -85,6 +78,32 @@ public class GameOverManager : NetworkBehaviour
         }
     }
 
+    private IEnumerator DelayedGameOverSceneLoad(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // Optional: Despawn all players cleanly
+        var playersToDespawn = new List<EntityHealth>(playerEntities);
+        foreach (var player in playersToDespawn)
+        {
+            if (player != null && player.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
+            {
+                netObj.Despawn(true);
+            }
+        }
+
+        NetworkManager.Singleton.SceneManager.LoadScene("GameOver", LoadSceneMode.Single);
+        StartCoroutine(ShutdownAfterDelay(10f));
+    }
+
+    [ClientRpc]
+    private void ShowGameOverEffectClientRpc()
+    {
+        if (FadeScreenEffect.Instance != null)
+        {
+            FadeScreenEffect.Instance.ShowDeathEffect(3.7f); // Fade to deep red in 4 seconds
+        }
+    }
 
     private IEnumerator ShutdownAfterDelay(float delay)
     {
@@ -104,4 +123,6 @@ public class GameOverManager : NetworkBehaviour
         yield return new WaitForSeconds(0.1f); // slight delay to allow state update
         CheckGameOverCondition(null);
     }
+
+    
 }

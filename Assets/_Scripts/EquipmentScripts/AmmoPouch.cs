@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class AmmoPouch : BaseEquipment
 {
-    [SerializeField] private int multiplier = 2; // Default: double the ammo
+    [Header("Ammo Pouch Settings")]
+    [SerializeField] private int multiplier = 2; // Default multiplier: 2x
+    [SerializeField] private int upgradeBonus = 1; // Upgrade adds +1x
 
     private bool effectApplied = false;
 
@@ -20,17 +22,46 @@ public class AmmoPouch : BaseEquipment
     {
         if (effectApplied) return;
 
-        AmmoMultiplierManager.Instance.SetMultiplier(multiplier);
-        effectApplied = true;
-        Debug.Log($"{gameObject.name} applied ammo multiplier boost: x{multiplier}");
+        if (AmmoMultiplierManager.Instance != null)
+        {
+            AmmoMultiplierManager.Instance.SetMultiplier(multiplier);
+            effectApplied = true;
+            Debug.Log($"{gameObject.name} applied ammo multiplier boost: x{multiplier}");
+        }
     }
 
     private void RemoveAmmoBoost()
     {
         if (!effectApplied) return;
 
-        AmmoMultiplierManager.Instance.ResetMultiplier();
-        Debug.Log($"{gameObject.name} removed ammo multiplier boost.");
+        if (AmmoMultiplierManager.Instance != null)
+        {
+            AmmoMultiplierManager.Instance.ResetMultiplier();
+            Debug.Log($"{gameObject.name} removed ammo multiplier boost.");
+        }
+
         effectApplied = false;
+    }
+
+    public override void Upgrade()
+    {
+        if (HasBeenUpgraded)
+        {
+            Debug.LogWarning($"{gameObject.name} is already upgraded. Ignoring.");
+            return;
+        }
+
+        base.Upgrade(); // ✅ Mark as upgraded
+
+        // Remove current multiplier
+        RemoveAmmoBoost();
+
+        // Increase multiplier
+        multiplier += upgradeBonus;
+
+        Debug.Log($"{gameObject.name} upgraded! New ammo multiplier: x{multiplier}");
+
+        // Apply new multiplier
+        ApplyAmmoBoost();
     }
 }

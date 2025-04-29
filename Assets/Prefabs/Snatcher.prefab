@@ -1001,9 +1001,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.27
-  m_Height: 2.02
+  m_Height: 2.55
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.09, z: 0}
 --- !u!195 &4920808461235163745
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1197,10 +1197,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 800
+  maxHealth: 1500
   armor: 0
   currentHealth:
-    m_InternalValue: 800
+    m_InternalValue: 1300
   isDowned:
     m_InternalValue: 0
   enableRegeneration: 0
@@ -2119,7 +2119,7 @@ Transform:
   m_GameObject: {fileID: 5105496175827159874}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.012, y: 0.912, z: 0.101}
+  m_LocalPosition: {x: -0.012, y: 1.174, z: 0.101}
   m_LocalScale: {x: 0.59750587, y: 0.2520766, z: 0.7599565}
   m_ConstrainProportionsScale: 0
   m_Children: []

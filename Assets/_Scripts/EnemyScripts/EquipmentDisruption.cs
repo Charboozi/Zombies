@@ -63,9 +63,9 @@ public class EquipmentDisruption : NetworkBehaviour
 
         // Hide its UI icon
         if (item.TryGetComponent(out BaseEquipment baseEquip) &&
-            localInventory.uiManager != null)
+            EquipmentUIManager.Instance != null)
         {
-            localInventory.uiManager.HideIcon(baseEquip.equipmentIcon);
+            EquipmentUIManager.Instance.HideIcon(baseEquip.equipmentIcon);
         }
 
         Debug.Log($"❌ Equipment removed locally: {item.name}");

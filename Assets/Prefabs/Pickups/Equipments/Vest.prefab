@@ -4935,7 +4935,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   autoDespawnTime: 10
-  pickupSound: {fileID: 8300000, guid: e23bf0baf6186c64da7d176e524cd45d, type: 3}
 --- !u!114 &173749334960707276
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14710,6 +14709,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4145754591604539661}
     m_Modifications:
+    - target: {fileID: 4983907140219717081, guid: 299c62a2419d5724c9e841d15b1ad420, type: 3}
+      propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6569045353296262251, guid: 299c62a2419d5724c9e841d15b1ad420, type: 3}
       propertyPath: m_Name
       value: EquipmentSpawnerFlash

@@ -45,7 +45,7 @@ public class ExplosiveWeapon : WeaponBase
                     spreadDirection.Normalize();
 
                     // 🎯 Apply random force variation
-                    float randomForceMultiplier = Random.Range(0.8f, 1.2f); // +/-10% variation
+                    float randomForceMultiplier = Random.Range(0.7f, 1.5f); // +/-10% variation
                     float finalForce = projectileForce * randomForceMultiplier;
 
                     rb.AddForce(spreadDirection * finalForce);

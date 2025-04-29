@@ -11,10 +11,10 @@ public class SpiderLocalMotionEstimator : MonoBehaviour
         previousPosition = transform.position;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         Vector3 currentPosition = transform.position;
-        LocalVelocity = (currentPosition - previousPosition) / Time.deltaTime;
+        LocalVelocity = (currentPosition - previousPosition) / Time.fixedDeltaTime;
         previousPosition = currentPosition;
     }
 }

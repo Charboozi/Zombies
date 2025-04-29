@@ -2,13 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public class EquipmentUI : MonoBehaviour
+public class EquipmentUIManager : MonoBehaviour
 {
+    public static EquipmentUIManager Instance { get; private set; } // 🧩 Singleton
+
     private GameObject iconPrefab;
     private Dictionary<Sprite, GameObject> activeIcons = new();
 
     private void Awake()
     {
+        // Singleton setup
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         iconPrefab = Resources.Load<GameObject>("UI/IconPrefab");
     }
 
@@ -17,9 +27,11 @@ public class EquipmentUI : MonoBehaviour
         if (iconPrefab == null || icon == null)
             return;
 
-        // Prevent duplicate icons for the same sprite
         if (activeIcons.ContainsKey(icon))
+        {
+            Debug.LogWarning($"⚠️ Icon for {icon.name} already displayed.");
             return;
+        }
 
         GameObject newIcon = Instantiate(iconPrefab, transform);
         Image img = newIcon.GetComponent<Image>();

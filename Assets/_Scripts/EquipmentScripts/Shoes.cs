@@ -3,7 +3,9 @@ using Unity.Netcode;
 
 public class Shoes : BaseEquipment
 {
-    [SerializeField] private float speedBonus = 2f; // Extra speed when equipped
+    [Header("Shoes Settings")]
+    [SerializeField] private float speedBonus = 2f; // Base speed bonus
+    [SerializeField] private float upgradeBonus = 1f; // Extra speed added on upgrade
 
     private bool effectApplied = false;
 
@@ -52,5 +54,27 @@ public class Shoes : BaseEquipment
                 Debug.Log($"{gameObject.name} removed speed bonus: -{speedBonus}");
             }
         }
+    }
+
+    public override void Upgrade()
+    {
+        if (HasBeenUpgraded)
+        {
+            Debug.LogWarning($"{gameObject.name} is already upgraded. Ignoring.");
+            return;
+        }
+
+        base.Upgrade(); // ✅ Mark as upgraded
+
+        // Remove current bonus first
+        RemoveSpeedBonus();
+
+        // Increase speed bonus
+        speedBonus += upgradeBonus;
+
+        Debug.Log($"{gameObject.name} upgraded! New speed bonus: +{speedBonus}");
+
+        // Apply upgraded bonus
+        ApplySpeedBonus();
     }
 }

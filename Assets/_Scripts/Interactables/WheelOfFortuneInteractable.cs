@@ -144,12 +144,8 @@ public class WheelOfFortuneInteractable : NetworkBehaviour, IInteractorAwareActi
 
             Debug.Log($"[WheelOfFortune] ☠️ Spawned enemy at {spawnPoint.position}");
 
-            // 🔥 Play spawn particle effect
-            if (spawnEffectPrefab != null)
-            {
-                ParticleSystem effect = Instantiate(spawnEffectPrefab, spawnPoint.position, Quaternion.Euler(90, 0, 0));
-                Destroy(effect.gameObject, effect.main.duration + effect.main.startLifetime.constantMax); // Auto destroy after done
-            }
+            // 🔥 Tell ALL clients to spawn the particle effect locally
+            PlaySpawnEffectClientRpc(spawnPoint.position);
         }
     }
 
@@ -181,5 +177,14 @@ public class WheelOfFortuneInteractable : NetworkBehaviour, IInteractorAwareActi
         Debug.Log($"[WheelOfFortune] ❤️ Player {playerObject.name} paid {hpCostOnSpin} HP to spin (even if fatal).");
     }
 
+    [ClientRpc]
+    private void PlaySpawnEffectClientRpc(Vector3 position)
+    {
+        if (spawnEffectPrefab != null)
+        {
+            ParticleSystem effect = Instantiate(spawnEffectPrefab, position, Quaternion.Euler(90, 0, 0));
+            Destroy(effect.gameObject, effect.main.duration + effect.main.startLifetime.constantMax);
+        }
+    }
 
 }

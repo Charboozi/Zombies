@@ -111,7 +111,7 @@ public class EntityHealth : NetworkBehaviour
 
             if (cameraShake != null)
             {
-                cameraShake.Shake(0.05f, 0.1f);
+                cameraShake.Shake(0.1f, 0.15f);
             }
         }
     }

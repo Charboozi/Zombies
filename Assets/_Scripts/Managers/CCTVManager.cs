@@ -4,8 +4,13 @@ public class CCTVManager : MonoBehaviour
 {
     private Camera mainCamera;
 
+    [Header("Cameras")]
     [Tooltip("List of CCTV cameras to cycle through in CCTV mode.")]
     public Camera[] cctvCameras;
+
+    [Header("UI")]
+    [Tooltip("The Canvas (or UI GameObject) to show when in CCTV mode.")]
+    [SerializeField] private GameObject cctvUI; 
 
     [Header("State")]
     [Tooltip("Index of the current active CCTV camera.")]
@@ -16,99 +21,82 @@ public class CCTVManager : MonoBehaviour
     void Start()
     {
         mainCamera = GetComponent<Camera>();
-        // Disable the Camera component on all CCTV cameras at the start.
+
+        // Disable all CCTV cameras
         foreach (Camera cam in cctvCameras)
-        {
-            if (cam != null)
-                cam.enabled = false;
-        }
+            if (cam != null) cam.enabled = false;
+
+        // Hide the CCTV UI at start
+        if (cctvUI != null)
+            cctvUI.SetActive(false);
     }
 
     void Update()
     {
-        if (isCCTVActive)
-        {
-            // Cycle cameras with keys (for example, G for next, H for previous).
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                SwitchToNextCamera();
-            }
-            else if (Input.GetKeyDown(KeyCode.H))
-            {
-                SwitchToPreviousCamera();
-            }
+        if (!isCCTVActive) return;
 
-            // Press O (for example) to exit CCTV mode.
-            if (Input.GetKeyDown(KeyCode.O))
-            {
-                DeactivateCCTV();
-            }
-        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            SwitchToNextCamera();
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            SwitchToPreviousCamera();
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
+            DeactivateCCTV();
     }
 
     /// <summary>
-    /// Activates CCTV mode by disabling the main camera and enabling the first CCTV camera.
+    /// Activates CCTV mode: disables main cam, enables first CCTV cam, and shows UI.
     /// </summary>
     public void ActivateCCTV()
     {
         if (isCCTVActive) return;
-
         isCCTVActive = true;
 
-        // Disable the main camera (only the Camera component).
         if (mainCamera != null)
             mainCamera.enabled = false;
 
-        // Enable the first CCTV camera (only its Camera component).
-        if (cctvCameras.Length > 0)
+        if (cctvCameras.Length > 0 && cctvCameras[0] != null)
         {
             currentCameraIndex = 0;
-            cctvCameras[currentCameraIndex].enabled = true;
+            cctvCameras[0].enabled = true;
         }
+
+        if (cctvUI != null)
+            cctvUI.SetActive(true);
     }
 
     /// <summary>
-    /// Exits CCTV mode, disabling all CCTV camera components and re-enabling the main camera.
+    /// Deactivates CCTV mode: hides all CCTV cams, reenables main cam, hides UI.
     /// </summary>
     public void DeactivateCCTV()
     {
         if (!isCCTVActive) return;
-
         isCCTVActive = false;
 
-        // Disable all CCTV camera components.
         foreach (Camera cam in cctvCameras)
-        {
-            if (cam != null)
-                cam.enabled = false;
-        }
+            if (cam != null) cam.enabled = false;
 
-        // Re-enable the main camera.
         if (mainCamera != null)
             mainCamera.enabled = true;
+
+        if (cctvUI != null)
+            cctvUI.SetActive(false);
     }
 
-    void SwitchToNextCamera()
+    private void SwitchToNextCamera()
     {
         if (cctvCameras.Length == 0) return;
 
-        // Disable the current CCTV camera component.
         cctvCameras[currentCameraIndex].enabled = false;
-        // Cycle to the next index.
         currentCameraIndex = (currentCameraIndex + 1) % cctvCameras.Length;
-        // Enable the new CCTV camera component.
         cctvCameras[currentCameraIndex].enabled = true;
     }
 
-    void SwitchToPreviousCamera()
+    private void SwitchToPreviousCamera()
     {
         if (cctvCameras.Length == 0) return;
 
-        // Disable the current CCTV camera component.
         cctvCameras[currentCameraIndex].enabled = false;
-        // Cycle backwards.
         currentCameraIndex = (currentCameraIndex - 1 + cctvCameras.Length) % cctvCameras.Length;
-        // Enable the new CCTV camera component.
         cctvCameras[currentCameraIndex].enabled = true;
     }
 }

@@ -68,16 +68,28 @@ public class EnemySpawner : NetworkBehaviour
 
         if (isSpawnerActive)
         {
+            // Gradually slow down difficulty scaling
+
+            // 1. Reduce spawn interval (but less and less each day)
+            spawnIntervalDecreaseRate = Mathf.Lerp(spawnIntervalDecreaseRate, 1f, 0.03f); // 3% closer to 1 each day
             spawnInterval = Mathf.Max(0.5f, spawnInterval * spawnIntervalDecreaseRate);
+
+            // 2. Reduce enemy growth (slower maxEnemies increase)
+            if (maxEnemiesIncreaseAmount > 1)
+            {
+                maxEnemiesIncreaseAmount = Mathf.Max(1, Mathf.RoundToInt(maxEnemiesIncreaseAmount * 0.95f)); // 5% reduction
+            }
             maxEnemies += maxEnemiesIncreaseAmount;
 
-            //Debug.Log($"[Spawner] Day {day}: spawnInterval = {spawnInterval}, maxEnemies = {maxEnemies}");
+            Debug.Log($"[Spawner] Day {day}: spawnInterval = {spawnInterval}, maxEnemies = {maxEnemies}, spawnIntervalDecreaseRate = {spawnIntervalDecreaseRate}, maxEnemiesIncreaseAmount = {maxEnemiesIncreaseAmount}");
         }
     }
 
     private void ActivateSpawner()
     {
         if (isSpawnerActive || spawnPoints.Count == 0 || enemyPrefab == null) return;
+
+        AdjustDifficultyForPlayerCount(); // <-- Add this line
 
         isSpawnerActive = true;
         spawnCoroutine = StartCoroutine(SpawnEnemies());
@@ -112,6 +124,19 @@ public class EnemySpawner : NetworkBehaviour
         else
         {
             Debug.LogWarning("Spawned enemy missing EnemyDeathHandler component!");
+        }
+    }
+
+    private void AdjustDifficultyForPlayerCount()
+    {
+        int playerCount = NetworkManager.Singleton.ConnectedClientsList.Count;
+
+        if (playerCount < 3)
+        {
+            spawnIntervalDecreaseRate = Mathf.Lerp(1f, spawnIntervalDecreaseRate, 0.5f); // Bring it closer to 1
+            maxEnemiesIncreaseAmount = Mathf.Max(1, maxEnemiesIncreaseAmount / 2);
+
+            Debug.Log($"[Spawner] Adjusted difficulty for {playerCount} players: spawnIntervalDecreaseRate = {spawnIntervalDecreaseRate}, maxEnemiesIncreaseAmount = {maxEnemiesIncreaseAmount}");
         }
     }
 }

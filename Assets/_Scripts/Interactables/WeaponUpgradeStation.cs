@@ -1,56 +1,47 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Interactable))]
-public class WeaponUpgradeStation : MonoBehaviour, IClientOnlyAction
+public class WeaponUpgradeStation : MonoBehaviour, IClientOnlyAction, ICheckIfInteractable
 {
     [Header("Effects")]
     [SerializeField] private ParticleSystem upgradeEffect;
 
-public void DoClientAction()
-{
-    var currentWeapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
-    if (currentWeapon == null)
+    public bool CanCurrentlyInteract()
     {
-        Debug.LogWarning("No current weapon to upgrade.");
-        return;
+        var currentWeapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
+        return currentWeapon != null && currentWeapon.CanUpgrade && currentWeapon.upgradeWeapon != null;
     }
 
-    if (!currentWeapon.CanUpgrade)
+    public void DoClientAction()
     {
-        Debug.Log("❌ This weapon cannot be upgraded (upgradeWeapon is null).");
-        return;
+        var currentWeapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
+
+        if (currentWeapon == null || !currentWeapon.CanUpgrade || currentWeapon.upgradeWeapon == null)
+        {
+            Debug.LogWarning("❌ No valid weapon to upgrade.");
+            return;
+        }
+
+        var upgradedWeapon = currentWeapon.upgradeWeapon;
+        var weaponSwitcher = WeaponSwitcher.Instance;
+        var weaponInventory = weaponSwitcher.GetComponent<WeaponInventory>();
+
+        if (weaponInventory == null || weaponSwitcher == null)
+        {
+            Debug.LogError("❌ Weapon system references missing.");
+            return;
+        }
+
+        // Perform the upgrade
+        currentWeapon.gameObject.SetActive(false);
+        weaponInventory.RemoveWeapon(weaponSwitcher.CurrentWeaponIndex);
+        weaponInventory.AddWeapon(upgradedWeapon);
+
+        if (upgradeEffect != null)
+        {
+            upgradeEffect.Play();
+        }
+
+        Debug.Log($"🔧 Weapon upgraded locally to: {upgradedWeapon.name}");
     }
-
-    var upgradedWeapon = currentWeapon.upgradeWeapon;
-    if (upgradedWeapon == null)
-    {
-        Debug.LogError("❌ Upgrade failed: upgraded weapon reference is missing.");
-        return;
-    }
-
-    var weaponSwitcher = WeaponSwitcher.Instance;
-    var weaponInventory = weaponSwitcher.GetComponent<WeaponInventory>();
-
-    if (weaponInventory == null || weaponSwitcher == null)
-    {
-        Debug.LogError("Weapon system references missing.");
-        return;
-    }
-
-    // Deactivate and remove old weapon
-    currentWeapon.gameObject.SetActive(false);
-    weaponInventory.RemoveWeapon(weaponSwitcher.CurrentWeaponIndex);
-
-    // Add upgraded weapon
-    weaponInventory.AddWeapon(upgradedWeapon);
-
-    // Play upgrade particle effect
-    if (upgradeEffect != null)
-    {
-        upgradeEffect.Play();
-    }
-
-    Debug.Log($"🔧 Weapon upgraded locally to: {upgradedWeapon.name}");
-}
-
 }

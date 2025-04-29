@@ -2,17 +2,18 @@ using UnityEngine;
 
 public class Backpack : BaseEquipment
 {
-    [SerializeField] private int weaponBonus = 2;
+    [Header("Backpack Settings")]
+    [SerializeField] private int weaponBonus = 3;
+    [SerializeField] private int upgradeBonus = 1;
     [SerializeField] private WeaponInventory weaponInventory;
 
-    private int originalMaxWeapons;
 
     private void OnEnable()
     {
         if (weaponInventory != null)
         {
-            originalMaxWeapons = weaponInventory.WeaponCount + weaponBonus;
-            weaponInventory.SetMaxWeapons(originalMaxWeapons);
+            weaponInventory.SetMaxWeapons(weaponBonus);
+            Debug.Log($"{gameObject.name}: Backpack equipped. New max weapons: {weaponBonus}");
         }
     }
 
@@ -20,9 +21,30 @@ public class Backpack : BaseEquipment
     {
         if (weaponInventory != null)
         {
-            // Revert back to original count before bonus
-            int newMax = Mathf.Max(weaponInventory.WeaponCount, originalMaxWeapons - weaponBonus);
-            weaponInventory.SetMaxWeapons(newMax);
+            weaponInventory.SetMaxWeapons(2);
+            Debug.Log($"{gameObject.name}: Backpack unequipped. New max weapons: {2}");
         }
+    }
+
+    public override void Upgrade()
+    {
+        if (HasBeenUpgraded)
+        {
+            Debug.LogWarning($"{gameObject.name} is already upgraded. Ignoring.");
+            return;
+        }
+
+        base.Upgrade(); // 🧩 Mark as upgraded
+
+        // Remove old bonus first
+        OnDisable();
+
+        // Upgrade the bonus
+        weaponBonus += upgradeBonus;
+
+        Debug.Log($"{gameObject.name} upgraded! New weapon bonus: +{weaponBonus}");
+
+        // Reapply new bonus
+        OnEnable();
     }
 }
