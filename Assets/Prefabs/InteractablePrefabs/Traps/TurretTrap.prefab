@@ -128,9 +128,10 @@ MonoBehaviour:
   cooldownDuration: 100
   interactText: Use Turret (requires keycard)
   blackoutChanceOnUse: 0
+  requiresKeycard: 1
+  keycardsRequired: 1
   isCoolingDown:
     m_InternalValue: 0
-  requiresKeycard: 1
 --- !u!114 &3709329245143605976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -177,7 +178,7 @@ MonoBehaviour:
   muzzlePoint: {fileID: 5505935066081620156}
   muzzleEffect: {fileID: 4187036968622167558}
   impactEffectPrefab: {fileID: 5665346900197103622, guid: 1d4f16f2766ff3443b33a92d362dcf82, type: 3}
-  rotationSpeed: 3
+  rotationSpeed: 6
   detectionRange: 20
   fireInterval: 0.2
   scanInterval: 2

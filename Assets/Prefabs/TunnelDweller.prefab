@@ -220,7 +220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69ece4c3862544059804dfe52f9f2734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rootHeight: 0.3
+  rootHeight: 0.1
   useRootMovement: 1
   rootMovementSpeed: 20
   rootMovementVerticalWeight: 0.117
@@ -499,7 +499,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  spawnChance: 0.79
+  spawnChance: 1
   powerupLifetime: 19
 --- !u!114 &1564522451099145672
 MonoBehaviour:

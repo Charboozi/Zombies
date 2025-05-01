@@ -80,4 +80,18 @@ public class HealthProxy : NetworkBehaviour
         entityHealth.regenInterval *= multiplier;
         Debug.Log($"{gameObject.name}: Regen interval modified by multiplier {multiplier}. New regen interval: {entityHealth.regenInterval}");
     }
+
+    public void Heal(int amount)
+    {
+        if (NetworkManager.Singleton.IsClient)
+            RequestHealServerRpc(amount);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestHealServerRpc(int amount, ServerRpcParams rpcParams = default)
+    {
+        if (entityHealth != null)
+            entityHealth.ApplyHealingServerRpc(amount);
+    }
+
 }

@@ -286,4 +286,25 @@ public class EntityHealth : NetworkBehaviour
             ApplySlowEffectClientRpc(0.3f, 2f);
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    public void ApplyHealingServerRpc(int amount)
+    {
+        if (currentHealth.Value <= 0 || isDowned.Value) return;
+
+        currentHealth.Value += amount;
+        if (currentHealth.Value > maxHealth)
+            currentHealth.Value = maxHealth;
+
+        PlayHealingEffectClientRpc();
+    }
+
+    [ClientRpc]
+    private void PlayHealingEffectClientRpc()
+    {
+        if (IsOwner)
+        {
+            PersistentScreenTint.Instance.FadeInPersistentTint(Color.green, 0.05f, 1f);
+        }
+    }
+
 }

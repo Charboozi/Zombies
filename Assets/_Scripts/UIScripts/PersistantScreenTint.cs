@@ -1,15 +1,18 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using System.Collections;
 
 /// <summary>
-/// Handles ambient or persistent screen tints that shouldn't be overridden by momentary effects.
+/// Handles ambient or persistent screen tints via the vignette post-processing effect.
+/// Suitable for atmospheric overlays that persist and blend subtly.
 /// </summary>
 public class PersistentScreenTint : MonoBehaviour
 {
     public static PersistentScreenTint Instance;
 
-    private Image screenImage;
+    [SerializeField] private Volume globalVolume;
+    private Vignette vignette;
     private Coroutine activeEffect;
 
     private void Awake()
@@ -21,76 +24,92 @@ public class PersistentScreenTint : MonoBehaviour
         }
 
         Instance = this;
-        screenImage = GetComponent<Image>();
-        screenImage.color = new Color(0, 0, 0, 0); // transparent by default
+
+        if (globalVolume == null)
+        {
+            Debug.LogError("PersistentScreenTint: Global Volume not assigned.");
+            return;
+        }
+
+        if (!globalVolume.profile.TryGet(out vignette))
+        {
+            Debug.LogError("PersistentScreenTint: Vignette not found in Global Volume profile.");
+        }
     }
 
     /// <summary>
-    /// Sets a persistent tint that lasts for a given duration, then fades out automatically.
+    /// Sets a persistent vignette tint for a given duration, then fades out.
     /// </summary>
-    public void SetPersistentTintForDuration(Color color, float duration, float alpha = 0.04f, float fadeSpeed = 0.1f)
+    public void SetPersistentTintForDuration(Color color, float duration, float intensity = 0.04f, float fadeSpeed = 0.1f)
     {
         if (activeEffect != null)
             StopCoroutine(activeEffect);
 
-        activeEffect = StartCoroutine(PersistentTintDurationRoutine(color, duration, alpha, fadeSpeed));
+        activeEffect = StartCoroutine(PersistentTintDurationRoutine(color, duration, intensity, fadeSpeed));
     }
 
-    private IEnumerator PersistentTintDurationRoutine(Color color, float duration, float alpha, float fadeSpeed)
+    private IEnumerator PersistentTintDurationRoutine(Color color, float duration, float intensity, float fadeSpeed)
     {
+        vignette.active = true;
+        vignette.color.value = color;
+
         // Fade in
-        float a = 0f;
-        while (a < alpha)
+        float i = 0f;
+        while (i < intensity)
         {
-            a += Time.deltaTime * fadeSpeed;
-            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(a));
+            i += Time.deltaTime * fadeSpeed;
+            vignette.intensity.value = Mathf.Clamp01(i);
             yield return null;
         }
 
+        vignette.intensity.value = intensity;
+
         // Hold
-        screenImage.color = new Color(color.r, color.g, color.b, alpha);
         yield return new WaitForSeconds(duration);
 
         // Fade out
-        while (a > 0f)
+        while (i > 0f)
         {
-            a -= Time.deltaTime * fadeSpeed;
-            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(a));
+            i -= Time.deltaTime * fadeSpeed;
+            vignette.intensity.value = Mathf.Clamp01(i);
             yield return null;
         }
 
-        screenImage.color = new Color(0, 0, 0, 0);
+        vignette.intensity.value = 0f;
+        vignette.active = false;
         activeEffect = null;
     }
 
-
     /// <summary>
-    /// Fade in persistent tint (ambient), used for atmospheric effects.
+    /// Fade in a persistent vignette tint for ambient effects.
     /// </summary>
-    public void FadeInPersistentTint(Color color, float targetAlpha = 0.04f, float speed = 0.1f)
+    public void FadeInPersistentTint(Color color, float targetIntensity = 0.04f, float speed = 0.1f)
     {
         if (activeEffect != null)
             StopCoroutine(activeEffect);
 
-        activeEffect = StartCoroutine(FadeInRoutine(color, targetAlpha, speed));
+        activeEffect = StartCoroutine(FadeInRoutine(color, targetIntensity, speed));
     }
 
-    private IEnumerator FadeInRoutine(Color color, float targetAlpha, float speed)
+    private IEnumerator FadeInRoutine(Color color, float targetIntensity, float speed)
     {
-        float alpha = 0f;
-        while (alpha < targetAlpha)
+        vignette.active = true;
+        vignette.color.value = color;
+
+        float i = vignette.intensity.value;
+        while (i < targetIntensity)
         {
-            alpha += Time.deltaTime * speed;
-            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(alpha));
+            i += Time.deltaTime * speed;
+            vignette.intensity.value = Mathf.Clamp01(i);
             yield return null;
         }
 
-        screenImage.color = new Color(color.r, color.g, color.b, targetAlpha);
+        vignette.intensity.value = targetIntensity;
         activeEffect = null;
     }
 
     /// <summary>
-    /// Clear the persistent tint (fade to transparent).
+    /// Clears the persistent vignette tint with a fade.
     /// </summary>
     public void ClearPersistentTint(float fadeSpeed = 0.1f)
     {
@@ -102,17 +121,17 @@ public class PersistentScreenTint : MonoBehaviour
 
     private IEnumerator FadeOutRoutine(float speed)
     {
-        Color color = screenImage.color;
-        float alpha = color.a;
+        float i = vignette.intensity.value;
 
-        while (alpha > 0f)
+        while (i > 0f)
         {
-            alpha -= Time.deltaTime * speed;
-            screenImage.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(alpha));
+            i -= Time.deltaTime * speed;
+            vignette.intensity.value = Mathf.Clamp01(i);
             yield return null;
         }
 
-        screenImage.color = new Color(0, 0, 0, 0);
+        vignette.intensity.value = 0f;
+        vignette.active = false;
         activeEffect = null;
     }
 }
