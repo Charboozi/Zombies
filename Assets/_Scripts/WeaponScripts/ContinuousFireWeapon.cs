@@ -7,6 +7,7 @@ public class ContinuousFireWeapon : WeaponBase
     [SerializeField] private float initialChargeDelay = 1f;
     [SerializeField] private float damageInterval = 0.1f;
     [SerializeField] private float splashRadius = 2f;
+    [SerializeField] private string impactEffect; 
 
     private Coroutine firingRoutine;
 
@@ -65,11 +66,22 @@ public class ContinuousFireWeapon : WeaponBase
         UpdateEmissionIntensity();
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, range))
+        RaycastHit[] hits = Physics.RaycastAll(ray, range);
+        foreach (RaycastHit hit in hits)
         {
-            Debug.Log("Continuous Fire Hit: " + hit.collider.name);
             ApplySplashDamage(hit.point);
+
+            if (NetworkImpactSpawner.Instance != null && impactEffect != null)
+            {
+                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffect);
+            }
+
+            // If piercing is disabled, only hit the first target
+            if (!canPierceEnemies)
+                break;
         }
+        
+        WeaponController.Instance?.TriggerShootEffect();
     }
 
     private void ApplySplashDamage(Vector3 center)

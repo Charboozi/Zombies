@@ -3,6 +3,8 @@ using System;
 
 public class WeaponController : MonoBehaviour
 {
+    public static WeaponController Instance { get; private set; }
+
     [Header("Auto‑Reload Settings")]
     [Tooltip("How long after you stop shooting before recharge starts")]
     [SerializeField] private float reloadStartDelay = 1f;
@@ -25,6 +27,14 @@ public class WeaponController : MonoBehaviour
 
     private void Awake()
     {
+        // ✅ Singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         reloadHandler = GetComponent<WeaponReloadHandler>();
     }
 
@@ -124,5 +134,10 @@ public class WeaponController : MonoBehaviour
         {
             Debug.LogWarning("WeaponController: no weapon to switch to.");
         }
+    }
+    
+    public void TriggerShootEffect()
+    {
+        OnShoot?.Invoke();
     }
 }

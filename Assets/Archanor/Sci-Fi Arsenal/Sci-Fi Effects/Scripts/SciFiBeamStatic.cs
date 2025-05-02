@@ -123,6 +123,19 @@ public class SciFiArsenalBeamStatic : MonoBehaviour
 			Debug.LogError("A prefab with a line renderer must be assigned to the `beamLineRendererPrefab` field in the SciFiArsenalBeamStatic script on " + gameObject.name);
 		}
 	}
+	
+	public void EnableBeam()
+	{
+		if (beam == null) SpawnBeam();
+		if (beam != null) beam.SetActive(true);
+	}
+
+	public void DisableBeam()
+	{
+		if (beam != null) beam.SetActive(false);
+		if (beamStart != null) beamStart.SetActive(false);
+		if (beamEnd != null) beamEnd.SetActive(false);
+	}
 
 }
 }
