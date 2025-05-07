@@ -22,6 +22,9 @@ public abstract class WeaponBase : MonoBehaviour
     public int damage;
     public float headshotMultiplier = 1.5f;
 
+    [Header("Recoil Settings")]
+    public float recoilStrength = 1f; // Default = 1x strength, tweak per weapon
+
     [Header("Effects")]
     public Transform muzzleTransform;
     public ParticleSystem muzzleFlash;

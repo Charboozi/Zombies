@@ -66,7 +66,7 @@ public class HealthProxy : NetworkBehaviour
         AddArmor(armorAmount);
 
         PersistentScreenTint.Instance.SetPersistentTintForDuration(
-            new Color(0.2f, 0.8f, 0.2f), duration, 0.05f
+            new Color(0.2f, 0.2f, 0.8f), duration
         );
 
         yield return new WaitForSeconds(duration);

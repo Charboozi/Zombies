@@ -30,4 +30,5 @@ public class WeaponMovementBobbing : MonoBehaviour, IArmsOffsetProvider
     }
 
     public Vector3 GetOffset() => offset;
+    public Quaternion GetRotation() => Quaternion.identity;
 }

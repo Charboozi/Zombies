@@ -4,17 +4,20 @@ using System;
 using Unity.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Steamworks;
 
 [Serializable]
 public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData>
 {
     public ulong ClientId;
     public FixedString64Bytes DisplayName;
+    public FixedString64Bytes SteamName; // Add this
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ClientId);
         serializer.SerializeValue(ref DisplayName);
+        serializer.SerializeValue(ref SteamName); // Add this
     }
 
     public bool Equals(LobbyPlayerData other)
@@ -55,7 +58,24 @@ public class LobbyPlayerList : NetworkBehaviour
             NetworkManager.OnClientDisconnectCallback += OnClientDisconnected;
         }
 
+        // 👇 Must be client + owner + Steam ready before calling RPC
+        if (IsClient && IsOwner)
+        {
+            StartCoroutine(SendSteamNameNextFrame());
+        }
+
         Players.OnListChanged += OnListChanged;
+    }
+
+    private System.Collections.IEnumerator SendSteamNameNextFrame()
+    {
+        yield return null; // wait 1 frame to ensure network is fully initialized
+
+        if (SteamManager.Initialized)
+        {
+            string steamName = SteamFriends.GetPersonaName();
+            SubmitSteamNameServerRpc(NetworkManager.Singleton.LocalClientId, steamName);
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -78,13 +98,11 @@ public class LobbyPlayerList : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // You can replace this with a proper name from AuthService or input
-        var playerName = $"Player {clientId}";
-
         Players.Add(new LobbyPlayerData
         {
             ClientId = clientId,
-            DisplayName = playerName
+            DisplayName = $"Player {clientId}", // Optional, fallback
+            SteamName = "" // Steam name will be filled in later
         });
     }
 
@@ -97,6 +115,23 @@ public class LobbyPlayerList : NetworkBehaviour
         }
 
         PlayerListUI.Instance?.RefreshList(playerList);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SubmitSteamNameServerRpc(ulong clientId, string steamName)
+    {
+        for (int i = 0; i < Players.Count; i++)
+        {
+            if (Players[i].ClientId == clientId)
+            {
+                var updatedPlayer = Players[i];
+                updatedPlayer.SteamName = steamName;
+                Players[i] = updatedPlayer;
+
+                Debug.Log($"✅ Updated Steam name for {clientId}: {steamName}");
+                break;
+            }
+        }
     }
     
 }

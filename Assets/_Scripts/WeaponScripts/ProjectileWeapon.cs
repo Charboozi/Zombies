@@ -55,14 +55,32 @@ public class ProjectileWeapon : WeaponBase
                 }
             }
 
-            if (hit.collider.TryGetComponent(out EntityHealth bodyEntity))
+            if (hit.collider.TryGetComponent(out LimbHealth limb))
             {
-                bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
+                float limbDamage = damage;
+                if (limb.limbID.ToLower().Contains("head"))
+                    limbDamage *= headshotMultiplier;
+
+                limb.TakeLimbDamageServerRpc(Mathf.RoundToInt(limbDamage));
 
                 if (NetworkImpactSpawner.Instance != null)
                 {
-                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                    string fx = limb.limbID.ToLower().Contains("head") ? "BloodImpactHeadshot" : "BloodImpact";
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, fx);
                 }
+
+                if (!canPierceEnemies)
+                    break;
+
+                continue;
+            }
+
+            if (hit.collider.TryGetComponent(out EntityHealth bodyEntity))
+            {
+                bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(damage));
+
+                if (NetworkImpactSpawner.Instance != null)
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
 
                 if (!canPierceEnemies)
                     break;

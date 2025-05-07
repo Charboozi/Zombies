@@ -68,8 +68,9 @@ public class GameOverManager : NetworkBehaviour
         if (NetworkManager.Singleton.SceneManager != null)
         {
             Debug.Log("✅ Triggering game over visuals...");
+            RewardAllPlayersBasedOnDay();
             ShowGameOverEffectClientRpc();
-
+            PlayerInput.CanInteract = true;
             StartCoroutine(DelayedGameOverSceneLoad(4f)); // ⏱ Wait 4s for screen fade
         }
         else
@@ -122,6 +123,31 @@ public class GameOverManager : NetworkBehaviour
     {
         yield return new WaitForSeconds(0.1f); // slight delay to allow state update
         CheckGameOverCondition(null);
+    }
+
+    private void RewardAllPlayersBasedOnDay()
+    {
+        int day = DayManager.Instance.CurrentDayInt;
+
+        // 🔢 Base reward and growth multiplier
+        float baseReward = 10f;         // starting coins at day 0
+        float growthMultiplier = 1.25f; // increase rate (adjust as needed)
+
+        int reward = Mathf.RoundToInt(baseReward * Mathf.Pow(growthMultiplier, day));
+
+        Debug.Log($"🎁 Rewarding all players {reward} coins for reaching Day {day}");
+
+        RewardClientsClientRpc(reward);
+    }
+
+    [ClientRpc]
+    private void RewardClientsClientRpc(int reward)
+    {
+        if (CurrencyManager.Instance != null)
+        {
+            Debug.Log($"🎉 Received {reward} coins!");
+            CurrencyManager.Instance.Add(reward);
+        }
     }
 
     

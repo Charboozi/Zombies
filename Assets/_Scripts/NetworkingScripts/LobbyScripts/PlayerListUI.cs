@@ -50,9 +50,11 @@ public class PlayerListUI : MonoBehaviour
         {
             if (playerListParent == null) return; // ✅ In case it was destroyed mid-loop
             var entry = Instantiate(playerEntryPrefab, playerListParent);
-            var text = entry.GetComponentInChildren<TMPro.TMP_Text>();
+            var text = entry.GetComponentInChildren<TMP_Text>();
             if (text != null)
-                text.text = player.DisplayName.ToString();
+                text.text = !string.IsNullOrEmpty(player.SteamName.ToString())
+                ? player.SteamName.ToString()
+                : player.DisplayName.ToString();
         }
     }
 

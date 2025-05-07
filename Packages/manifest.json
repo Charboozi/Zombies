@@ -28,6 +28,8 @@
     "com.unity.render-pipelines.universal": "17.0.4",
     "com.unity.render-pipelines.universal-config": "17.0.3",
     "com.unity.rendering.light-transport": "1.0.1",
+    "com.unity.services.authentication": "3.4.1",
+    "com.unity.services.cloudsave": "3.2.2",
     "com.unity.services.multiplayer": "1.1.1",
     "com.unity.shadergraph": "17.0.4",
     "com.unity.test-framework": "1.4.6",

@@ -52,4 +52,5 @@ public class ProceduralWeaponSwitched : MonoBehaviour, IArmsOffsetProvider
         float curveValue = raiseCurve.Evaluate(t);
         return Vector3.Lerp(loweredOffset, Vector3.zero, curveValue);
     }
+    public Quaternion GetRotation() => Quaternion.identity;
 }

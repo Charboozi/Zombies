@@ -5,6 +5,14 @@ using System.Collections;
 
 public class EntityHealth : NetworkBehaviour
 {
+    public string lastHitLimbID = "None";
+
+    public void OnLimbHit(string limbID, int damage)
+    {
+        lastHitLimbID = limbID;
+        TakeDamageServerRpc(damage);
+    }
+
     [Header("Health Settings")]
     public int maxHealth = 100;
     public int armor = 0;
@@ -154,19 +162,53 @@ public class EntityHealth : NetworkBehaviour
         regenCoroutine = null; // Stop coroutine when full health is reached
     }
 
-    //Server to all clients"This guy died"
     [ClientRpc]
     private void DieClientRpc()
     {
         Debug.Log($"{gameObject.name} has died!");
 
-        if(TryGetComponent<IKillable>(out var killable))
-        {
+        if (TryGetComponent<IKillable>(out var killable))
             killable.Die();
+
+        // Detach head/core if that's what killed it
+        if (lastHitLimbID.ToLower().Contains("head") || lastHitLimbID.ToLower().Contains("core"))
+        {
+            var limb = FindLimbByID(lastHitLimbID);
+            if (limb != null)
+                DetachLimb(limb);
         }
     }
 
-    
+    private Transform FindLimbByID(string id)
+    {
+        foreach (var limb in GetComponentsInChildren<LimbHealth>())
+        {
+            if (limb.limbID.Equals(id, StringComparison.OrdinalIgnoreCase))
+                return limb.transform;
+        }
+        return null;
+    }
+
+    [Header("Limb Effects")]
+    [SerializeField] private ParticleSystem headDetachEffect; // Assign this to an existing FX object
+
+    private void DetachLimb(Transform limb)
+    {
+        // Shrink the limb visually
+        limb.localScale = Vector3.one * 0.001f;
+
+        // Add collider if needed
+        if (!limb.GetComponent<Collider>())
+            limb.gameObject.AddComponent<BoxCollider>();
+
+        // If head, play effect
+        if (lastHitLimbID.ToLower().Contains("head") && headDetachEffect != null)
+        {
+            headDetachEffect.Play();
+        }
+    }
+
+
     // ClientRpc to show the downed state for players.
     [ClientRpc]
     private void DownedClientRpc()
@@ -303,7 +345,7 @@ public class EntityHealth : NetworkBehaviour
     {
         if (IsOwner)
         {
-            PersistentScreenTint.Instance.FadeInPersistentTint(Color.green, 0.05f, 1f);
+            FadeScreenEffect.Instance.ShowEffect(Color.green, 0.05f, 1f);
         }
     }
 

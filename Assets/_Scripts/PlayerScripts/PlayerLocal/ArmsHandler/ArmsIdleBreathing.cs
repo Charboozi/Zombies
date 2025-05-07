@@ -19,4 +19,5 @@ public class ArmsIdleBreathing : MonoBehaviour, IArmsOffsetProvider
     }
 
     public Vector3 GetOffset() => offset;
+    public Quaternion GetRotation() => Quaternion.identity;
 }

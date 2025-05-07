@@ -3,6 +3,7 @@ using Unity.Services.Core;
 using Unity.Services.Authentication;
 using System.Threading.Tasks;
 using TMPro;
+using Steamworks;
 
 public class UnityAuthManager : MonoBehaviour
 {
@@ -36,10 +37,26 @@ public class UnityAuthManager : MonoBehaviour
             if (!AuthenticationService.Instance.IsSignedIn)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
-                Debug.Log($"Signed in anonymously as PlayerID: {AuthenticationService.Instance.PlayerId}");
+                Debug.Log($"✅ Signed in anonymously as PlayerID: {AuthenticationService.Instance.PlayerId}");
             }
             
-            playerIdText.text = AuthenticationService.Instance.PlayerId;
+            if (PlayerInventoryManager.Instance != null)
+            {
+                await PlayerInventoryManager.Instance.LoadInventoryAsync();
+            }
+
+            // ✅ SAFE POINT: Now we are signed in — initialize currency
+            if (CurrencyManager.Instance != null)
+            {
+                await CurrencyManager.Instance.InitAsync();
+                Debug.Log($"💰 Coins after load: {CurrencyManager.Instance.Coins}");
+            }
+
+            // Optional: show Steam name in UI
+            if (SteamManager.Initialized && playerIdText != null)
+            {
+                playerIdText.text = SteamFriends.GetPersonaName();
+            }
         }
         catch (AuthenticationException ex)
         {
@@ -50,4 +67,5 @@ public class UnityAuthManager : MonoBehaviour
             Debug.LogError("Unity Services initialization failed: " + ex.Message);
         }
     }
+
 }

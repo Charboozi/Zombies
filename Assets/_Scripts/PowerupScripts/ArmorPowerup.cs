@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using System.Collections;
 
 public class ArmorPowerup : PowerupBase
 {
@@ -28,12 +27,11 @@ public class ArmorPowerup : PowerupBase
         var proxy = player.GetComponent<HealthProxy>();
         if (proxy != null)
         {
-            proxy.AddTemporaryArmor(armorBonus, duration);  // ✅ now safe
+            proxy.AddTemporaryArmor(armorBonus, duration);
             PlayLoopedEffectSound(duration);
         }
-        else
-        {
-            Debug.LogWarning("ArmorPowerup: No HealthProxy found on player.");
-        }
+
+        PowerupUIController.Instance?.ShowArmorBoost(duration);
     }
+
 }

@@ -4,8 +4,7 @@ using UnityEngine.Rendering.Universal;
 using System.Collections;
 
 /// <summary>
-/// Handles ambient or persistent screen tints via the vignette post-processing effect.
-/// Suitable for atmospheric overlays that persist and blend subtly.
+/// Temporarily changes the vignette color and restores it after a duration.
 /// </summary>
 public class PersistentScreenTint : MonoBehaviour
 {
@@ -13,7 +12,7 @@ public class PersistentScreenTint : MonoBehaviour
 
     [SerializeField] private Volume globalVolume;
     private Vignette vignette;
-    private Coroutine activeEffect;
+    private Coroutine tintRoutine;
 
     private void Awake()
     {
@@ -38,100 +37,36 @@ public class PersistentScreenTint : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets a persistent vignette tint for a given duration, then fades out.
+    /// Temporarily sets the vignette color and intensity, then restores the previous state.
     /// </summary>
-    public void SetPersistentTintForDuration(Color color, float duration, float intensity = 0.04f, float fadeSpeed = 0.1f)
+    public void SetPersistentTintForDuration(Color color, float duration)
     {
-        if (activeEffect != null)
-            StopCoroutine(activeEffect);
+        if (tintRoutine != null)
+            StopCoroutine(tintRoutine);
 
-        activeEffect = StartCoroutine(PersistentTintDurationRoutine(color, duration, intensity, fadeSpeed));
+        tintRoutine = StartCoroutine(TintRoutine(color, duration));
     }
 
-    private IEnumerator PersistentTintDurationRoutine(Color color, float duration, float intensity, float fadeSpeed)
+    private IEnumerator TintRoutine(Color newColor, float duration)
     {
+        if (vignette == null) yield break;
+
         vignette.active = true;
-        vignette.color.value = color;
 
-        // Fade in
-        float i = 0f;
-        while (i < intensity)
-        {
-            i += Time.deltaTime * fadeSpeed;
-            vignette.intensity.value = Mathf.Clamp01(i);
-            yield return null;
-        }
+        // Apply new tint
+        vignette.color.overrideState = true;
+        vignette.intensity.overrideState = true;
 
-        vignette.intensity.value = intensity;
+        vignette.color.value = newColor;
+        vignette.intensity.value = Mathf.Clamp01(0.4f);
 
-        // Hold
+        // Wait for duration
         yield return new WaitForSeconds(duration);
 
-        // Fade out
-        while (i > 0f)
-        {
-            i -= Time.deltaTime * fadeSpeed;
-            vignette.intensity.value = Mathf.Clamp01(i);
-            yield return null;
-        }
+        // Revert to black
+        vignette.color.value = Color.black;
+        vignette.intensity.value = Mathf.Clamp01(0.4f); // or set to a different default if you want lower
 
-        vignette.intensity.value = 0f;
-        vignette.active = false;
-        activeEffect = null;
-    }
-
-    /// <summary>
-    /// Fade in a persistent vignette tint for ambient effects.
-    /// </summary>
-    public void FadeInPersistentTint(Color color, float targetIntensity = 0.04f, float speed = 0.1f)
-    {
-        if (activeEffect != null)
-            StopCoroutine(activeEffect);
-
-        activeEffect = StartCoroutine(FadeInRoutine(color, targetIntensity, speed));
-    }
-
-    private IEnumerator FadeInRoutine(Color color, float targetIntensity, float speed)
-    {
-        vignette.active = true;
-        vignette.color.value = color;
-
-        float i = vignette.intensity.value;
-        while (i < targetIntensity)
-        {
-            i += Time.deltaTime * speed;
-            vignette.intensity.value = Mathf.Clamp01(i);
-            yield return null;
-        }
-
-        vignette.intensity.value = targetIntensity;
-        activeEffect = null;
-    }
-
-    /// <summary>
-    /// Clears the persistent vignette tint with a fade.
-    /// </summary>
-    public void ClearPersistentTint(float fadeSpeed = 0.1f)
-    {
-        if (activeEffect != null)
-            StopCoroutine(activeEffect);
-
-        activeEffect = StartCoroutine(FadeOutRoutine(fadeSpeed));
-    }
-
-    private IEnumerator FadeOutRoutine(float speed)
-    {
-        float i = vignette.intensity.value;
-
-        while (i > 0f)
-        {
-            i -= Time.deltaTime * speed;
-            vignette.intensity.value = Mathf.Clamp01(i);
-            yield return null;
-        }
-
-        vignette.intensity.value = 0f;
-        vignette.active = false;
-        activeEffect = null;
+        tintRoutine = null;
     }
 }

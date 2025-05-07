@@ -57,7 +57,13 @@ public class WeaponNetworkEffects : NetworkBehaviour
             Invoke(nameof(StopMuzzleFlash), currentWeapon.fireRate);
         }
 
-        cameraShake?.Shake(0.06f, 0.14f);
+        if (currentWeapon != null)
+        {
+            float recoilStrength = currentWeapon.recoilStrength;
+            float shakeAmount = 0.15f * recoilStrength; // tune as needed
+
+            cameraShake?.Shake(shakeAmount, 0.14f);
+        }
     }
 
     private void StopMuzzleFlash()

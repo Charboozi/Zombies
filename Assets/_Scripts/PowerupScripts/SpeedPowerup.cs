@@ -43,13 +43,17 @@ public class SpeedPowerup : PowerupBase
         {
             Debug.Log("⚠️ Canceling existing speed boost");
             player.GetComponent<MonoBehaviour>().StopCoroutine(existingBoost);
-            movement.RemoveBonusSpeed(speedBoost); // Always remove the previous instance
+            movement.RemoveBonusSpeed(speedBoost);
         }
 
         // Start new coroutine and track it
         Coroutine newBoost = player.GetComponent<MonoBehaviour>().StartCoroutine(ApplySpeedBoost(playerId, movement));
         activeBoosts[playerId] = newBoost;
+
+        // ✅ Show UI boost icon
+        PowerupUIController.Instance?.ShowSpeedBoost(duration);
     }
+
 
     private IEnumerator ApplySpeedBoost(ulong playerId, NetworkedCharacterMovement movement)
     {
@@ -57,8 +61,7 @@ public class SpeedPowerup : PowerupBase
 
         PersistentScreenTint.Instance?.SetPersistentTintForDuration(
             new Color(1f, 0.85f, 0f), // Yellow/orange
-            duration,
-            0.05f
+            duration
         );
 
         GameObject loopAudio = PlayLoopedEffectSound(duration);

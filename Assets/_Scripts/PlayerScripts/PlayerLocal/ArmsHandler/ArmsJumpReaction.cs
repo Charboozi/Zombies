@@ -27,4 +27,5 @@ public class ArmsJumpReaction : MonoBehaviour, IArmsOffsetProvider
     }
 
     public Vector3 GetOffset() => offset;
+    public Quaternion GetRotation() => Quaternion.identity;
 }

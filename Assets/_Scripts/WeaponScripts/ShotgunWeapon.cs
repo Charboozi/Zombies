@@ -31,6 +31,7 @@ public class ShotgunWeapon : WeaponBase
         }
     }
 
+
     private void FirePellet()
     {
         Ray ray = new Ray(playerCamera.transform.position, GetSpreadDirection());
@@ -40,36 +41,38 @@ public class ShotgunWeapon : WeaponBase
 
         foreach (var hit in hits)
         {
-            float finalDamage = damage / pelletsPerShot;
+            float pelletDamage = damage / pelletsPerShot;
 
-            // ✅ Headshot check first
-            if (hit.collider.CompareTag("Headshot"))
+            // ✅ Try limb hit
+            if (hit.collider.TryGetComponent(out LimbHealth limb))
             {
-                if (hit.collider.transform.parent.TryGetComponent(out EntityHealth headEntity))
+                if (limb.limbID.ToLower().Contains("head"))
                 {
-                    finalDamage *= headshotMultiplier;
-                    headEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
-
-                    if (NetworkImpactSpawner.Instance != null)
-                    {
-                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpactHeadshot");
-                    }
-
-                    continue; // No piercing for shotgun, continue to next pellet
+                    pelletDamage *= headshotMultiplier;
                 }
+
+                limb.TakeLimbDamageServerRpc(Mathf.RoundToInt(pelletDamage));
+
+                if (NetworkImpactSpawner.Instance != null)
+                {
+                    string fx = limb.limbID.ToLower().Contains("head") ? "BloodImpactHeadshot" : "BloodImpact";
+                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, fx);
+                }
+
+                break; // Stop at first valid hit
             }
 
-            // ✅ Body hit
-            if (hit.collider.TryGetComponent(out EntityHealth bodyEntity))
+            // ✅ Try fallback to body
+            if (hit.collider.TryGetComponent(out EntityHealth entity))
             {
-                bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
+                entity.TakeDamageServerRpc(Mathf.RoundToInt(pelletDamage));
 
                 if (NetworkImpactSpawner.Instance != null)
                 {
                     NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
                 }
 
-                break; // Stop at first valid hit
+                break;
             }
 
             // ✅ Environment hit

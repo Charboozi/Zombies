@@ -134,65 +134,36 @@ public class EnemyAttack : NetworkBehaviour
         if (!IsServer || target == null)
             return;
 
-        float distanceToTarget = Vector3.Distance(transform.position, target.position);
-        if (distanceToTarget > scanner.inRangeThreshold)
-            return;
+        // Fallback origin if attackOrigin isn't assigned
+        Vector3 origin = transform.position + Vector3.up * 1.2f; // around chest height
 
-        bool hitConfirmed = false;
+        float attackRadius = 2f;
 
-        // Dynamic origin point based on collider bounds
-        Vector3 origin = enemyCollider.bounds.center;
-        origin.y = enemyCollider.bounds.max.y - 0.1f; // slightly below top of collider
-        origin += transform.forward * (enemyCollider.bounds.extents.z + 0.2f); // forward offset
+        // Only hit player layer by default (layer 6 is usually "Player" if using default setup)
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int attackLayerMask = 1 << playerLayer;
 
-        Vector3 direction = (target.position - origin).normalized;
+        Collider[] hits = Physics.OverlapSphere(origin, attackRadius, attackLayerMask);
 
-        // First: try SphereCast ✅ (bigger radius to catch enemies of different sizes)
-        if (Physics.SphereCast(origin, 0.5f, direction, out RaycastHit sphereHit, scanner.inRangeThreshold))
+        foreach (var col in hits)
         {
-            Debug.DrawRay(origin, direction * sphereHit.distance, Color.green, 1f);
+            if (!col.transform.IsChildOf(target))
+                continue;
 
-            if (sphereHit.transform == target)
+            if (col.transform.TryGetComponent(out EntityHealth health))
             {
-                hitConfirmed = true;
-            }
-        }
-
-        // Fallback: if spherecast missed, try OverlapSphere at target position ✅
-        if (!hitConfirmed)
-        {
-            Collider[] overlaps = Physics.OverlapSphere(target.position, 0.7f);
-            foreach (var collider in overlaps)
-            {
-                if (collider.transform == target)
-                {
-                    // Check line of sight
-                    if (Physics.Raycast(origin, direction, out RaycastHit losHit, scanner.inRangeThreshold))
-                    {
-                        Debug.DrawRay(origin, direction * losHit.distance, Color.yellow, 1f);
-
-                        if (losHit.transform == target)
-                        {
-                            hitConfirmed = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (hitConfirmed)
-        {
-            if (target.TryGetComponent(out EntityHealth health))
-            {
-                // 2) Fire the event instead of calling TryRemoveRandomEquipmentFromLocalPlayer
-                OnTargetHit?.Invoke(target);
-
+                OnTargetHit?.Invoke(col.transform);
                 PlayHitSoundClientRpc();
                 health.TakeDamageServerRpc(attackDamage);
+                return;
             }
         }
+
+        // Optional debug draw (shows red wire sphere for 1 second)
+        Debug.DrawLine(origin, origin + Vector3.up * 0.2f, Color.red, 1f);
+        Debug.DrawRay(origin, transform.forward * attackRadius, Color.red, 1f);
     }
+
 
     public void OnAttackAnimationComplete()
     {
