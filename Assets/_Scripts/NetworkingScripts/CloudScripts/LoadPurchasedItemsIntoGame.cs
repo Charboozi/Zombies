@@ -2,18 +2,49 @@ using UnityEngine;
 
 public class LoadPurchasedItemsIntoGame : MonoBehaviour
 {
+    [SerializeField] private WeaponInventory weaponInventory;
+
     private void Start()
     {
-        if (PlayerInventoryManager.Instance == null || ConsumableManager.Instance == null)
+        var inventoryManager = PlayerInventoryManager.Instance;
+        var consumables = ConsumableManager.Instance;
+
+        if (inventoryManager == null)
         {
-            Debug.LogWarning("❌ PlayerInventoryManager or ConsumableManager missing.");
+            Debug.LogWarning("❌ PlayerInventoryManager missing.");
             return;
         }
 
-        // Add all unlocked items here
-        int keycards = PlayerInventoryManager.Instance.Keycards;
-        ConsumableManager.Instance.Add("Keycard", keycards);
+        // ✅ Add consumables (e.g., keycards)
+        if (consumables != null)
+        {
+            int keycards = inventoryManager.Keycards;
+            consumables.Add("Keycard", keycards);
+            Debug.Log($"🟩 Loaded {keycards} keycards into ConsumableManager.");
+        }
 
-        Debug.Log($"🟩 Injected purchased items into ConsumableManager (e.g., {keycards} keycards).");
+        // ✅ Add only active weapons to WeaponInventory
+        if (weaponInventory != null)
+        {
+            var activeWeapons = inventoryManager.ActiveWeapons;
+
+            if (activeWeapons.Count == 0)
+            {
+                Debug.LogWarning("⚠️ No active weapons. Giving default 'Pistol'.");
+                weaponInventory.PickUpWeapon("Pistol");
+            }
+            else
+            {
+                foreach (var weaponName in activeWeapons)
+                {
+                    Debug.Log($"🎯 Loading active weapon: {weaponName}");
+                    weaponInventory.PickUpWeapon(weaponName);
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No WeaponInventory found on this GameObject.");
+        }
     }
 }

@@ -39,10 +39,11 @@ public class UnityAuthManager : MonoBehaviour
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
                 Debug.Log($"✅ Signed in anonymously as PlayerID: {AuthenticationService.Instance.PlayerId}");
             }
-            
+
             if (PlayerInventoryManager.Instance != null)
             {
-                await PlayerInventoryManager.Instance.LoadInventoryAsync();
+                await PlayerInventoryManager.Instance.LoadKeycardsAsync();
+                await PlayerInventoryManager.Instance.LoadUnlockedWeaponsAsync();
             }
 
             // ✅ SAFE POINT: Now we are signed in — initialize currency
