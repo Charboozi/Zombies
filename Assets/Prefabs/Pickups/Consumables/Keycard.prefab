@@ -136,8 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  autoDespawnTime: 10
-  pickupSound: {fileID: 8300000, guid: 25196e16560cd7145a4d08699188f42a, type: 3}
+  autoDespawnTime: 15
 --- !u!114 &-4476488961654605319
 MonoBehaviour:
   m_ObjectHideFlags: 0

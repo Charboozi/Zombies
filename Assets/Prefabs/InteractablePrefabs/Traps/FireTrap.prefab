@@ -103,7 +103,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2474562572619923811}
-  m_Mesh: {fileID: 4300002, guid: 266a12a9f31d4d8409e44c15acf6a15a, type: 3}
+  m_Mesh: {fileID: 4300002, guid: 23cfee973004e6043a4e11eab315fbae, type: 3}
 --- !u!23 &5836274067648829728
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1462,9 +1462,10 @@ MonoBehaviour:
   cooldownDuration: 100
   interactText: Use Fire Trap
   blackoutChanceOnUse: 0
+  requiresKeycard: 1
+  keycardsRequired: 1
   isCoolingDown:
     m_InternalValue: 0
-  requiresKeycard: 1
 --- !u!114 &1925129310367580092
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -50,8 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  autoDespawnTime: 10
-  pickupSound: {fileID: 8300000, guid: e23bf0baf6186c64da7d176e524cd45d, type: 3}
+  autoDespawnTime: 15
 --- !u!114 &-4476488961654605319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14436,7 +14435,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7169248, y: 0.06088394, z: -0.69274604, w: -0.04914269}
   m_LocalPosition: {x: -1.29, y: -0.18, z: 0.54}
-  m_LocalScale: {x: 5.3017836, y: 5.3017125, z: 5.3017135}
+  m_LocalScale: {x: 593.6937, y: 593.6858, z: 593.6859}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 242896623657334132}

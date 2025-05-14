@@ -89,6 +89,7 @@ MonoBehaviour:
   range: 100
   damage: 15
   headshotMultiplier: 1.3
+  recoilStrength: 1
   muzzleTransform: {fileID: 826321537921443193}
   muzzleFlash: {fileID: 4288147449164704607}
   weaponRenderers:
@@ -194,7 +195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  autoDespawnTime: 10
+  autoDespawnTime: 15
 --- !u!1001 &869116816828635070
 PrefabInstance:
   m_ObjectHideFlags: 0
