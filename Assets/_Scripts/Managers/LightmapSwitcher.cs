@@ -172,6 +172,7 @@ public class LightmapSwitcher : NetworkBehaviour
         ApplyReflectionProbes(blackoutReflectionTextures);
         ApplyLightProbes(blackoutLightProbes);
         PlaySound(blackoutSound);
+        AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Power_Offline");
 
         Debug.Log("🕶️ Blackout applied.");
     }
@@ -181,6 +182,7 @@ public class LightmapSwitcher : NetworkBehaviour
         ApplyLightmaps(lightsOnLightmaps);
         ApplyReflectionProbes(lightsOnReflectionTextures);
         ApplyLightProbes(lightsOnLightProbes);
+        AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Power_Online");
 
         Debug.Log("💡 Lights On applied.");
     }

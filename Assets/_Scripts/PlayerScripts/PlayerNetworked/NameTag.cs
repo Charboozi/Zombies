@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using TMPro;
+using Steamworks;
 
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerNameTag : NetworkBehaviour
@@ -17,7 +18,7 @@ public class PlayerNameTag : NetworkBehaviour
             cameraTransform = Camera.main.transform;
 
         // Set initial text to the client ID
-        nameText.text = OwnerClientId.ToString();
+        nameText.text = SteamFriends.GetPersonaName();
 
         // If you later change the ID or name, you could hook up a callback here.
     }

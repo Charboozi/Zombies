@@ -12,6 +12,9 @@ public class EnemyAttack : NetworkBehaviour
     public float attackCooldown = 1.2f;
     public float rotationSpeed = 10f;
 
+    [Tooltip("Radius of the attack hit area (for OverlapSphere)")]
+    public float attackRadius = 2f;
+
     [Header("Audio")]
     public AudioClip hitSound;
 
@@ -137,7 +140,7 @@ public class EnemyAttack : NetworkBehaviour
         // Fallback origin if attackOrigin isn't assigned
         Vector3 origin = transform.position + Vector3.up * 1.2f; // around chest height
 
-        float attackRadius = 2f;
+        float radius = attackRadius;
 
         // Only hit player layer by default (layer 6 is usually "Player" if using default setup)
         int playerLayer = LayerMask.NameToLayer("Player");

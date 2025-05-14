@@ -10,9 +10,6 @@ public class RampageManager : NetworkBehaviour
     [SerializeField] private float speedMultiplier = 1.5f;
     [SerializeField] private Color rampageEyeColor = Color.red;
 
-    [Header("Audio")]
-    [SerializeField] private AudioSource rampageAudioSource;
-
     private bool rampageActive = false;
 
     public event Action<float, Color> OnRampageStart;
@@ -53,9 +50,6 @@ public class RampageManager : NetworkBehaviour
         rampageActive = true;
 
         OnRampageStart?.Invoke(mult, eyeColor);
-
-        if (rampageAudioSource != null && !rampageAudioSource.isPlaying)
-            rampageAudioSource.Play();
     }
 
     public void EndRampage()
@@ -83,9 +77,6 @@ public class RampageManager : NetworkBehaviour
         rampageActive = false;
 
         OnRampageEnd?.Invoke();
-
-        if (rampageAudioSource != null && rampageAudioSource.isPlaying)
-            rampageAudioSource.Stop();
 
         // ← NEW: give this client a keycard
         if (ConsumableManager.Instance != null)

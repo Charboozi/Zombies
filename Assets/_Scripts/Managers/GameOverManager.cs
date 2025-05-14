@@ -149,6 +149,6 @@ public class GameOverManager : NetworkBehaviour
             CurrencyManager.Instance.Add(reward);
         }
     }
-
+    
     
 }

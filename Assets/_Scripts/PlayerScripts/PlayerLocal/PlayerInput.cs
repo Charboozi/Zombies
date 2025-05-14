@@ -5,84 +5,96 @@ using System;
 [RequireComponent(typeof(WeaponController))]
 public class PlayerInput : MonoBehaviour
 {
-    // Movement
+    public static PlayerInput Instance { get; private set; }
+
     public static event Action<Vector2> OnMouseLook;
     public static event Action<Vector2> OnMoveInput;
     public static event Action OnJumpPressed;
-
-    // Combat
     public static event Action OnFirePressed;
     public static event Action OnFireReleased;
-
-    // Weapons
     public static event Action<int> OnSwitchWeapon;
-    public static event Action<int> OnCycleWeapon; // -1 = previous, +1 = next
-
-    // Misc
+    public static event Action<int> OnCycleWeapon;
     public static event Action OnInteractPressed;
     public static event Action OnPausePressed;
 
-    [Header("Controller Bindings")]
-    public string horizontalAxis = "Horizontal";
-    public string verticalAxis = "Vertical";
-    public string jumpButton = "Jump";
-    public string fireButton = "Fire1";
-    public string interactButton = "Interact";
-    public string pauseButton = "Pause";
-
     public static bool CanInteract = true;
-    
 
-    private void Update()
+    private PlayerControls controls;
+
+    private void Awake()
     {
-        // Pause
-        if (Input.GetButtonDown(pauseButton))
-            OnPausePressed?.Invoke();
-
-        if (PauseManager.IsPaused)
-        return;
-
-        // Mouse Look
-        float mouseX = Input.GetAxis("Mouse X");
-        float mouseY = Input.GetAxis("Mouse Y");
-        Vector2 lookDelta = new Vector2(mouseX, mouseY);
-        OnMouseLook?.Invoke(lookDelta);
-
-        // Movement
-        float h = Input.GetAxis(horizontalAxis);
-        float v = Input.GetAxis(verticalAxis);
-        OnMoveInput?.Invoke(new Vector2(h, v));
-
-        // Jump
-        if (Input.GetButtonDown(jumpButton))
-            OnJumpPressed?.Invoke();
-
-        // Fire
-        if (Input.GetButtonDown(fireButton))
-            OnFirePressed?.Invoke();
-        if (Input.GetButtonUp(fireButton))
-            OnFireReleased?.Invoke();
-
-        // Interact
-        if (CanInteract && Input.GetButtonDown(interactButton))
+        if (Instance != null && Instance != this)
         {
-            OnInteractPressed?.Invoke();
+            Destroy(gameObject);
+            return;
         }
 
-        // Weapon switching: Number keys 1–3
-        for (int i = 1; i <= 4; i++)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha0 + i))
-            {
-                OnSwitchWeapon?.Invoke(i - 1);
-            }
-        }
+        Instance = this;
 
-        // Weapon cycling: mouse scroll
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll > 0f)
-            OnCycleWeapon?.Invoke(1);
-        else if (scroll < 0f)
-            OnCycleWeapon?.Invoke(-1);
+        controls = new PlayerControls();
+
+        // Bind actions
+        controls.Player.Look.performed += ctx =>
+        {
+            Vector2 look = ctx.ReadValue<Vector2>();
+
+            // Scale down to match old Input.GetAxis behavior
+            look *= 0.1f; // or multiply by sensitivity * Time.deltaTime
+
+            OnMouseLook?.Invoke(look);
+        };
+
+        controls.Player.Move.performed += ctx => OnMoveInput?.Invoke(ctx.ReadValue<Vector2>());
+        controls.Player.Move.canceled  += ctx => OnMoveInput?.Invoke(Vector2.zero);
+
+        controls.Player.Jump.performed += ctx => OnJumpPressed?.Invoke();
+
+        controls.Player.Fire.started   += ctx => OnFirePressed?.Invoke();
+        controls.Player.Fire.canceled  += ctx => OnFireReleased?.Invoke();
+
+        controls.Player.Interact.performed += ctx => {
+            if (CanInteract) OnInteractPressed?.Invoke();
+        };
+
+        controls.Player.Pause.performed += ctx => OnPausePressed?.Invoke();
+
+        controls.Player.CycleWeapon.performed += ctx =>
+        {
+            float scroll = ctx.ReadValue<float>();
+            Debug.Log("Scroll: " + scroll);
+
+            if (scroll > 0f)
+                OnCycleWeapon?.Invoke(1);
+            else if (scroll < 0f)
+                OnCycleWeapon?.Invoke(-1);
+        };
+
+        // Weapon keys 1–4
+        controls.Player.SwitchWeapon1.performed += ctx => OnSwitchWeapon?.Invoke(0);
+        controls.Player.SwitchWeapon2.performed += ctx => OnSwitchWeapon?.Invoke(1);
+        controls.Player.SwitchWeapon3.performed += ctx => OnSwitchWeapon?.Invoke(2);
+        controls.Player.SwitchWeapon4.performed += ctx => OnSwitchWeapon?.Invoke(3);
+    }
+
+    private void OnEnable()
+    {
+        controls.Enable();
+    }
+
+    private void OnDisable()
+    {
+        controls.Disable();
+    }
+
+    public Vector2 MoveInput { get; private set; }
+    private bool jumpQueued = false;
+
+    public void QueueJump() => jumpQueued = true;
+
+    public bool ConsumeJumpQueued()
+    {
+        bool temp = jumpQueued;
+        jumpQueued = false;
+        return temp;
     }
 }

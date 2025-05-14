@@ -44,6 +44,7 @@ public class LiftController : NetworkBehaviour, IInteractableAction
     {
         isMoving = true;
 
+        BalloonMinigameManager.Instance.StartMinigame();
         PlayLiftClientRpc();
 
         float animationLength = GetAnimationClipLength(liftAnimationTrigger);

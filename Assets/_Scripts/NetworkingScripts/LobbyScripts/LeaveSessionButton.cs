@@ -22,7 +22,10 @@ public class LeaveSessionButton : MonoBehaviour
         joinButton.interactable = true;
         createButton.interactable = true;
 
-        PlayerListUI.Instance?.ClearList();
+        if (LobbyPlayerList.Instance != null)
+        {
+            LobbyPlayerList.Instance.ResetLobbyState();
+        }
 
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsClient)
         {

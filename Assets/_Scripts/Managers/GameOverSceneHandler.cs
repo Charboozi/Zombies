@@ -5,6 +5,8 @@ using System.Collections;
 
 public class GameOverSceneManager : MonoBehaviour
 {
+    public static bool OpenLobbyAfterLoad = false;
+
     [SerializeField] private float returnToLobbyDelay = 10f;
     [SerializeField] private string lobbySceneName = "MainMenu"; // Change to your actual scene name
     [SerializeField] private float musicFadeDuration = 3f;
@@ -35,6 +37,7 @@ public class GameOverSceneManager : MonoBehaviour
         // Wait for the remaining time (music fade duration)
         yield return new WaitForSeconds(musicFadeDuration);
 
+        OpenLobbyAfterLoad = true;
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
         {
             NetworkManager.Singleton.SceneManager.LoadScene(lobbySceneName, LoadSceneMode.Single);

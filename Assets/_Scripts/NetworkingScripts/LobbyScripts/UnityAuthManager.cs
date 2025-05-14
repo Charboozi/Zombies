@@ -1,21 +1,20 @@
 using UnityEngine;
+using TMPro;
+using Steamworks;
 using Unity.Services.Core;
 using Unity.Services.Authentication;
 using System.Threading.Tasks;
-using TMPro;
-using Steamworks;
 
 public class UnityAuthManager : MonoBehaviour
 {
     public static UnityAuthManager Instance;
 
-    public bool IsAuthenticated => AuthenticationService.Instance.IsSignedIn;
-
     [SerializeField] private TMP_Text playerIdText;
+
+    public bool IsAuthenticated => AuthenticationService.Instance.IsSignedIn;
 
     private async void Awake()
     {
-        // Make this persist across scenes if needed
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -25,10 +24,16 @@ public class UnityAuthManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        await AuthenticateAsync();
+        await AuthenticateUGS();
+
+        // Steam overlay name (visual only)
+        if (SteamManager.Initialized && playerIdText != null)
+        {
+            playerIdText.text = SteamFriends.GetPersonaName();
+        }
     }
 
-    public async Task AuthenticateAsync()
+    private async Task AuthenticateUGS()
     {
         try
         {
@@ -37,36 +42,12 @@ public class UnityAuthManager : MonoBehaviour
             if (!AuthenticationService.Instance.IsSignedIn)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
-                Debug.Log($"✅ Signed in anonymously as PlayerID: {AuthenticationService.Instance.PlayerId}");
-            }
-
-            if (PlayerInventoryManager.Instance != null)
-            {
-                await PlayerInventoryManager.Instance.LoadKeycardsAsync();
-                await PlayerInventoryManager.Instance.LoadUnlockedWeaponsAsync();
-            }
-
-            // ✅ SAFE POINT: Now we are signed in — initialize currency
-            if (CurrencyManager.Instance != null)
-            {
-                await CurrencyManager.Instance.InitAsync();
-                Debug.Log($"💰 Coins after load: {CurrencyManager.Instance.Coins}");
-            }
-
-            // Optional: show Steam name in UI
-            if (SteamManager.Initialized && playerIdText != null)
-            {
-                playerIdText.text = SteamFriends.GetPersonaName();
+                Debug.Log($"✅ Signed in to Unity Relay as: {AuthenticationService.Instance.PlayerId}");
             }
         }
-        catch (AuthenticationException ex)
+        catch (System.Exception ex)
         {
-            Debug.LogError("Unity Authentication failed: " + ex.Message);
-        }
-        catch (RequestFailedException ex)
-        {
-            Debug.LogError("Unity Services initialization failed: " + ex.Message);
+            Debug.LogError("❌ Unity Auth for Relay failed: " + ex.Message);
         }
     }
-
 }

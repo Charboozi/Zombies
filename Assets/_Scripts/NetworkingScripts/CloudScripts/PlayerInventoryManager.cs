@@ -1,12 +1,17 @@
 using UnityEngine;
-using Unity.Services.CloudSave;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
+using System.IO;
 
 public class PlayerInventoryManager : MonoBehaviour
 {
     public static PlayerInventoryManager Instance;
+
+    private string SavePath => Application.persistentDataPath + "/inventory_save.json";
+
+    public int Keycards { get; private set; }
+    public HashSet<string> UnlockedWeapons { get; private set; } = new();
+    public HashSet<string> ActiveWeapons { get; private set; } = new();
 
     private void Awake()
     {
@@ -18,55 +23,20 @@ public class PlayerInventoryManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        LoadInventory();
     }
 
     // ------------------ Keycards ------------------
-
-    public int Keycards { get; private set; }
-    private const string keycardsKey = "keycards";
-
-    public async Task LoadKeycardsAsync()
-    {
-        var keys = new HashSet<string> { keycardsKey };
-        var data = await CloudSaveService.Instance.Data.Player.LoadAsync(keys);
-
-        if (data.TryGetValue(keycardsKey, out var item) && int.TryParse(item.Value.GetAsString(), out int value))
-        {
-            Keycards = value;
-        }
-        else
-        {
-            Keycards = 0;
-        }
-
-        Debug.Log($"🟢 Loaded keycards: {Keycards}");
-    }
 
     public void AddKeycards(int amount)
     {
         Keycards += amount;
         Debug.Log($"➕ Gained {amount} keycards. New total: {Keycards}");
-        _ = SaveKeycardsAsync();
-    }
-
-    public async Task SaveKeycardsAsync()
-    {
-        var saveData = new Dictionary<string, object>
-        {
-            { keycardsKey, Keycards }
-        };
-
-        await CloudSaveService.Instance.Data.Player.SaveAsync(saveData);
-        Debug.Log($"💾 Saved keycards: {Keycards}");
+        SaveInventory();
     }
 
     // ------------------ Weapon Unlocks ------------------
-
-    public HashSet<string> UnlockedWeapons { get; private set; } = new();
-    public HashSet<string> ActiveWeapons { get; private set; } = new();
-
-    private const string weaponsKey = "unlockedWeapons";
-    private const string activeWeaponsKey = "activeWeapons";
 
     public int GetUnlockedWeaponTier(string baseWeaponName)
     {
@@ -85,69 +55,19 @@ public class PlayerInventoryManager : MonoBehaviour
         return maxTier;
     }
 
-    public async Task LoadUnlockedWeaponsAsync()
-    {
-        var keys = new HashSet<string> { weaponsKey, activeWeaponsKey };
-        var data = await CloudSaveService.Instance.Data.Player.LoadAsync(keys);
-
-        // Load unlocked weapons
-        if (data.TryGetValue(weaponsKey, out var item))
-        {
-            try
-            {
-                string json = item.Value.GetAsString();
-                var wrapper = JsonUtility.FromJson<WeaponListWrapper>(json);
-                UnlockedWeapons = wrapper.weapons.ToHashSet();
-            }
-            catch
-            {
-                Debug.LogWarning("⚠️ Failed to parse unlocked weapons. Resetting.");
-                UnlockedWeapons = new HashSet<string>();
-            }
-        }
-
-        // Default fallback
-        if (UnlockedWeapons.Count == 0)
-        {
-            UnlockedWeapons.Add("Pistol");
-        }
-
-        // Load active weapons
-        if (data.TryGetValue(activeWeaponsKey, out var activeItem))
-        {
-            try
-            {
-                string json = activeItem.Value.GetAsString();
-                var wrapper = JsonUtility.FromJson<WeaponListWrapper>(json);
-                ActiveWeapons = wrapper.weapons.ToHashSet();
-            }
-            catch
-            {
-                Debug.LogWarning("⚠️ Failed to parse active weapons. Resetting.");
-                ActiveWeapons = new HashSet<string>();
-            }
-        }
-        else
-        {
-            ActiveWeapons = new HashSet<string>();
-        }
-
-        Debug.Log($"🟢 Loaded unlocked weapons: {string.Join(", ", UnlockedWeapons)}");
-    }
-
     public void UnlockWeapon(string weaponName)
     {
         if (UnlockedWeapons.Add(weaponName))
         {
             Debug.Log($"✅ Unlocked weapon: {weaponName}");
-            _ = SaveUnlockedWeaponsAsync();
+            SaveInventory();
         }
         else
         {
             Debug.Log($"🟡 Weapon already unlocked: {weaponName}");
         }
     }
-    
+
     public bool TryToggleActiveWeapon(string weaponName)
     {
         if (!UnlockedWeapons.Contains(weaponName)) return false;
@@ -155,7 +75,7 @@ public class PlayerInventoryManager : MonoBehaviour
         if (ActiveWeapons.Contains(weaponName))
         {
             ActiveWeapons.Remove(weaponName);
-            SaveAllInventoryAsync();
+            SaveInventory();
             return true;
         }
         else
@@ -167,37 +87,63 @@ public class PlayerInventoryManager : MonoBehaviour
             }
 
             ActiveWeapons.Add(weaponName);
-            SaveAllInventoryAsync();
+            SaveInventory();
             return true;
         }
     }
 
+    // ------------------ Save & Load ------------------
 
-    public async Task SaveUnlockedWeaponsAsync()
+    public void SaveInventory()
     {
-        var saveData = new Dictionary<string, object>();
+        var data = new InventoryData
+        {
+            keycards = Keycards,
+            unlockedWeapons = UnlockedWeapons.ToList(),
+            activeWeapons = ActiveWeapons.ToList()
+        };
 
-        var unlockedWrapper = new WeaponListWrapper { weapons = UnlockedWeapons.ToList() };
-        string unlockedJson = JsonUtility.ToJson(unlockedWrapper);
-        saveData[weaponsKey] = unlockedJson;
-
-        var activeWrapper = new WeaponListWrapper { weapons = ActiveWeapons.ToList() };
-        string activeJson = JsonUtility.ToJson(activeWrapper);
-        saveData[activeWeaponsKey] = activeJson;
-
-        await CloudSaveService.Instance.Data.Player.SaveAsync(saveData);
-        Debug.Log("💾 Saved unlocked & active weapons.");
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(SavePath, json);
+        Debug.Log($"💾 Saved inventory to: {SavePath}");
     }
 
-    public void SaveAllInventoryAsync()
+    public void LoadInventory()
     {
-        _ = SaveUnlockedWeaponsAsync();
-        _ = SaveKeycardsAsync();
+        if (!File.Exists(SavePath))
+        {
+            Keycards = 0;
+            UnlockedWeapons = new HashSet<string> { "Pistol" };
+            ActiveWeapons = new HashSet<string>();
+            Debug.Log("🆕 No save found. Created default inventory.");
+            return;
+        }
+
+        try
+        {
+            string json = File.ReadAllText(SavePath);
+            var data = JsonUtility.FromJson<InventoryData>(json);
+
+            Keycards = data.keycards;
+            UnlockedWeapons = data.unlockedWeapons?.ToHashSet() ?? new();
+            ActiveWeapons = data.activeWeapons?.ToHashSet() ?? new();
+
+            Debug.Log("✅ Loaded inventory from file.");
+        }
+        catch
+        {
+            Debug.LogWarning("⚠️ Failed to load or parse inventory. Resetting.");
+            Keycards = 0;
+            UnlockedWeapons = new HashSet<string> { "Pistol" };
+            ActiveWeapons = new HashSet<string>();
+        }
     }
 
     [System.Serializable]
-    private class WeaponListWrapper
+    private class InventoryData
     {
-        public List<string> weapons;
+        public int keycards;
+        public List<string> unlockedWeapons;
+        public List<string> activeWeapons;
     }
 }

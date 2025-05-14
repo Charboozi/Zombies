@@ -25,29 +25,47 @@ public class ArmsRecoilAnimation : MonoBehaviour, IArmsOffsetProvider
     private IEnumerator RecoilRoutine()
     {
         var weapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
-        float multiplier = weapon != null ? weapon.recoilStrength/1.5f : 1f;
+        float multiplier = weapon != null ? weapon.recoilStrength / 1.5f : 1f;
 
         float finalAmount = recoilAmount * multiplier;
         float finalRotation = rotationAmount * multiplier;
 
-        Vector3 startOffset = new(0, 0, -finalAmount);
-        Quaternion startRotation = Quaternion.Euler(-finalRotation, 0f, Random.Range(-finalRotation * 0.25f, finalRotation * 0.25f));
+        float snapDuration = 0.04f;
+        float recoveryDurationDynamic = Mathf.Max((weapon != null ? weapon.fireRate : 0.3f) * 0.7f, 0.08f);
+
+        float snapBoost = 1.4f; // optional: increase for punchier recoil
+
+        Vector3 startOffset = new(0, 0, -finalAmount * snapBoost);
+        Quaternion startRotation = Quaternion.Euler(
+            -finalRotation * snapBoost,
+            0f,
+            Random.Range(-finalRotation * 0.25f, finalRotation * 0.25f)
+        );
+
+        // 💥 Instant frame-1 jolt
+        recoilOffset = startOffset;
+        recoilRotation = startRotation;
+        yield return null;
+
+        // 🔹 Snap phase with ease-out (sharp acceleration)
+        float SnapEaseOut(float x) => 1f - Mathf.Cos((x * Mathf.PI) / 2f);
 
         float t = 0f;
-        while (t < recoilDuration)
+        while (t < snapDuration)
         {
             t += Time.deltaTime;
-            float factor = t / recoilDuration;
+            float factor = SnapEaseOut(t / snapDuration);
             recoilOffset = Vector3.Lerp(Vector3.zero, startOffset, factor);
             recoilRotation = Quaternion.Slerp(Quaternion.identity, startRotation, factor);
             yield return null;
         }
 
+        // 🔸 Smooth recovery
         t = 0f;
-        while (t < recoveryDuration)
+        while (t < recoveryDurationDynamic)
         {
             t += Time.deltaTime;
-            float factor = t / recoveryDuration;
+            float factor = t / recoveryDurationDynamic;
             recoilOffset = Vector3.Lerp(startOffset, Vector3.zero, factor);
             recoilRotation = Quaternion.Slerp(startRotation, Quaternion.identity, factor);
             yield return null;
@@ -56,6 +74,9 @@ public class ArmsRecoilAnimation : MonoBehaviour, IArmsOffsetProvider
         recoilOffset = Vector3.zero;
         recoilRotation = Quaternion.identity;
     }
+
+
+
 
     public Vector3 GetOffset() => recoilOffset;
     public Quaternion GetRotation() => recoilRotation;

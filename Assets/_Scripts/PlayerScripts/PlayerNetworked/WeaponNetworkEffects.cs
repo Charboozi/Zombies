@@ -8,7 +8,7 @@ public class WeaponNetworkEffects : NetworkBehaviour
     public ParticleSystem muzzleFlash;
 
     [Header("Camera")]
-    [SerializeField] private CameraShakeController cameraShake;
+    [SerializeField] private CameraRecoilController cameraRecoil;
 
     private bool isFiring = false;
     [SerializeField] private bool isLoopingWeapon = false;
@@ -57,12 +57,13 @@ public class WeaponNetworkEffects : NetworkBehaviour
             Invoke(nameof(StopMuzzleFlash), currentWeapon.fireRate);
         }
 
-        if (currentWeapon != null)
-        {
-            float recoilStrength = currentWeapon.recoilStrength;
-            float shakeAmount = 0.15f * recoilStrength; // tune as needed
 
-            cameraShake?.Shake(shakeAmount, 0.14f);
+        if (currentWeapon != null && cameraRecoil != null)
+        {
+            float strength = currentWeapon.recoilStrength;
+
+            // This single value affects vertical kick, horizontal sway, and duration
+            cameraRecoil.ApplyRecoil(strength, strength);
         }
     }
 

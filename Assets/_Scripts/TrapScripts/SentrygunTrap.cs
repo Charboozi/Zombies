@@ -22,9 +22,15 @@ public class SentrygunTrap : TrapBase
     [SerializeField] private int damagePerShot = 15;
     [SerializeField] private float headshotMultiplier = 1.5f;
 
-
     [Header("Detection")]
     [SerializeField] private LayerMask enemyLayer;
+
+    [Header("Visuals")]
+    [SerializeField] private Renderer turretStatusRenderer;
+    [SerializeField] private string emissionColorProperty = "_EmissionColor";
+    [SerializeField] private Color activeEmissionColor = Color.red;
+    [SerializeField] private Color inactiveEmissionColor = Color.black;
+
 
     private Transform currentTarget;
     private Coroutine firingCoroutine;
@@ -41,6 +47,8 @@ public class SentrygunTrap : TrapBase
 
     protected override void OnTrapActivated()
     {
+        SetEmissionColor(activeEmissionColor);
+
         currentTarget = null;
 
         // Random startup delay to spread activation spikes
@@ -55,6 +63,8 @@ public class SentrygunTrap : TrapBase
 
     protected override void OnTrapDeactivated()
     {
+        SetEmissionColor(inactiveEmissionColor);
+
         if (scanningCoroutine != null)
         {
             StopCoroutine(scanningCoroutine);
@@ -214,5 +224,19 @@ public class SentrygunTrap : TrapBase
 
         // Prewarm a scan ray
         Physics.Raycast(muzzlePoint.position, muzzlePoint.forward, detectionRange, enemyLayer);
+    }
+
+    private void SetEmissionColor(Color color)
+    {
+        if (turretStatusRenderer != null)
+        {
+            foreach (var mat in turretStatusRenderer.materials)
+            {
+                mat.SetColor(emissionColorProperty, color);
+            }
+
+            // Ensure emission is applied visually (especially in built player)
+            DynamicGI.SetEmissive(turretStatusRenderer, color);
+        }
     }
 }

@@ -5,31 +5,29 @@ using Unity.Netcode;
 public class FPSCameraController : NetworkBehaviour
 {
     [Header("References")]
-    public Transform headPosition; // Empty GameObject attached to (or marking) the player's head
-    public string[] gameScenes = { "GameScene1", "GameScene2" }; // Names of your gameplay scenes
+    public Transform headPosition; // Assigned in inspector (child of player root)
+    public CameraRecoilController cameraRecoil; // Assigned in inspector (on child of head)
+    public string[] gameScenes = { "GameScene1", "GameScene2" };
 
-    private float yaw = 0f;
-    private float pitch = 0f;
     private Camera playerCamera;
     private bool isGameScene = false;
 
     [Header("Look Settings")]
-    [Tooltip("Minimum pitch angle (looking down).")]
     public float minPitch = -80f;
-    [Tooltip("Maximum pitch angle (looking up).")]
     public float maxPitch = 80f;
     public float mouseSensitivity = 100f;
 
     [Header("Camera Offset Settings")]
-    [Tooltip("Speed at which the camera offset and tilt interpolate.")]
     public float cameraLerpSpeed = 5f;
 
-    // Instead of modifying headPosition, we maintain a local offset (and rotation tilt) for the camera.
-    private Vector3 currentCameraOffset = Vector3.zero; // Runtime offset (changes over time)
-    private Vector3 targetCameraOffset = Vector3.zero;  // Where the offset should be (downed or normal)
+    private float yaw = 0f;
+    private float pitch = 0f;
 
-    private Quaternion currentCameraTilt = Quaternion.identity; // Runtime tilt of the camera
-    private Quaternion targetCameraTilt = Quaternion.identity;  // Target tilt (set when downed)
+    private Vector3 currentCameraOffset = Vector3.zero;
+    private Vector3 targetCameraOffset = Vector3.zero;
+
+    private Quaternion currentCameraTilt = Quaternion.identity;
+    private Quaternion targetCameraTilt = Quaternion.identity;
 
     private EntityHealth entityHealth;
 
@@ -38,7 +36,6 @@ public class FPSCameraController : NetworkBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
         entityHealth = GetComponent<EntityHealth>();
 
-        // Initialize our offset/tilt values.
         currentCameraOffset = Vector3.zero;
         targetCameraOffset = Vector3.zero;
         currentCameraTilt = Quaternion.identity;
@@ -60,34 +57,26 @@ public class FPSCameraController : NetworkBehaviour
         if (entityHealth != null)
         {
             entityHealth.isDowned.OnValueChanged += OnDownedStateChanged;
-            // For late joiners: if already downed, set target offset immediately.
+
             if (entityHealth.isDowned.Value)
-            {
                 SetDownedCameraTarget();
-            }
         }
     }
 
     private void OnDownedStateChanged(bool previous, bool current)
     {
-        if (current) // Player is downed
-        {
+        if (current)
             SetDownedCameraTarget();
-        }
-        else // Player is revived
-        {
+        else
             SetNormalCameraTarget();
-        }
     }
 
-    // When downed, we want the camera to lower by 1 unit and optionally apply a slight tilt.
     private void SetDownedCameraTarget()
     {
-        targetCameraOffset = Vector3.down * 1f;  
-        targetCameraTilt = Quaternion.Euler(20f, 0f, 0f); // Apply a 20° tilt downward (optional)
+        targetCameraOffset = Vector3.down * 1f;
+        targetCameraTilt = Quaternion.Euler(20f, 0f, 0f);
     }
 
-    // When revived, we want no offset or tilt.
     private void SetNormalCameraTarget()
     {
         targetCameraOffset = Vector3.zero;
@@ -96,26 +85,29 @@ public class FPSCameraController : NetworkBehaviour
 
     private void LateUpdate()
     {
-        if (!isGameScene || playerCamera == null || headPosition == null)
+        if (!isGameScene || playerCamera == null || headPosition == null || cameraRecoil == null)
             return;
 
-        // Smoothly Lerp the camera offset and tilt toward the target values
+        // Smooth tilt & offset when downed
         currentCameraOffset = Vector3.Lerp(currentCameraOffset, targetCameraOffset, Time.deltaTime * cameraLerpSpeed);
         currentCameraTilt = Quaternion.Lerp(currentCameraTilt, targetCameraTilt, Time.deltaTime * cameraLerpSpeed);
 
-        // The desired camera position is the head's current position plus our offset.
-        playerCamera.transform.position = headPosition.position + currentCameraOffset;
+        // Apply camera position
+        playerCamera.transform.position = cameraRecoil.transform.position + currentCameraOffset;
 
-        // Process mouse look to update yaw/pitch and rotate the camera accordingly.
+        // Apply full rotation: pitch from recoil object + tilt
+        playerCamera.transform.rotation = cameraRecoil.transform.rotation * currentCameraTilt;
+    }
+
+    private void Update()
+    {
+        if (!isGameScene || !IsOwner) return;
+
         ProcessMouseLook();
-
-        // Then, apply our tilt (multiplicatively) on top of the base rotation.
-        playerCamera.transform.rotation = playerCamera.transform.rotation * currentCameraTilt;
     }
 
     private void ProcessMouseLook()
     {
-        // Get mouse input.
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
@@ -123,14 +115,14 @@ public class FPSCameraController : NetworkBehaviour
         pitch -= mouseY;
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
-        // Rotate the player's body (yaw only).
+        // YAW → player body
         transform.rotation = Quaternion.Euler(0f, yaw, 0f);
-        
-        // Set the base camera rotation (pitch + yaw). We'll apply our additional tilt on top later.
-        if (playerCamera != null)
-        {
-            playerCamera.transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
-        }
+
+        // Get recoil rotation from controller
+        Vector2 recoil = cameraRecoil != null ? cameraRecoil.GetCurrentRecoil() : Vector2.zero;
+
+        // PITCH + RECOIL applied to recoil transform
+        cameraRecoil.transform.localRotation = Quaternion.Euler(pitch - recoil.y, recoil.x, 0f);
     }
 
     private bool IsInGameScene()
@@ -154,15 +146,18 @@ public class FPSCameraController : NetworkBehaviour
     {
         isGameScene = true;
 
-        // Find the main camera.
         playerCamera = Camera.main;
         if (playerCamera == null)
         {
-            Debug.LogError("No Main Camera found! Make sure the scene has a camera tagged 'MainCamera'.");
+            Debug.LogError("❌ No Main Camera found!");
             return;
         }
 
-        // Lock the cursor for typical FPS control.
+        if (cameraRecoil == null)
+        {
+            Debug.LogError("❌ CameraRecoilController reference not assigned!");
+        }
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -173,8 +168,6 @@ public class FPSCameraController : NetworkBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         if (entityHealth != null)
-        {
             entityHealth.isDowned.OnValueChanged -= OnDownedStateChanged;
-        }
     }
 }

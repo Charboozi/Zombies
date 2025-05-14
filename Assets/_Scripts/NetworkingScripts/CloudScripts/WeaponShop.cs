@@ -89,11 +89,13 @@ public class WeaponShop : MonoBehaviour
         if (activeToggle != null)
         {
             bestTierName = GetBestTierName();
-            bool isUnlocked = PlayerInventoryManager.Instance.UnlockedWeapons.Contains(bestTierName);
 
             activeToggle.onValueChanged.RemoveListener(ToggleActiveWeapon); // prevent accidental call
 
             activeToggle.isOn = PlayerInventoryManager.Instance.ActiveWeapons.Contains(bestTierName);
+            
+            // ✅ FIX: Check if any tier is unlocked
+            bool isUnlocked = PlayerInventoryManager.Instance.GetUnlockedWeaponTier(baseWeaponName) > 0;
             activeToggle.interactable = isUnlocked;
 
             activeToggle.onValueChanged.AddListener(ToggleActiveWeapon); // re-attach
@@ -105,6 +107,6 @@ public class WeaponShop : MonoBehaviour
     private string GetBestTierName()
     {
         int currentTier = PlayerInventoryManager.Instance.GetUnlockedWeaponTier(baseWeaponName);
-        return currentTier == 0 ? baseWeaponName : $"{baseWeaponName} Tier {currentTier}";
+        return currentTier == 1 ? baseWeaponName : $"{baseWeaponName} Tier {currentTier}";
     }
 }

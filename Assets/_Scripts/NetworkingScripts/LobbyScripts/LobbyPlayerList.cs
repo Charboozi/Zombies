@@ -80,11 +80,24 @@ public class LobbyPlayerList : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        Players.Clear();
+        if (IsServer)
+        {
+            NetworkManager.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.OnClientDisconnectCallback -= OnClientDisconnected;
+        }
+
+        Players.OnListChanged -= OnListChanged;
     }
+
 
     private void OnClientDisconnected(ulong clientId)
     {
+        if (!IsServer || !NetworkManager.Singleton.IsListening || NetworkManager.Singleton.ShutdownInProgress)
+            return;
+
+        if (Players == null)
+            return;
+
         for (int i = Players.Count - 1; i >= 0; i--)
         {
             if (Players[i].ClientId == clientId)
@@ -93,6 +106,8 @@ public class LobbyPlayerList : NetworkBehaviour
             }
         }
     }
+
+
 
     private void OnClientConnected(ulong clientId)
     {
@@ -134,4 +149,24 @@ public class LobbyPlayerList : NetworkBehaviour
         }
     }
     
+    public void ResetLobbyState()
+    {
+        Debug.Log("🔁 Resetting LobbyPlayerList...");
+
+        // Detach event to prevent double subscription
+        Players.OnListChanged -= OnListChanged;
+
+        // Clear network player list
+        Players.Clear();
+
+        // Re-attach event
+        Players.OnListChanged += OnListChanged;
+
+        // 🔄 Clear the UI list too
+        if (PlayerListUI.Instance != null)
+        {
+            PlayerListUI.Instance.ClearList();
+        }
+    }
+
 }

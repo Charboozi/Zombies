@@ -1,127 +1,113 @@
-using System.Collections;
-using System.Linq;
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class AlarmSequenceManager : NetworkBehaviour
 {
     public static AlarmSequenceManager Instance { get; private set; }
 
-    [Header("Lights to Flicker (will toggle GameObject.active)")]
-    [SerializeField] private Light[] lights;
-
     [Header("Audio")]
-    [SerializeField] private AudioSource flickerAudioSource;
+    [SerializeField] private AudioSource alarmAudioSource;
 
-    [Header("Sequence Settings")]
-    [SerializeField] private float sequenceDuration = 20f;
-    [SerializeField] private float flickerInterval  = 0.1f;
+    [Header("Alarm Settings")]
+    [SerializeField] private float alarmDuration = 5f;
 
-    [Header("Rotation Settings")]
-    [Tooltip("Degrees per second to spin each light on Y during the alarm.")]
-    [SerializeField] private float rotationSpeedY = 45f;
-
-    private GameObject[] lightObjects;
-    private Coroutine    activeSequence;
-    private bool         sequenceActive = false;
+    private Coroutine alarmRoutine;
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
         Instance = this;
-
-        // Cache the light GameObjects
-        lightObjects = lights
-            .Where(l => l != null)
-            .Select(l => l.gameObject)
-            .ToArray();
     }
 
-    private void Update()
+    public void ActivateAlarm()
     {
-        // Smoothly rotate all light GameObjects while the sequence is active
-        if (sequenceActive)
+        if (!IsServer)
         {
-            float deltaY = rotationSpeedY * Time.deltaTime;
-            foreach (var go in lightObjects)
+            Debug.LogWarning("Only the server can activate the alarm!");
+            return;
+        }
+
+        if (alarmRoutine != null)
+            StopCoroutine(alarmRoutine);
+
+        ActivateAlarmClientRpc();
+        PlayAlarm();
+
+        alarmRoutine = StartCoroutine(AlarmTimerRoutine());
+    }
+
+    public void DeactivateAlarm()
+    {
+        if (!IsServer)
+        {
+            Debug.LogWarning("Only the server can deactivate the alarm!");
+            return;
+        }
+
+        if (alarmRoutine != null)
+        {
+            StopCoroutine(alarmRoutine);
+            alarmRoutine = null;
+        }
+
+        DeactivateAlarmClientRpc();
+        StopAlarm();
+    }
+
+    [ClientRpc]
+    private void ActivateAlarmClientRpc()
+    {
+        if (IsServer) return;
+        PlayAlarm();
+    }
+
+    [ClientRpc]
+    private void DeactivateAlarmClientRpc()
+    {
+        if (IsServer) return;
+        StopAlarm();
+    }
+
+    private void PlayAlarm()
+    {
+        if (alarmAudioSource != null)
+        {
+            alarmAudioSource.loop = true;
+            if (!alarmAudioSource.isPlaying)
+                alarmAudioSource.Play();
+        }
+    }
+
+    private void StopAlarm()
+    {
+        if (alarmAudioSource != null)
+        {
+            alarmAudioSource.loop = false;
+
+            // If it's playing, let it finish the current loop
+            if (alarmAudioSource.isPlaying)
             {
-                go.transform.Rotate(0f, deltaY, 0f, Space.World);
+                float remainingTime = alarmAudioSource.clip.length - alarmAudioSource.time;
+                StartCoroutine(WaitAndStopAudio(remainingTime));
             }
         }
     }
 
-    /// <summary>
-    /// Call this on the server to start the alarm sequence for everyone.
-    /// </summary>
-    public void StartAlarmSequence()
+    private IEnumerator WaitAndStopAudio(float delay)
     {
-        if (!IsServer)
-        {
-            Debug.LogWarning("Only the server can start the alarm sequence!");
-            return;
-        }
-
-        // Tell all clients to start
-        StartAlarmSequenceClientRpc();
-
-        // Start it on the server as well
-        RestartSequence();
+        yield return new WaitForSeconds(delay);
+        if (alarmAudioSource.isPlaying)
+            alarmAudioSource.Stop();
     }
 
-    [ClientRpc]
-    private void StartAlarmSequenceClientRpc()
+    private IEnumerator AlarmTimerRoutine()
     {
-        // Server already started it locally
-        if (IsServer) return;
-
-        RestartSequence();
-    }
-
-    private void RestartSequence()
-    {
-        // Stop any existing routine
-        if (activeSequence != null)
-            StopCoroutine(activeSequence);
-
-        // Begin new flicker & rotation coroutine
-        activeSequence    = StartCoroutine(FlickerAndRotateRoutine());
-        sequenceActive    = true;
-    }
-
-    private IEnumerator FlickerAndRotateRoutine()
-    {
-        float elapsed   = 0f;
-        bool  lightsOn  = false;
-
-        // Play audio once
-        if (flickerAudioSource != null && !flickerAudioSource.isPlaying)
-            flickerAudioSource.Play();
-
-        // Loop toggling on/off at the given interval
-        while (elapsed < sequenceDuration)
-        {
-            lightsOn = !lightsOn;
-            foreach (var go in lightObjects)
-                go.SetActive(lightsOn);
-
-            yield return new WaitForSeconds(flickerInterval);
-            elapsed += flickerInterval;
-        }
-
-        // Ensure everything is off at the end
-        foreach (var go in lightObjects)
-            go.SetActive(false);
-
-        if (flickerAudioSource != null && flickerAudioSource.isPlaying)
-            flickerAudioSource.Stop();
-
-        // Tear down
-        sequenceActive = false;
-        activeSequence = null;
+        yield return new WaitForSeconds(alarmDuration);
+        DeactivateAlarm(); // Will stop it on all clients via RPC
     }
 }
