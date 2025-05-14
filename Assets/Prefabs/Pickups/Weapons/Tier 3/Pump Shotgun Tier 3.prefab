@@ -182,7 +182,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  autoDespawnTime: 10
+  autoDespawnTime: 15
 --- !u!1001 &1796769955585415103
 PrefabInstance:
   m_ObjectHideFlags: 0

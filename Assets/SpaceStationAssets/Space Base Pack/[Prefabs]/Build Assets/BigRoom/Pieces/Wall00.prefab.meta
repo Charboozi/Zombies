@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 6b919c359d8d4824b9972e0164aa560d
+timeCreated: 1492956827
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/[Prefabs]/Build Assets/BigRoom/Pieces/Wall00.prefab
+  uploadId: 629289

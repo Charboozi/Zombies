@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 356cd967dd1f35f4e943bd439fd4277a
+timeCreated: 1493647409
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Scenes/Demo Base/Old TopDown/Containers/SB_Crate001.prefab
+  uploadId: 629289

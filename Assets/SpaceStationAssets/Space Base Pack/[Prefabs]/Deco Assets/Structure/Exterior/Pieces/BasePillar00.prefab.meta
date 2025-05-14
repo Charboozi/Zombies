@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 09abef22a3295aa4baff5aad81466d01
+timeCreated: 1492550389
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/[Prefabs]/Deco Assets/Structure/Exterior/Pieces/BasePillar00.prefab
+  uploadId: 629289

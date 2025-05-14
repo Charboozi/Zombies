@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 9b2b4724ded3803489c52fdc1b9cf7be
+timeCreated: 1492871283
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/[Prefabs]/Build Assets/Corridor/Wide/SB_Corridor00d.prefab
+  uploadId: 629289

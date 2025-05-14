@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ce539a9ebc685234ba4ff2593b443566
+timeCreated: 1483455443
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Alien Terrain Pack/Source/Mesh/Terrains/Materials/Standardmaterial.mat
+  uploadId: 629289

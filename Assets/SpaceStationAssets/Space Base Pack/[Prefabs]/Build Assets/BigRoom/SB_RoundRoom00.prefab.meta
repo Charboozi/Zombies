@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 27770e320e4d2314497a9260a2163835
+timeCreated: 1493056612
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/[Prefabs]/Build Assets/BigRoom/SB_RoundRoom00.prefab
+  uploadId: 629289

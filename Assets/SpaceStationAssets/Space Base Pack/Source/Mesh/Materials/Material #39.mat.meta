@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 8587c3e72dcb3364389b27b58c3c882f
+timeCreated: 1493463705
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 89624
+  packageName: SciFi Space Base
+  packageVersion: 1.1.2
+  assetPath: Assets/_DLNK/Space Base Pack/Source/Mesh/Materials/Material #39.mat
+  uploadId: 629289
