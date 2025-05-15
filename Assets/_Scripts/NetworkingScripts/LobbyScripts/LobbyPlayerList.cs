@@ -59,7 +59,7 @@ public class LobbyPlayerList : NetworkBehaviour
         }
 
         // 👇 Must be client + owner + Steam ready before calling RPC
-        if (IsClient && IsOwner)
+        if (IsClient)
         {
             StartCoroutine(SendSteamNameNextFrame());
         }

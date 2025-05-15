@@ -14,12 +14,17 @@ public class TrailerFreeCam : MonoBehaviour
     [SerializeField] private float maxSpeed = 50f;
 
     private Camera freeCam;
+    private AudioListener freeCamListener;
+    private AudioListener mainCamListener;
+
     private bool isActive = false;
     private float yaw, pitch;
 
     void Start()
     {
         freeCam = GetComponent<Camera>();
+        freeCamListener = GetComponent<AudioListener>();
+
         if (freeCam == null)
         {
             Debug.LogError("TrailerFreeCam: Attach this script to a Camera.");
@@ -27,7 +32,13 @@ public class TrailerFreeCam : MonoBehaviour
             return;
         }
 
+        if (mainCamera != null)
+            mainCamListener = mainCamera.GetComponent<AudioListener>();
+
         freeCam.enabled = false;
+        if (freeCamListener != null)
+            freeCamListener.enabled = false;
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -39,12 +50,6 @@ public class TrailerFreeCam : MonoBehaviour
             ActivateFreeCam();
         }
 
-        if (!isActive) return;
-
-        HandleMovement();
-        HandleLook();
-        HandleSpeedChange();
-
         if (Input.GetKeyDown(KeyCode.P))
         {
             string timestamp = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
@@ -52,6 +57,12 @@ public class TrailerFreeCam : MonoBehaviour
             ScreenCapture.CaptureScreenshot(filename);
             Debug.Log($"📸 Screenshot taken: {filename}");
         }
+
+        if (!isActive) return;
+
+        HandleMovement();
+        HandleLook();
+        HandleSpeedChange();
     }
 
     private void ActivateFreeCam()
@@ -59,12 +70,16 @@ public class TrailerFreeCam : MonoBehaviour
         isActive = true;
 
         if (mainCamera != null)
+        {
             mainCamera.enabled = false;
+            if (mainCamListener != null) mainCamListener.enabled = false;
+        }
 
         if (gameUICanvas != null)
             gameUICanvas.SetActive(false);
 
         freeCam.enabled = true;
+        if (freeCamListener != null) freeCamListener.enabled = true;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;

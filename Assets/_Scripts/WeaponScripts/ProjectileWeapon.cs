@@ -93,6 +93,7 @@ public class ProjectileWeapon : WeaponBase
                 var balloon = hit.collider.GetComponent<Balloon>();
                 if (balloon != null)
                 {
+                    Debug.Log("🎯 Hit a Balloon: " + balloon.name);
                     balloon.TryPop(); // ✅ pops it
                 }
                 NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BulletImpact");

@@ -5,6 +5,11 @@ using System.Collections;
 
 public class EntityHealth : NetworkBehaviour
 {
+    [Header("Special Enemy")]
+    [SerializeField] private bool isSpecialEnemy = false;
+
+    public static event Action<EntityHealth> OnSpecialEnemyKilled;
+
     public string lastHitLimbID = "None";
 
     public void OnLimbHit(string limbID, int damage)
@@ -88,11 +93,18 @@ public class EntityHealth : NetworkBehaviour
                 {
                     isDowned.Value = true;
                     DownedClientRpc();
+                    ShowDownedFeedMessageClientRpc(GetSteamNameFromNameTag());
                 }
             }
             else
             {
                 DieClientRpc();
+
+                if (isSpecialEnemy)
+                {
+                    Debug.Log($"[SpecialKill] Special enemy '{gameObject.name}' killed.");
+                    OnSpecialEnemyKilled?.Invoke(this);
+                }
             }
         }
 
@@ -262,6 +274,7 @@ public class EntityHealth : NetworkBehaviour
             Debug.Log($"{gameObject.name}: Fully healed to {maxHealth} and revived.");
 
             EnableInteractionClientRpc();
+            RestartHealthRegen();
         }
     }
 
@@ -275,6 +288,7 @@ public class EntityHealth : NetworkBehaviour
             Debug.Log($"{gameObject.name}: Revived with 10 HP.");
 
             EnableInteractionClientRpc();
+            RestartHealthRegen();
         }
     }
 
@@ -315,10 +329,18 @@ public class EntityHealth : NetworkBehaviour
             {
                 isDowned.Value = true;
                 DownedClientRpc();
+
+                ShowDownedFeedMessageClientRpc(GetSteamNameFromNameTag());
             }
             else if (!CompareTag("Player"))
             {
                 DieClientRpc();
+
+                if (isSpecialEnemy)
+                {
+                    Debug.Log($"[SpecialKill] Special enemy '{gameObject.name}' killed.");
+                    OnSpecialEnemyKilled?.Invoke(this);
+                }
             }
         }
 
@@ -349,4 +371,23 @@ public class EntityHealth : NetworkBehaviour
         }
     }
 
+    private string GetSteamNameFromNameTag()
+    {
+        var current = transform;
+        while (current != null)
+        {
+            if (current.TryGetComponent<PlayerNameTag>(out var tag))
+            {
+                return tag.GetPlayerName(); // we'll define this next
+            }
+            current = current.parent;
+        }
+        return gameObject.name; // fallback
+    }
+
+    [ClientRpc]
+    private void ShowDownedFeedMessageClientRpc(string playerName)
+    {
+        GameFeedManager.Instance?.PostFeedMessageClientRpc($"{playerName} is downed!");
+    }
 }

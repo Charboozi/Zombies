@@ -70,7 +70,7 @@ public class GameOverManager : NetworkBehaviour
             Debug.Log("✅ Triggering game over visuals...");
             RewardAllPlayersBasedOnDay();
             ShowGameOverEffectClientRpc();
-            PlayerInput.CanInteract = true;
+            SetCanInteractClientRpc(true);
             StartCoroutine(DelayedGameOverSceneLoad(4f)); // ⏱ Wait 4s for screen fade
         }
         else
@@ -150,5 +150,10 @@ public class GameOverManager : NetworkBehaviour
         }
     }
     
+    [ClientRpc]
+    private void SetCanInteractClientRpc(bool value)
+    {
+        PlayerInput.CanInteract = value;
+    }
     
 }

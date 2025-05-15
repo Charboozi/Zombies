@@ -10,6 +10,10 @@ public class WeaponSwitcher : MonoBehaviour
 
     [SerializeField] private Transform rightHand;
     [SerializeField] private WeaponController weaponController;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip switchSound;
+    [SerializeField] private AudioSource audioSource;
     
     public event System.Action OnWeaponSwitched;
 
@@ -95,6 +99,10 @@ public class WeaponSwitcher : MonoBehaviour
 
         Debug.Log("Equipped weapon: " + inventory.Weapons[index].name);
         OnWeaponSwitched?.Invoke();
+        if (audioSource != null && switchSound != null)
+        {
+            audioSource.PlayOneShot(switchSound);
+        }
     }
 
     public void CycleWeapon(int direction)

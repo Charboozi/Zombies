@@ -11,11 +11,10 @@ public class DayEventManager : MonoBehaviour
             return;
         }
 
-        DayManager.Instance.ScheduleEventForDayTime(1, 7f, () =>
+        DayManager.Instance.ScheduleEventForDayTime(1, 10f, () =>
         {
-            Debug.Log("🚨 7 seconds into Day 1: Triggering Start Sequence!");
+            Debug.Log("🚨 10 seconds into Day 1: Triggering Start Sequence!");
             LightmapSwitcher.Instance.RequestBlackout();
-            AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Power_Offline");
         });
 
         DayManager.Instance.ScheduleEventForDay(3, () =>

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class LightmapSwitcher : NetworkBehaviour
 {
@@ -29,6 +30,8 @@ public class LightmapSwitcher : NetworkBehaviour
     [SerializeField] private AudioClip blackoutSound;
     private AudioSource audioSource;
 
+    [SerializeField] private GameObject loadingUI;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -46,7 +49,6 @@ public class LightmapSwitcher : NetworkBehaviour
     {
         if (IsServer)
         {
-            // Wait until InteractableChargeManager is ready
             InteractableChargeManager.OnInteractablesReady += OnInteractablesReady;
         }
     }
@@ -54,7 +56,7 @@ public class LightmapSwitcher : NetworkBehaviour
     private void OnInteractablesReady()
     {
         InteractableChargeManager.OnInteractablesReady -= OnInteractablesReady;
-        ApplyLightsOnServerSide(); // 🔁 This will now always run AFTER charges are found
+        ApplyLightsOnServerSide();
     }
 
     private void PrepareLightmaps()
@@ -80,91 +82,55 @@ public class LightmapSwitcher : NetworkBehaviour
         }
     }
 
-    // === PUBLIC ===
-
     public void RequestBlackout()
     {
         if (IsServer)
-        {
             ApplyBlackoutServerSide();
-        }
         else
-        {
             RequestBlackoutServerRpc();
-        }
     }
 
     public void RequestLightsOn()
     {
         if (IsServer)
-        {
             ApplyLightsOnServerSide();
-        }
         else
-        {
             RequestLightsOnServerRpc();
-        }
-    }
-
-    // === SERVER RPCS ===
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestBlackoutServerRpc()
-    {
-        ApplyBlackoutServerSide();
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RequestLightsOnServerRpc()
-    {
-        ApplyLightsOnServerSide();
-    }
+    private void RequestBlackoutServerRpc() => ApplyBlackoutServerSide();
 
-    // === SERVER-ONLY LOGIC ===
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestLightsOnServerRpc() => ApplyLightsOnServerSide();
 
     private void ApplyBlackoutServerSide()
     {
-        FullyDischargeAllInteractables(); // ✅ Server-side only
+        FullyDischargeAllInteractables();
         ApplyBlackoutClientRpc();
     }
 
     private void ApplyLightsOnServerSide()
     {
-        FullyRechargeAllInteractables(); // ✅ Server-side only
+        FullyRechargeAllInteractables();
         ApplyLightsOnClientRpc();
     }
 
     private void FullyDischargeAllInteractables()
     {
-        if (InteractableChargeManager.Instance != null)
-        {
-            InteractableChargeManager.Instance.FullyDischargeAll();
-        }
+        InteractableChargeManager.Instance?.FullyDischargeAll();
     }
 
     private void FullyRechargeAllInteractables()
     {
-        if (InteractableChargeManager.Instance != null)
-        {
-            InteractableChargeManager.Instance.FullyRechargeAll();
-        }
-    }
-
-    // === CLIENT RPCS ===
-
-    [ClientRpc]
-    private void ApplyBlackoutClientRpc()
-    {
-        ApplyBlackout();
+        InteractableChargeManager.Instance?.FullyRechargeAll();
     }
 
     [ClientRpc]
-    private void ApplyLightsOnClientRpc()
-    {
-        ApplyLightsOn();
-    }
+    private void ApplyBlackoutClientRpc() => ApplyBlackout();
 
-    // === LOCAL ===
+    [ClientRpc]
+    private void ApplyLightsOnClientRpc() => ApplyLightsOn();
 
     private void ApplyBlackout()
     {
@@ -173,7 +139,6 @@ public class LightmapSwitcher : NetworkBehaviour
         ApplyLightProbes(blackoutLightProbes);
         PlaySound(blackoutSound);
         AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Power_Offline");
-
         Debug.Log("🕶️ Blackout applied.");
     }
 
@@ -183,7 +148,6 @@ public class LightmapSwitcher : NetworkBehaviour
         ApplyReflectionProbes(lightsOnReflectionTextures);
         ApplyLightProbes(lightsOnLightProbes);
         AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Power_Online");
-
         Debug.Log("💡 Lights On applied.");
     }
 
@@ -199,7 +163,7 @@ public class LightmapSwitcher : NetworkBehaviour
             if (i < textures.Length)
             {
                 reflectionProbes[i].customBakedTexture = textures[i];
-                reflectionProbes[i].RenderProbe(); // Optional refresh
+                reflectionProbes[i].RenderProbe();
             }
         }
     }
@@ -212,8 +176,50 @@ public class LightmapSwitcher : NetworkBehaviour
     private void PlaySound(AudioClip clip)
     {
         if (audioSource != null && clip != null)
-        {
             audioSource.PlayOneShot(clip);
+    }
+
+    private IEnumerator Start()
+    {
+        yield return null;
+
+        if (loadingUI != null)
+            loadingUI.SetActive(true);
+
+        yield return PrewarmLightingRoutine();
+        ForceFirstSwitch();
+
+        if (loadingUI != null)
+            loadingUI.SetActive(false);
+    }
+
+    private IEnumerator PrewarmLightingRoutine()
+    {
+        ApplyLightmaps(blackoutLightmaps);
+        ApplyReflectionProbes(blackoutReflectionTextures);
+        ApplyLightProbes(blackoutLightProbes);
+        yield return new WaitForSeconds(0.25f);
+
+        ApplyLightmaps(lightsOnLightmaps);
+        ApplyReflectionProbes(lightsOnReflectionTextures);
+        ApplyLightProbes(lightsOnLightProbes);
+        yield return new WaitForSeconds(0.25f);
+
+        foreach (var probe in reflectionProbes)
+        {
+            if (probe != null)
+            {
+                probe.RenderProbe();
+                yield return null;
+            }
         }
+
+        Debug.Log("✅ Lightmap prewarm completed.");
+    }
+
+    private void ForceFirstSwitch()
+    {
+        ApplyBlackout();
+        ApplyLightsOn();
     }
 }

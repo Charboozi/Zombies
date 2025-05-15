@@ -1,8 +1,9 @@
+using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-public class BalloonMinigameManager : MonoBehaviour
+public class BalloonMinigameManager : NetworkBehaviour
 {
     public static BalloonMinigameManager Instance;
 
@@ -14,12 +15,14 @@ public class BalloonMinigameManager : MonoBehaviour
     [Header("Spawn Points")]
     public List<BalloonSpawnPoint> spawnPoints;
 
-    private List<GameObject> spawnedBalloons = new();
+    private List<NetworkObject> spawnedBalloons = new();
     private float timer;
     private bool isActive = false;
 
     private int balloonsPopped = 0;
     private int balloonsSpawned = 0;
+
+    [SerializeField] private BalloonRewardSpawner rewardSpawner;
 
     private void Awake()
     {
@@ -28,19 +31,19 @@ public class BalloonMinigameManager : MonoBehaviour
 
     private void Update()
     {
-        if (!isActive) return;
+        if (!IsServer || !isActive) return;
 
         timer -= Time.deltaTime;
 
         if (timer <= 0f)
         {
-            EndMinigame(success: false); // time ran out
+            EndMinigame(success: false);
         }
     }
 
     public void StartMinigame()
     {
-        if (isActive) return;
+        if (!IsServer || isActive) return;
 
         isActive = true;
         timer = gameDuration;
@@ -63,13 +66,26 @@ public class BalloonMinigameManager : MonoBehaviour
         for (int i = 0; i < spawnCount; i++)
         {
             var pos = shuffled[i].transform.position;
-            var balloon = Instantiate(balloonPrefab, pos, Quaternion.identity);
-            spawnedBalloons.Add(balloon);
+            var balloonInstance = Instantiate(balloonPrefab, pos, Quaternion.identity);
+            var netObj = balloonInstance.GetComponent<NetworkObject>();
+
+            if (netObj != null)
+            {
+                netObj.Spawn();
+                spawnedBalloons.Add(netObj);
+                Debug.Log("✅ Spawned balloon: " + netObj.name);
+            }
+            else
+            {
+                Debug.LogError("❌ Spawned balloon is missing NetworkObject!");
+            }
         }
     }
 
     public void OnBalloonPopped()
     {
+        if (!IsServer) return;
+
         balloonsPopped++;
 
         if (balloonsPopped >= balloonsSpawned && isActive)
@@ -84,10 +100,12 @@ public class BalloonMinigameManager : MonoBehaviour
 
         isActive = false;
 
-        foreach (var balloon in spawnedBalloons)
+        foreach (var netObj in spawnedBalloons)
         {
-            if (balloon != null)
-                Destroy(balloon);
+            if (netObj != null && netObj.IsSpawned)
+            {
+                netObj.Despawn(true);
+            }
         }
 
         spawnedBalloons.Clear();
@@ -95,7 +113,7 @@ public class BalloonMinigameManager : MonoBehaviour
         if (success)
         {
             Debug.Log("✅ All balloons popped in time! Reward granted.");
-            GiveReward();
+            StartCoroutine(DelayedRewardSpawn());
         }
         else
         {
@@ -103,20 +121,10 @@ public class BalloonMinigameManager : MonoBehaviour
         }
     }
 
-    [SerializeField] private BalloonRewardSpawner rewardSpawner;
-
-    private void GiveReward()
-    {
-        if (rewardSpawner != null)
-        {
-            StartCoroutine(DelayedRewardSpawn());
-        }
-    }
-
     private IEnumerator DelayedRewardSpawn()
     {
-        yield return new WaitForSeconds(10f);
-        rewardSpawner.SpawnRandomReward();
+        yield return new WaitForSeconds(15f);
+        rewardSpawner?.SpawnRandomReward();
     }
 
     private void Shuffle(List<BalloonSpawnPoint> list)

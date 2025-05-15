@@ -168,6 +168,7 @@ GameObject:
   - component: {fileID: 79677179}
   - component: {fileID: 79677180}
   - component: {fileID: 79677181}
+  - component: {fileID: 79677182}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -252,6 +253,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df15b9a3c492ba44eb30d3cbf42353b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &79677182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 79677173}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c89d63e43d91c704b8b5ff0f68c57ead, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainMenuPanel: {fileID: 157701744}
+  lobbyPanel: {fileID: 1229219085}
+  statusText: {fileID: 0}
 --- !u!1 &80999058
 GameObject:
   m_ObjectHideFlags: 0
@@ -2313,6 +2329,7 @@ GameObject:
   - component: {fileID: 313140001}
   - component: {fileID: 313140006}
   - component: {fileID: 313140005}
+  - component: {fileID: 313140007}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -2384,9 +2401,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: CreateSession, Assembly-CSharp
-        m_MethodName: OnCreateSessionButtonClicked
+      - m_Target: {fileID: 313140007}
+        m_TargetAssemblyTypeName: RelayHostButton, Assembly-CSharp
+        m_MethodName: CreateLobby
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2545,6 +2562,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hoverClip: {fileID: 8300000, guid: 036437115430f1a49acd40e9fbab5bd5, type: 3}
   clickClip: {fileID: 0}
+--- !u!114 &313140007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 313139999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 987755cf147b55c4bb4aa66cd8cd8733, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  codeDisplay: {fileID: 688435375}
+  createButton: {fileID: 313140001}
+  joinButton: {fileID: 1295759694}
 --- !u!1 &314249320
 GameObject:
   m_ObjectHideFlags: 0
@@ -8352,7 +8384,7 @@ MonoBehaviour:
   m_HeartbeatTimeoutMS: 500
   m_ConnectTimeoutMS: 1000
   m_MaxConnectAttempts: 60
-  m_DisconnectTimeoutMS: 30000
+  m_DisconnectTimeoutMS: 60000
   ConnectionData:
     Address: 127.0.0.1
     Port: 7777
@@ -11595,10 +11627,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: JoinSession, Assembly-CSharp
-        m_MethodName: OnJoinHostButtonClicked
-        m_Mode: 1
+      - m_Target: {fileID: 1229219085}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+      - m_Target: {fileID: 1540119465}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -13455,7 +13499,6 @@ GameObject:
   - component: {fileID: 1507933580}
   - component: {fileID: 1507933579}
   - component: {fileID: 1507933578}
-  - component: {fileID: 1507933583}
   m_Layer: 5
   m_Name: HostButton
   m_TagString: Untagged
@@ -13686,18 +13729,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 1507933583}
-        m_TargetAssemblyTypeName: RelayHostButton, Assembly-CSharp
-        m_MethodName: CreateLobby
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
 --- !u!114 &1507933581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13736,21 +13767,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1507933575}
   m_CullTransparentMesh: 1
---- !u!114 &1507933583
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1507933575}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 987755cf147b55c4bb4aa66cd8cd8733, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  codeDisplay: {fileID: 0}
-  createButton: {fileID: 0}
-  joinButton: {fileID: 0}
 --- !u!1 &1515553849
 GameObject:
   m_ObjectHideFlags: 0
@@ -17248,7 +17264,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: fb97e14e3ca9aa2419121aee81ec6481, type: 3}
   m_Resource: {fileID: 8300000, guid: fb97e14e3ca9aa2419121aee81ec6481, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 1
   Mute: 0

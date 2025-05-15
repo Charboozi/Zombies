@@ -8,6 +8,27 @@ public class WeaponRechargeAudioHandler : MonoBehaviour
 
     private Coroutine fadeOutCoroutine;
 
+    private void Start()
+    {
+        StartCoroutine(WarmUpAudio());
+    }
+
+    private IEnumerator WarmUpAudio()
+    {
+        if (chargingLoopAudioSource == null || chargingLoopClip == null)
+            yield break;
+
+        chargingLoopAudioSource.clip = chargingLoopClip;
+        chargingLoopAudioSource.volume = 0f;
+        chargingLoopAudioSource.loop = false;
+        chargingLoopAudioSource.Play();
+
+        yield return new WaitForSeconds(0.01f); // Wait a frame or two
+
+        chargingLoopAudioSource.Stop();
+        chargingLoopAudioSource.clip = null;
+    }
+
     public void PlayChargingLoop()
     {
         if (chargingLoopAudioSource == null || chargingLoopClip == null) return;

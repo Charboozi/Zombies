@@ -4,7 +4,7 @@ using Unity.Netcode;
 public class PickupEquipment : BaseLocalPickup
 {
     [SerializeField] private EquipmentInventory equipmentInventory;
-
+    
     protected override bool OnPickupFound(NetworkedPickupableItem pickup)
     {
         string equipmentName = pickup.gameObject.name;

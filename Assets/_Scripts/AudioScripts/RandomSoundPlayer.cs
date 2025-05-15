@@ -5,13 +5,17 @@ using System.Collections;
 public class RandomSoundPlayer : MonoBehaviour
 {
     [Header("Sound Settings")]
-    public AudioClip[] soundClips;   // List of sounds to play
-    public float minInterval = 3f;   // Minimum time between sounds
-    public float maxInterval = 8f;   // Maximum time between sounds
+    public AudioClip[] soundClips;
+    public float minInterval = 3f;
+    public float maxInterval = 8f;
 
     [Header("Pitch Variation")]
-    public float minPitch = 0.9f;    // Minimum random pitch
-    public float maxPitch = 1.1f;    // Maximum random pitch
+    public float minPitch = 0.9f;
+    public float maxPitch = 1.1f;
+
+    [Header("Voice Limiting")]
+    public static int currentVoices = 0;
+    public static int maxVoices = 10; // 👈 You can tweak this globally
 
     private AudioSource audioSource;
     private Coroutine playRoutine;
@@ -28,21 +32,31 @@ public class RandomSoundPlayer : MonoBehaviour
         {
             float waitTime = Random.Range(minInterval, maxInterval);
             yield return new WaitForSeconds(waitTime);
-            PlayRandomSound();
+
+            if (currentVoices < maxVoices)
+            {
+                PlayRandomSound();
+            }
         }
     }
 
     private void PlayRandomSound()
     {
         if (soundClips.Length == 0 || audioSource == null)
-        {
-            Debug.LogWarning("No sound clips assigned or missing AudioSource!");
             return;
-        }
 
         AudioClip randomClip = soundClips[Random.Range(0, soundClips.Length)];
         audioSource.pitch = Random.Range(minPitch, maxPitch);
+
         audioSource.PlayOneShot(randomClip);
+        StartCoroutine(TrackVoiceDuration(randomClip.length));
+    }
+
+    private IEnumerator TrackVoiceDuration(float duration)
+    {
+        currentVoices++;
+        yield return new WaitForSeconds(duration);
+        currentVoices--;
     }
 
     public void StopSounds()
@@ -50,7 +64,7 @@ public class RandomSoundPlayer : MonoBehaviour
         if (playRoutine != null)
         {
             StopCoroutine(playRoutine);
-            playRoutine = null; // ✅ Safe cleanup
+            playRoutine = null;
         }
 
         if (audioSource.isPlaying)

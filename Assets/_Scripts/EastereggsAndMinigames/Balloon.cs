@@ -1,7 +1,10 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class Balloon : MonoBehaviour
+public class Balloon : NetworkBehaviour
 {
+    private bool isPopped = false;
+
     private void OnCollisionEnter(Collision collision)
     {
         TryPop();
@@ -14,13 +17,36 @@ public class Balloon : MonoBehaviour
 
     public void TryPop()
     {
-        // Prevent double pops
-        if (!gameObject.activeSelf) return;
+        if (isPopped) return;
 
-        gameObject.SetActive(false); // hide the balloon
+        Debug.Log("🟢 TryPop() called on client for: " + name);
+        RequestPopServerRpc(); // Let the server decide everything
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestPopServerRpc(ServerRpcParams rpcParams = default)
+    {
+        Debug.Log("📡 ServerRPC received for balloon: " + name);
+
+        if (isPopped)
+        {
+            Debug.Log("❗ Already popped on server: " + name);
+            return;
+        }
+
+        isPopped = true;
 
         BalloonMinigameManager.Instance?.OnBalloonPopped();
 
-        Destroy(gameObject); // destroy after short delay if needed
+        if (NetworkObject.IsSpawned)
+        {
+            Debug.Log("🎈 Balloon popped and despawned: " + name);
+            NetworkObject.Despawn(true); // Despawn network-wide
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ Tried to despawn unspawned balloon: {name}");
+            Destroy(gameObject); // Fallback for scene-placed balloon
+        }
     }
 }

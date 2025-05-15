@@ -69,6 +69,12 @@ public class ContinuousFireWeapon : WeaponBase
         RaycastHit[] hits = Physics.RaycastAll(ray, range);
         foreach (RaycastHit hit in hits)
         {
+            // Damage posters
+            if (hit.collider.TryGetComponent(out FlammablePoster poster))
+            {
+                poster.ApplyBurnDamage(damageInterval); // small damage per tick
+            }
+
             ApplySplashDamage(hit.point);
 
             if (NetworkImpactSpawner.Instance != null && impactEffect != null)

@@ -2,34 +2,56 @@ using UnityEngine;
 using Unity.Netcode;
 using TMPro;
 using Steamworks;
+using Unity.Collections;
 
 [RequireComponent(typeof(NetworkObject))]
 public class PlayerNameTag : NetworkBehaviour
 {
     [Header("Assign your world-space TextMeshPro here")]
-    [SerializeField] private TMP_Text nameText;
-    
-    Transform cameraTransform;
+    public TMP_Text nameText;
+
+    private Transform cameraTransform;
+
+    private NetworkVariable<FixedString64Bytes> steamName = new NetworkVariable<FixedString64Bytes>(
+        default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public override void OnNetworkSpawn()
     {
-        // Cache the camera
-        if (Camera.main != null)
-            cameraTransform = Camera.main.transform;
+        cameraTransform = Camera.main != null ? Camera.main.transform : null;
 
-        // Set initial text to the client ID
-        nameText.text = SteamFriends.GetPersonaName();
+        // Only the owner should set their name
+        if (IsOwner && SteamManager.Initialized)
+        {
+            steamName.Value = SteamFriends.GetPersonaName();
+        }
 
-        // If you later change the ID or name, you could hook up a callback here.
+        steamName.OnValueChanged += OnSteamNameChanged;
+
+        // Set initial text immediately
+        nameText.text = steamName.Value.ToString();
+    }
+
+    private void OnSteamNameChanged(FixedString64Bytes oldValue, FixedString64Bytes newValue)
+    {
+        nameText.text = newValue.ToString();
     }
 
     void LateUpdate()
     {
         if (cameraTransform == null) return;
-        // Make the name-tag face the camera
+
         Vector3 direction = transform.position - cameraTransform.position;
-        // Keep its upright orientation
         Quaternion lookRotation = Quaternion.LookRotation(direction);
         nameText.transform.parent.rotation = lookRotation;
+    }
+
+    public override void OnDestroy()
+    {
+        steamName.OnValueChanged -= OnSteamNameChanged;
+    }
+
+    public string GetPlayerName()
+    {
+        return steamName.Value.ToString();
     }
 }

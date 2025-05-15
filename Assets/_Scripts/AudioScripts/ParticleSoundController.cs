@@ -14,7 +14,9 @@ public class ParticleSoundController : MonoBehaviour
 
     private Coroutine fadeCoroutine;
     private bool isPlaying = false;
-    private int lastParticleCount = 0;
+
+    private ParticleSystem.Particle[] _particles = new ParticleSystem.Particle[16]; // reusable buffer
+    private int _lastParticleCount = 0;
 
     void Awake()
     {
@@ -24,7 +26,7 @@ public class ParticleSoundController : MonoBehaviour
 
     private void OnEnable()
     {
-        lastParticleCount = ps.particleCount;
+        _lastParticleCount = ps.GetParticles(_particles);
     }
 
     void Update()
@@ -41,10 +43,12 @@ public class ParticleSoundController : MonoBehaviour
             }
             else
             {
-                if (ps.particleCount > lastParticleCount)
+                int count = ps.GetParticles(_particles);
+                if (count > _lastParticleCount)
                 {
-                    PlayGunshotSound(); // ✅ PLAY immediately on particle spawn
+                    PlayGunshotSound(); // ✅ Reliable even on short-lived bursts
                 }
+                _lastParticleCount = count;
             }
         }
         else
@@ -54,16 +58,15 @@ public class ParticleSoundController : MonoBehaviour
                 isPlaying = false;
                 StartFadeOut();
             }
-        }
 
-        lastParticleCount = ps.particleCount;
+            _lastParticleCount = 0; // reset for burst detection when emission stops
+        }
     }
 
     private void PlayGunshotSound()
     {
         if (audioSource != null && audioSource.clip != null)
         {
-            // Spawn a detached GameObject to play the sound
             GameObject tempAudio = new GameObject("TempGunshotSound");
             tempAudio.transform.position = transform.position;
 

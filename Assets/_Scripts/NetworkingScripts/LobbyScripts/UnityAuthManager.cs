@@ -50,4 +50,18 @@ public class UnityAuthManager : MonoBehaviour
             Debug.LogError("❌ Unity Auth for Relay failed: " + ex.Message);
         }
     }
+
+    public async Task WaitUntilAuthenticated()
+    {
+        int timeoutMs = 5000;
+        int elapsed = 0;
+        while (!IsAuthenticated && elapsed < timeoutMs)
+        {
+            await Task.Delay(100);
+            elapsed += 100;
+        }
+
+        if (!IsAuthenticated)
+            Debug.LogWarning("❗ Timeout waiting for Unity Authentication.");
+    }
 }

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2610681189985409600}
   - component: {fileID: -4476488961654605319}
   - component: {fileID: 7536267473001247528}
+  - component: {fileID: -2736120517023383093}
   m_Layer: 10
   m_Name: FirstAidKit
   m_TagString: Untagged
@@ -97,6 +98,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.31, y: 2.19, z: 1.75}
   m_Center: {x: -0.2, y: -0.03, z: 0.42}
+--- !u!114 &-2736120517023383093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889342652993742202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe03f93e587df27479d87633fccf55ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipText: faster health regeneration
 --- !u!1 &2687980965671770094
 GameObject:
   m_ObjectHideFlags: 0

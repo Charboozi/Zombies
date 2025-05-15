@@ -4895,6 +4895,7 @@ GameObject:
   - component: {fileID: 3033443659018047714}
   - component: {fileID: 173749334960707276}
   - component: {fileID: 375802661989200376}
+  - component: {fileID: 5910055013188347169}
   m_Layer: 10
   m_Name: Vest
   m_TagString: Untagged
@@ -4981,6 +4982,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.4, y: 0.61, z: 0.34}
   m_Center: {x: 0, y: 0, z: -0.03}
+--- !u!114 &5910055013188347169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3657905282680937399}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe03f93e587df27479d87633fccf55ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipText: take less damage on every hit
 --- !u!1 &4736798953404004801
 GameObject:
   m_ObjectHideFlags: 0

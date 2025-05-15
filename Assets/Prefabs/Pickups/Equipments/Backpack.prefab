@@ -184,6 +184,7 @@ GameObject:
   - component: {fileID: 2610681189985409600}
   - component: {fileID: -4476488961654605319}
   - component: {fileID: 7536267473001247528}
+  - component: {fileID: 8620377549510892949}
   m_Layer: 10
   m_Name: Backpack
   m_TagString: Untagged
@@ -278,6 +279,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.21, y: 4.29, z: 2.97}
   m_Center: {x: 0, y: 0.3, z: 0}
+--- !u!114 &8620377549510892949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1889342652993742202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe03f93e587df27479d87633fccf55ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tooltipText: Recieve +1 additional weapon slot
 --- !u!1 &2104680782572465507
 GameObject:
   m_ObjectHideFlags: 0
