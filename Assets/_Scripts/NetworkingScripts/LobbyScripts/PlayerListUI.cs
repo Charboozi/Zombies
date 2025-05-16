@@ -48,13 +48,18 @@ public class PlayerListUI : MonoBehaviour
 
         foreach (var player in players)
         {
-            if (playerListParent == null) return; // ✅ In case it was destroyed mid-loop
+            if (playerListParent == null) return;
+
             var entry = Instantiate(playerEntryPrefab, playerListParent);
-            var text = entry.GetComponentInChildren<TMP_Text>();
-            if (text != null)
-                text.text = !string.IsNullOrEmpty(player.SteamName.ToString())
-                ? player.SteamName.ToString()
-                : player.DisplayName.ToString();
+
+            var nameText = entry.transform.Find("NameText")?.GetComponent<TMP_Text>();
+            var rewardText = entry.transform.Find("RewardText")?.GetComponent<TMP_Text>();
+
+            if (nameText != null)
+                nameText.text = !string.IsNullOrEmpty(player.SteamName.ToString()) ? player.SteamName.ToString() : player.DisplayName.ToString();
+
+            if (rewardText != null)
+                rewardText.text = player.CoinsEarned > 0 ? $"$+{player.CoinsEarned}" : "";
         }
     }
 

@@ -36,25 +36,6 @@ public class ProjectileWeapon : WeaponBase
         {
             float finalDamage = damage;
 
-            if (hit.collider.CompareTag("Headshot"))
-            {
-                if (hit.collider.transform.parent.TryGetComponent(out EntityHealth headEntity))
-                {
-                    finalDamage *= headshotMultiplier;
-                    headEntity.TakeDamageServerRpc(Mathf.RoundToInt(finalDamage));
-
-                    if (NetworkImpactSpawner.Instance != null)
-                    {
-                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpactHeadshot");
-                    }
-
-                    if (!canPierceEnemies)
-                        break;
-
-                    continue;
-                }
-            }
-
             if (hit.collider.TryGetComponent(out LimbHealth limb))
             {
                 float limbDamage = damage;
@@ -77,10 +58,20 @@ public class ProjectileWeapon : WeaponBase
 
             if (hit.collider.TryGetComponent(out EntityHealth bodyEntity))
             {
-                bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(damage));
+                bool isPlayer = bodyEntity.CompareTag("Player");
 
-                if (NetworkImpactSpawner.Instance != null)
-                    NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                // 🛡️ Do NOT apply damage to players if PvP is ON
+                if (isPlayer && GameModeManager.Instance != null && GameModeManager.Instance.IsPvPMode)
+                {
+                    Debug.Log("⚠️ PvP is ON — skipping player damage.");
+                }
+                else
+                {
+                    bodyEntity.TakeDamageServerRpc(Mathf.RoundToInt(damage));
+
+                    if (NetworkImpactSpawner.Instance != null)
+                        NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "BloodImpact");
+                }
 
                 if (!canPierceEnemies)
                     break;

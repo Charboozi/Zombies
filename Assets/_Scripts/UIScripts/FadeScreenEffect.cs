@@ -2,10 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-/// <summary>
-/// Handles quick visual screen fades (e.g. damage flash, healing pulse, downed black overlay).
-/// Persistent tints should use PersistentScreenTint instead.
-/// </summary>
 public class FadeScreenEffect : MonoBehaviour
 {
     public static FadeScreenEffect Instance;
@@ -23,14 +19,20 @@ public class FadeScreenEffect : MonoBehaviour
 
         Instance = this;
         screenImage = GetComponent<Image>();
-        screenImage.color = new Color(0, 0, 0, 0); // Fully transparent at start
+
+        if (screenImage != null)
+            screenImage.color = new Color(0, 0, 0, 0); // Fully transparent at start
     }
 
-    /// <summary>
-    /// Show a fast screen flash using the specified color and alpha.
-    /// </summary>
+    private bool IsImageValid()
+    {
+        return screenImage != null && screenImage.enabled && screenImage.gameObject.activeInHierarchy;
+    }
+
     public void ShowEffect(Color effectColor, float initialAlpha = 0.5f, float fadeSpeed = 2f)
     {
+        if (!IsImageValid()) return;
+
         if (currentFadeCoroutine != null)
             StopCoroutine(currentFadeCoroutine);
 
@@ -47,19 +49,20 @@ public class FadeScreenEffect : MonoBehaviour
         {
             alpha -= Time.deltaTime * fadeSpeed;
             color.a = Mathf.Clamp01(alpha);
-            screenImage.color = color;
+            if (IsImageValid())
+                screenImage.color = color;
             yield return null;
         }
 
-        screenImage.color = new Color(0, 0, 0, 0);
+        if (IsImageValid())
+            screenImage.color = new Color(0, 0, 0, 0);
         currentFadeCoroutine = null;
     }
 
-    /// <summary>
-    /// Fade screen to semi-black for downed state.
-    /// </summary>
     public void ShowDownedEffect()
     {
+        if (!IsImageValid()) return;
+
         if (currentFadeCoroutine != null)
             StopCoroutine(currentFadeCoroutine);
 
@@ -75,19 +78,20 @@ public class FadeScreenEffect : MonoBehaviour
         {
             alpha += Time.deltaTime * 1f;
             alpha = Mathf.Clamp(alpha, 0, targetColor.a);
-            screenImage.color = new Color(0, 0, 0, alpha);
+            if (IsImageValid())
+                screenImage.color = new Color(0, 0, 0, alpha);
             yield return null;
         }
 
-        screenImage.color = targetColor;
+        if (IsImageValid())
+            screenImage.color = targetColor;
         currentFadeCoroutine = null;
     }
 
-    /// <summary>
-    /// Fade screen from black to clear after revival.
-    /// </summary>
     public void ShowReviveEffect()
     {
+        if (!IsImageValid()) return;
+
         if (currentFadeCoroutine != null)
             StopCoroutine(currentFadeCoroutine);
 
@@ -103,19 +107,20 @@ public class FadeScreenEffect : MonoBehaviour
         {
             alpha -= Time.deltaTime * 1.5f;
             alpha = Mathf.Clamp01(alpha);
-            screenImage.color = new Color(color.r, color.g, color.b, alpha);
+            if (IsImageValid())
+                screenImage.color = new Color(color.r, color.g, color.b, alpha);
             yield return null;
         }
 
-        screenImage.color = new Color(0, 0, 0, 0);
+        if (IsImageValid())
+            screenImage.color = new Color(0, 0, 0, 0);
         currentFadeCoroutine = null;
     }
 
-    /// <summary>
-    /// Fades the screen to a deep red color for death/gameover.
-    /// </summary>
     public void ShowDeathEffect(float duration = 4f)
     {
+        if (!IsImageValid()) return;
+
         if (currentFadeCoroutine != null)
             StopCoroutine(currentFadeCoroutine);
 
@@ -126,18 +131,19 @@ public class FadeScreenEffect : MonoBehaviour
     {
         float elapsed = 0f;
         Color startColor = screenImage.color;
-        Color targetColor = new Color(0.3f, 0f, 0f, 1f); // Dark red, fully opaque
+        Color targetColor = new Color(0.3f, 0f, 0f, 1f); // Deep red
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            screenImage.color = Color.Lerp(startColor, targetColor, t);
+            if (IsImageValid())
+                screenImage.color = Color.Lerp(startColor, targetColor, t);
             yield return null;
         }
 
-        screenImage.color = targetColor;
+        if (IsImageValid())
+            screenImage.color = targetColor;
         currentFadeCoroutine = null;
     }
-
 }

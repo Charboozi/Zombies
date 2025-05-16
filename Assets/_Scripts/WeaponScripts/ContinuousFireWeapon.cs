@@ -77,10 +77,10 @@ public class ContinuousFireWeapon : WeaponBase
 
             ApplySplashDamage(hit.point);
 
-            if (NetworkImpactSpawner.Instance != null && impactEffect != null)
-            {
-                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffect);
-            }
+        if (NetworkImpactSpawner.Instance != null && !string.IsNullOrEmpty(impactEffect))
+        {
+            NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, impactEffect);
+        }
 
             // If piercing is disabled, only hit the first target
             if (!canPierceEnemies)
@@ -97,6 +97,9 @@ public class ContinuousFireWeapon : WeaponBase
         {
             if (obj.TryGetComponent(out EntityHealth entity))
             {
+                if (entity.CompareTag("Player") && GameModeManager.Instance.IsPvPMode)
+                continue;
+
                 entity.TakeDamageServerRpc(damage);
             }
         }

@@ -65,6 +65,11 @@ public class ShotgunWeapon : WeaponBase
             // ✅ Try fallback to body
             if (hit.collider.TryGetComponent(out EntityHealth entity))
             {
+                // 🔒 Block damage if it's a player and PvP is enabled
+                if (entity.CompareTag("Player") && GameModeManager.Instance.IsPvPMode)
+                    break;
+
+                // ✅ Otherwise, apply damage (e.g., enemies)
                 entity.TakeDamageServerRpc(Mathf.RoundToInt(pelletDamage));
 
                 if (NetworkImpactSpawner.Instance != null)

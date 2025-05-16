@@ -25,6 +25,13 @@ public class ReviveSystem : NetworkBehaviour
     {
         if (!IsOwner || isReviving) return;
 
+        // 🔒 Prevent reviving in PvP mode
+        if (GameModeManager.Instance != null && GameModeManager.Instance.IsPvPMode)
+        {
+            Debug.Log("⛔ Reviving is disabled in PvP mode.");
+            return;
+        }
+
         Collider[] hits = Physics.OverlapSphere(transform.position, reviveRange);
         foreach (var hit in hits)
         {

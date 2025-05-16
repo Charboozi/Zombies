@@ -15,6 +15,14 @@ public class LoadPurchasedItemsIntoGame : MonoBehaviour
             return;
         }
 
+        // ✅ Only run this script if we're in PvP mode
+        if (GameModeManager.Instance == null || !GameModeManager.Instance.IsPvPMode)
+        {
+            Debug.Log("⛔ Skipping item load — not in PvP mode.");
+            return;
+        }
+
+
         // ✅ Add consumables (e.g., keycards)
         if (consumables != null)
         {

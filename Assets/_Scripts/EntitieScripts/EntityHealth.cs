@@ -221,17 +221,29 @@ public class EntityHealth : NetworkBehaviour
     }
 
 
-    // ClientRpc to show the downed state for players.
     [ClientRpc]
     private void DownedClientRpc()
     {
         Debug.Log($"{gameObject.name} is downed!");
+
         if (IsOwner && gameObject.CompareTag("Player"))
         {
-            // Replace this with your downed animation or visual effect.
+            // 🔒 Block interactions
+            PlayerInput.CanInteract = false;
+
+            // 🟥 Show downed effect
             FadeScreenEffect.Instance.ShowDownedEffect();
 
-            PlayerInput.CanInteract = false; // 🔥 Disable interact button
+            // 🎥 PvP mode => switch to TrailerFreeCam
+            if (GameModeManager.Instance != null && GameModeManager.Instance.IsPvPMode)
+            {
+                var freeCam = FindFirstObjectByType<TrailerFreeCam>();
+                if (freeCam != null)
+                {
+                    Debug.Log("🎥 Switching to TrailerFreeCam after PvP downed.");
+                    freeCam.SendMessage("ActivateFreeCam", SendMessageOptions.DontRequireReceiver);
+                }
+            }
         }
     }
 

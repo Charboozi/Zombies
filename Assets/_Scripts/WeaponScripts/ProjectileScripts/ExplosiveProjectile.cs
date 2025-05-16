@@ -30,16 +30,20 @@ public class ExplosiveProjectile : NetworkBehaviour
             NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(transform.position, collision.contacts[0].normal, explosionEffectPrefab.name);
         }
 
-        // Apply splash damage to entities within the explosion radius.
+        // 💥 Apply splash damage
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider hit in colliders)
         {
-            EntityHealth entity = hit.GetComponent<EntityHealth>();
-            if (entity != null)
+            if (hit.TryGetComponent(out EntityHealth entity))
             {
+                // 🛡️ Block damage if it's a player and PvP is ON
+                if (entity.CompareTag("Player") && GameModeManager.Instance.IsPvPMode)
+                    continue;
+
                 float distance = Vector3.Distance(transform.position, hit.transform.position);
                 float multiplier = Mathf.Clamp01(1f - (distance / explosionRadius));
                 int damageToApply = Mathf.RoundToInt(explosionDamage * multiplier);
+
                 entity.TakeDamageServerRpc(damageToApply);
             }
         }

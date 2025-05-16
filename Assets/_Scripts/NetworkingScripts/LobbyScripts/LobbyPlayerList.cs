@@ -6,18 +6,19 @@ using System.Collections.Generic;
 using System.Linq;
 using Steamworks;
 
-[Serializable]
 public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData>
 {
     public ulong ClientId;
     public FixedString64Bytes DisplayName;
-    public FixedString64Bytes SteamName; // Add this
+    public FixedString64Bytes SteamName;
+    public int CoinsEarned; // ✅ Add this
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ClientId);
         serializer.SerializeValue(ref DisplayName);
-        serializer.SerializeValue(ref SteamName); // Add this
+        serializer.SerializeValue(ref SteamName);
+        serializer.SerializeValue(ref CoinsEarned); // ✅ Serialize this too
     }
 
     public bool Equals(LobbyPlayerData other)

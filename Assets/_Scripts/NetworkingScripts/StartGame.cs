@@ -3,10 +3,9 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
 
-public class StartGame : MonoBehaviour
+public class StartGame : NetworkBehaviour
 {
     [SerializeField] private Button startButton;
-    [Tooltip("Exact name of your game scene")]
     [SerializeField] private string gameSceneName = "GameScene";
 
     private void Start()
@@ -22,9 +21,20 @@ public class StartGame : MonoBehaviour
             return;
         }
 
+        // ✅ Sync PvP flag to clients before loading scene
+        SyncPvPFlagClientRpc(GameModeManager.Instance.IsPvPMode);
+
+        // ✅ Start the scene
         NetworkManager.Singleton.SceneManager.LoadScene(
             gameSceneName,
             LoadSceneMode.Single
         );
+    }
+
+    [ClientRpc]
+    private void SyncPvPFlagClientRpc(bool isPvP)
+    {
+        GameModeManager.Instance.SetPvPMode(isPvP);
+        Debug.Log($"🛰 Synced PvP flag to client. PvP mode = {isPvP}");
     }
 }

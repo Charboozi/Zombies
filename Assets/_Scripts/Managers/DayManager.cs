@@ -45,7 +45,8 @@ public class DayManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        currentTime.Value += Time.deltaTime;
+        float speedMultiplier = GameModeManager.Instance != null && GameModeManager.Instance.IsPvPMode ? 2.5f : 1f;
+        currentTime.Value += Time.deltaTime * speedMultiplier;
 
         int day = Mathf.FloorToInt(CurrentDay);
         if (day != lastDayChecked)
