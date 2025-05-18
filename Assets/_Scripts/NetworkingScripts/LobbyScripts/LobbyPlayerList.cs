@@ -32,7 +32,7 @@ public class LobbyPlayerList : NetworkBehaviour
     public static LobbyPlayerList Instance;
 
     public NetworkList<LobbyPlayerData> Players = new NetworkList<LobbyPlayerData>();
-    
+
     private void Start()
     {
         // When scene changes back to menu, force a refresh
@@ -149,21 +149,40 @@ public class LobbyPlayerList : NetworkBehaviour
             }
         }
     }
-    
+
     public void ResetLobbyState()
     {
         Debug.Log("🔁 Resetting LobbyPlayerList...");
 
-        // Detach event to prevent double subscription
+        if (Players == null) return;
+
         Players.OnListChanged -= OnListChanged;
 
-        // Clear network player list
-        Players.Clear();
+        if (IsServer)
+        {
+            Players.Clear();
+        }
 
-        // Re-attach event
         Players.OnListChanged += OnListChanged;
 
-        // 🔄 Clear the UI list too
+        if (PlayerListUI.Instance != null)
+        {
+            PlayerListUI.Instance.ClearList();
+        }
+
+        // ✅ Tell all clients to also clear UI
+        if (IsServer)
+        {
+            ForceClearClientUIRpcClientRpc();
+        }
+    }
+
+
+    [ClientRpc]
+    private void ForceClearClientUIRpcClientRpc()
+    {
+        if (IsServer) return; // host already cleared
+
         if (PlayerListUI.Instance != null)
         {
             PlayerListUI.Instance.ClearList();

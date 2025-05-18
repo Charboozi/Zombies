@@ -3028,11 +3028,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   turnSpeed: 2
-  isWallWalking: 0
+  isWallWalking: 1
   walkableLayer:
     serializedVersion: 2
-    m_Bits: 8
-  gravityMultiplier: 2
+    m_Bits: 4294967295
+  gravityMultiplier: 1
   groundAdjustRotationSpeed: 6
   wallAdjustRotationSpeed: 8.79
   forwardRayLength: 1
@@ -3051,14 +3051,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69ece4c3862544059804dfe52f9f2734, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rootHeight: 0.1
+  rootHeight: 0.5
   useRootMovement: 1
   rootMovementSpeed: 20
-  rootMovementVerticalWeight: 0.117
-  rootMovementHorizontalWeight: 0.107
+  rootMovementVerticalWeight: 0.106
+  rootMovementHorizontalWeight: 0.1
   useRootRotation: 1
   rootRotationSpeed: 20
-  rootRotationWeight: 0.1
+  rootRotationWeight: 0.042
   useBreathing: 0
   breathePeriod: 10
   breatheMagnitude: 0.1
@@ -3078,8 +3078,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   stepLayer:
     serializedVersion: 2
-    m_Bits: 8
-  stepHeight: 0.34
+    m_Bits: 4294967295
+  stepHeight: 0.13
   stepCurve:
     serializedVersion: 2
     m_Curve:
@@ -3113,8 +3113,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  stepTimeMultiplier: 0.612
-  stepTimeMax: 1.054
+  stepTimeMultiplier: 0.54
+  stepTimeMax: 1.088
   showDebug: 1
   ikSteppers:
   - asyncChains: []
@@ -3391,6 +3391,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  isSpecialEnemy: 0
   lastHitLimbID: None
   maxHealth: 1000
   armor: 0

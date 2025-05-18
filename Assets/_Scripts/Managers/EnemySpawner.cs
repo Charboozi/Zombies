@@ -131,10 +131,17 @@ public class EnemySpawner : NetworkBehaviour
     {
         int playerCount = NetworkManager.Singleton.ConnectedClientsList.Count;
 
-        if (playerCount < 3)
+        if (playerCount < 4 && playerCount >= 2)
         {
             spawnIntervalDecreaseRate = Mathf.Lerp(1f, spawnIntervalDecreaseRate, 0.5f); // Bring it closer to 1
             maxEnemiesIncreaseAmount = Mathf.Max(1, maxEnemiesIncreaseAmount / 2);
+
+            Debug.Log($"[Spawner] Adjusted difficulty for {playerCount} players: spawnIntervalDecreaseRate = {spawnIntervalDecreaseRate}, maxEnemiesIncreaseAmount = {maxEnemiesIncreaseAmount}");
+        }
+        if (playerCount < 2)
+        {
+            spawnIntervalDecreaseRate = Mathf.Lerp(1f, spawnIntervalDecreaseRate, 0.75f); // Bring it closer to 1
+            maxEnemiesIncreaseAmount = Mathf.Max(1, maxEnemiesIncreaseAmount / 3);
 
             Debug.Log($"[Spawner] Adjusted difficulty for {playerCount} players: spawnIntervalDecreaseRate = {spawnIntervalDecreaseRate}, maxEnemiesIncreaseAmount = {maxEnemiesIncreaseAmount}");
         }

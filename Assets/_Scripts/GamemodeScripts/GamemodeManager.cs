@@ -1,15 +1,23 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameModeManager : MonoBehaviour
+public class GameModeManager : NetworkBehaviour
 {
     public static GameModeManager Instance { get; private set; }
 
-    // Publicly accessible flag
     public bool IsPvPMode { get; private set; }
+
+    // ✅ Use a NetworkVariable to sync wager amount
+    public NetworkVariable<int> PvPWagerAmount = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public int PvPRewardPot = 0; // Server-only
 
     private void Awake()
     {
-        // Ensure singleton and persistence across scenes
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -20,12 +28,17 @@ public class GameModeManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    /// <summary>
-    /// Set whether the game is in PvP mode or not.
-    /// </summary>
     public void SetPvPMode(bool isPvP)
     {
         IsPvPMode = isPvP;
         Debug.Log($"🔁 PvP mode set to: {isPvP}");
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SetWagerServerRpc(int amount)
+    {
+        amount = Mathf.Clamp(amount, 0, 9999);
+        PvPWagerAmount.Value = amount;
+        Debug.Log($"💰 Wager set to {amount} coins by host.");
     }
 }

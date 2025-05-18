@@ -9,6 +9,7 @@ public class EntityHealth : NetworkBehaviour
     [SerializeField] private bool isSpecialEnemy = false;
 
     public static event Action<EntityHealth> OnSpecialEnemyKilled;
+    public event Action<EntityHealth> OnDowned;
 
     public string lastHitLimbID = "None";
 
@@ -92,6 +93,7 @@ public class EntityHealth : NetworkBehaviour
                 if (!isDowned.Value)
                 {
                     isDowned.Value = true;
+                    OnDowned?.Invoke(this); // ✅ Notify GameOverManager
                     DownedClientRpc();
                     ShowDownedFeedMessageClientRpc(GetSteamNameFromNameTag());
                 }
@@ -340,8 +342,8 @@ public class EntityHealth : NetworkBehaviour
             if (CompareTag("Player") && !isDowned.Value)
             {
                 isDowned.Value = true;
+                OnDowned?.Invoke(this); // ✅ Notify GameOverManager
                 DownedClientRpc();
-
                 ShowDownedFeedMessageClientRpc(GetSteamNameFromNameTag());
             }
             else if (!CompareTag("Player"))

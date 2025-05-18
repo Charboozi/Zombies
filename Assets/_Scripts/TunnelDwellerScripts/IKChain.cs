@@ -120,8 +120,23 @@ namespace ProceduralSpider
 
         public void SetTarget(IKTargetInfo target)
         {
-            if (IsIKTargetSetAllowed()) currentTarget = target;
+            if (!IsIKTargetSetAllowed()) return;
+
+            currentTarget = target;
+
+            // ✅ New: Align the foot (end effector) with the target normal
+            if (useFoot && endEffector != null && target.isGround)
+            {
+                Vector3 forward = Vector3.ProjectOnPlane(transform.forward, target.normal);
+                if (forward.sqrMagnitude < 0.001f)
+                    forward = Vector3.ProjectOnPlane(transform.up, target.normal); // Fallback
+
+                Quaternion targetRot = Quaternion.LookRotation(forward.normalized, target.normal);
+                endEffector.rotation = Quaternion.Slerp(endEffector.rotation, targetRot, 0.5f); // 0.5f = smoothing factor
+
+            }
         }
+
 
         public JointHinge GetFirstJoint()
         {

@@ -1196,6 +1196,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  isSpecialEnemy: 1
   lastHitLimbID: None
   maxHealth: 1500
   armor: 0
@@ -1271,6 +1272,7 @@ MonoBehaviour:
   attackDamage: 150
   attackCooldown: 1.2
   rotationSpeed: 10
+  attackRadius: 2
   hitSound: {fileID: 0}
 --- !u!114 &2384623849511316329
 MonoBehaviour:
