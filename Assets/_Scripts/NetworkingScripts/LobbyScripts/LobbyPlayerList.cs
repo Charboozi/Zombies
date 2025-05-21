@@ -11,14 +11,16 @@ public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData
     public ulong ClientId;
     public FixedString64Bytes DisplayName;
     public FixedString64Bytes SteamName;
-    public int CoinsEarned; // ✅ Add this
+    public int CoinsEarned;
+    public int HighScoreForCurrentMap; // ✅ Add this
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ClientId);
         serializer.SerializeValue(ref DisplayName);
         serializer.SerializeValue(ref SteamName);
-        serializer.SerializeValue(ref CoinsEarned); // ✅ Serialize this too
+        serializer.SerializeValue(ref CoinsEarned);
+        serializer.SerializeValue(ref HighScoreForCurrentMap); // ✅ Include
     }
 
     public bool Equals(LobbyPlayerData other)
@@ -144,6 +146,15 @@ public class LobbyPlayerList : NetworkBehaviour
                 updatedPlayer.SteamName = steamName;
                 Players[i] = updatedPlayer;
 
+                if (MapManager.Instance != null && HighScoreManager.Instance != null)
+                {
+                    string map = MapManager.Instance.CurrentMapName;
+                    int score = HighScoreManager.Instance.GetHighScore(map);
+
+                    updatedPlayer.HighScoreForCurrentMap = score;
+                    Players[i] = updatedPlayer;
+                }
+
                 Debug.Log($"✅ Updated Steam name for {clientId}: {steamName}");
                 break;
             }
@@ -152,30 +163,51 @@ public class LobbyPlayerList : NetworkBehaviour
 
     public void ResetLobbyState()
     {
-        Debug.Log("🔁 Resetting LobbyPlayerList...");
+        Debug.Log("🔁 ResetLobbyState START");
 
-        if (Players == null) return;
-
-        Players.OnListChanged -= OnListChanged;
-
-        if (IsServer)
+        if (Players == null)
         {
-            Players.Clear();
+            Debug.LogWarning("⚠️ Players list is null.");
+        }
+        else
+        {
+            Debug.Log("✅ Removing OnListChanged...");
+            Players.OnListChanged -= OnListChanged;
+
+            if (IsServer)
+            {
+                Debug.Log("✅ Clearing Players list on server...");
+                Players.Clear();
+            }
+
+            Players.OnListChanged += OnListChanged;
         }
 
-        Players.OnListChanged += OnListChanged;
-
-        if (PlayerListUI.Instance != null)
+        if (PlayerListUI.Instance == null)
         {
+            Debug.LogWarning("⚠️ PlayerListUI.Instance is null.");
+        }
+        else
+        {
+            Debug.Log("✅ Clearing player UI...");
             PlayerListUI.Instance.ClearList();
         }
 
-        // ✅ Tell all clients to also clear UI
         if (IsServer)
         {
+            Debug.Log("✅ Sending ClientRpc to clear UI...");
             ForceClearClientUIRpcClientRpc();
         }
+        else
+        {
+            Debug.Log("✅ Destroying self on client...");
+            Destroy(gameObject);
+            Instance = null;
+        }
+
+        Debug.Log("✅ ResetLobbyState DONE");
     }
+
 
 
     [ClientRpc]

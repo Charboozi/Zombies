@@ -14,7 +14,11 @@ public class DayEventManager : MonoBehaviour
         DayManager.Instance.ScheduleEventForDayTime(1, 10f, () =>
         {
             Debug.Log("🚨 10 seconds into Day 1: Triggering Start Sequence!");
-            LightmapSwitcher.Instance.RequestBlackout();
+            
+            if (!GameModeManager.Instance.IsPvPMode)
+            {
+                LightmapSwitcher.Instance.RequestBlackout();
+            }
         });
 
         DayManager.Instance.ScheduleEventForDay(3, () =>
@@ -23,6 +27,7 @@ public class DayEventManager : MonoBehaviour
             AlarmSequenceManager.Instance.ActivateAlarm();
             AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Unknown_Entity");
             MusicPlayer.Instance.ServerPlayMusic("TunnelDwellerSpawn");
+            GameFeedManager.Instance?.PostFeedMessageServerRpc("an Unknown entity has entered the station!");
         });
 
         DayManager.Instance.ScheduleEventForDay(8, () =>
@@ -31,6 +36,7 @@ public class DayEventManager : MonoBehaviour
             AlarmSequenceManager.Instance.ActivateAlarm();
             AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Unknown_Entity");
             MusicPlayer.Instance.ServerPlayMusic("SnatcherSpawn");
+            GameFeedManager.Instance?.PostFeedMessageServerRpc("an Unknown entity has entered the station!");
         });
 
         DayManager.Instance.ScheduleRecurringEvent(5, 20, day =>

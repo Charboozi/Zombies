@@ -31,8 +31,16 @@ public class FPSCameraController : NetworkBehaviour
 
     private EntityHealth entityHealth;
 
+    private PlayerControls controls;
+    private Vector2 lookInput;
+
     private void Start()
     {
+        controls = new PlayerControls();
+        controls.Enable();
+        controls.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
+        controls.Player.Look.canceled += _ => lookInput = Vector2.zero;
+
         SceneManager.sceneLoaded += OnSceneLoaded;
         entityHealth = GetComponent<EntityHealth>();
 
@@ -108,11 +116,11 @@ public class FPSCameraController : NetworkBehaviour
 
     private void ProcessMouseLook()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        float lookX = lookInput.x * mouseSensitivity * Time.deltaTime;
+        float lookY = lookInput.y * mouseSensitivity * Time.deltaTime;
 
-        yaw += mouseX;
-        pitch -= mouseY;
+        yaw += lookX;
+        pitch -= lookY;
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
         // YAW → player body
@@ -169,5 +177,8 @@ public class FPSCameraController : NetworkBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
         if (entityHealth != null)
             entityHealth.isDowned.OnValueChanged -= OnDownedStateChanged;
+
+        if (controls != null)
+            controls.Disable();
     }
 }

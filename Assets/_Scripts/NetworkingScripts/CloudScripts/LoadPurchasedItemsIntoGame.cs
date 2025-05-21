@@ -39,7 +39,6 @@ public class LoadPurchasedItemsIntoGame : MonoBehaviour
             if (activeWeapons.Count == 0)
             {
                 Debug.LogWarning("⚠️ No active weapons. Giving default 'Pistol'.");
-                weaponInventory.PickUpWeapon("Pistol");
             }
             else
             {

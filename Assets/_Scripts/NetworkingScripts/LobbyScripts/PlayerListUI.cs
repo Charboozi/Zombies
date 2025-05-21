@@ -10,6 +10,12 @@ public class PlayerListUI : MonoBehaviour
     [SerializeField] private GameObject playerEntryPrefab;
     [SerializeField] private Transform playerListParent;
 
+    [SerializeField] private Sprite bronzeBadge;
+    [SerializeField] private Sprite silverBadge;
+    [SerializeField] private Sprite goldBadge;
+    [SerializeField] private Sprite platinumBadge;
+    [SerializeField] private Sprite bloodBadge;
+
     private void Awake()
     {
         Instance = this;
@@ -54,6 +60,31 @@ public class PlayerListUI : MonoBehaviour
 
             var nameText = entry.transform.Find("NameText")?.GetComponent<TMP_Text>();
             var rewardText = entry.transform.Find("RewardText")?.GetComponent<TMP_Text>();
+            var badgeImageObj = entry.transform.Find("BadgeImage")?.GetComponent<UnityEngine.UI.Image>();
+            var badgeText = entry.transform.Find("BadgeImage/BadgeText")?.GetComponent<TMP_Text>();
+
+            if (badgeImageObj != null && badgeText != null && MapManager.Instance != null)
+            {
+                int highScore = player.HighScoreForCurrentMap;
+                badgeText.text = $"{highScore}";
+
+                // Set sprite based on high score
+                Sprite selectedSprite = null;
+
+                if (highScore >= 30)
+                    selectedSprite = bloodBadge;
+                else if (highScore >= 23)
+                    selectedSprite = platinumBadge;
+                else if (highScore >= 15)
+                    selectedSprite = goldBadge;
+                else if (highScore >= 8)
+                    selectedSprite = silverBadge;
+                else
+                    selectedSprite = bronzeBadge;
+
+                badgeImageObj.sprite = selectedSprite;
+                badgeImageObj.enabled = selectedSprite != null; // hide if no badge
+            }
 
             if (nameText != null)
                 nameText.text = !string.IsNullOrEmpty(player.SteamName.ToString()) ? player.SteamName.ToString() : player.DisplayName.ToString();

@@ -336,6 +336,28 @@
                     "action": "CycleWeapon",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4a86ce92-8a05-444d-987b-cc66c6496cc1",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "Scale",
+                    "groups": "",
+                    "action": "CycleWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0e47ebab-1e78-474d-9b51-86fc3922936b",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "Scale(factor=-1)",
+                    "groups": "",
+                    "action": "CycleWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

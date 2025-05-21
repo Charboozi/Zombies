@@ -18,6 +18,11 @@ public class WeaponInventory : MonoBehaviour
     void Awake()
     {
         currentMaxWeapons = baseMaxWeapons;
+        
+        if (!GameModeManager.Instance.IsPvPMode)
+        {
+            EnsureAtLeastOneWeapon();
+        } 
     }
 
     public void SetMaxWeapons(int amount)
@@ -56,6 +61,15 @@ public class WeaponInventory : MonoBehaviour
             WeaponBase weapon = ownedWeapons[index];
             ownedWeapons.RemoveAt(index);
             weapon.gameObject.SetActive(false);
+        }
+    }
+
+    public void EnsureAtLeastOneWeapon()
+    {
+        if (ownedWeapons.Count == 0)
+        {
+            Debug.Log("🔫 No active weapons found. Adding fallback: Pistol.");
+            PickUpWeapon("Pistol");
         }
     }
 

@@ -31,7 +31,7 @@ public class ArmsRecoilAnimation : MonoBehaviour, IArmsOffsetProvider
         float finalRotation = rotationAmount * multiplier;
 
         float snapDuration = 0.04f;
-        float recoveryDurationDynamic = Mathf.Max((weapon != null ? weapon.fireRate : 0.3f) * 0.7f, 0.08f);
+        float recoveryDurationDynamic = Mathf.Lerp(0.08f, 0.18f, Mathf.Clamp01((weapon?.recoilStrength ?? 1f) / 2f));
 
         float snapBoost = 1.4f; // optional: increase for punchier recoil
 

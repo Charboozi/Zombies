@@ -6,7 +6,7 @@ public class HealingWeapon : WeaponBase
     [SerializeField] private float baseSpreadAngle = 0f;
     [SerializeField] private int healingAmount = 10;
     [SerializeField] private bool canHealDownedPlayers = false;
-
+    [SerializeField] private float splashRadius = 0f; // 0 = single target, > 0 = area healing
 
     protected override void Start()
     {
@@ -24,52 +24,55 @@ public class HealingWeapon : WeaponBase
         Vector3 direction = playerCamera.transform.forward;
 
         if (baseSpreadAngle > 0f)
-        {
             direction = ApplySpread(direction);
-        }
 
         Ray ray = new Ray(playerCamera.transform.position, direction);
-        RaycastHit[] hits = Physics.RaycastAll(ray, range);
-
-        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-
-        foreach (var hit in hits)
+        if (Physics.Raycast(ray, out RaycastHit hit, range))
         {
-            if (hit.collider.TryGetComponent(out EntityHealth entity))
+            // 🔷 Show healing impact VFX
+            if (NetworkImpactSpawner.Instance != null)
+                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "HealImpact");
+
+            // 🔷 Apply healing (single or splash)
+            if (splashRadius <= 0f)
             {
-                if (entity.CompareTag("Player"))
+                // 🔹 Heal single target
+                if (hit.collider.TryGetComponent(out EntityHealth entity))
                 {
-                    bool isDowned = entity.isDowned.Value;
-                    bool canHealThis = !isDowned || (isDowned && canHealDownedPlayers);
-
-                    if (canHealThis && entity.currentHealth.Value < entity.maxHealth)
+                    TryHealEntity(entity);
+                }
+            }
+            else
+            {
+                // 🔹 Splash healing
+                Collider[] colliders = Physics.OverlapSphere(hit.point, splashRadius);
+                foreach (var col in colliders)
+                {
+                    if (col.TryGetComponent(out EntityHealth entity))
                     {
-                        entity.ApplyHealingServerRpc(healingAmount);
-
-                        if (NetworkImpactSpawner.Instance != null)
-                        {
-                            NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "HealImpact");
-                        }
-
-                        if (!canPierceEnemies)
-                            break;
-
-                        continue;
+                        TryHealEntity(entity);
                     }
                 }
             }
 
-            if (NetworkImpactSpawner.Instance != null)
-            {
-                NetworkImpactSpawner.Instance.SpawnImpactEffectServerRpc(hit.point, hit.normal, "HealImpact");
-            }
-
-            break;
+            // 🔷 Weapon visuals
+            muzzleFlash?.Play();
+            WeaponController.Instance?.TriggerShootEffect();
         }
+    }
 
-        if (muzzleFlash != null)
+    private void TryHealEntity(EntityHealth entity)
+    {
+        if (entity == null) return;
+
+        if (!entity.CompareTag("Player")) return;
+
+        bool isDowned = entity.isDowned.Value;
+        bool canHealThis = !isDowned || (isDowned && canHealDownedPlayers);
+
+        if (canHealThis && entity.currentHealth.Value < entity.maxHealth)
         {
-            muzzleFlash.Play();
+            entity.ApplyHealingServerRpc(healingAmount);
         }
     }
 

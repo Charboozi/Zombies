@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Button))]
 public class LeaveSessionButton : MonoBehaviour
@@ -22,14 +23,18 @@ public class LeaveSessionButton : MonoBehaviour
         joinButton.interactable = true;
         createButton.interactable = true;
 
+        // ✅ Only run if instance exists
         if (LobbyPlayerList.Instance != null)
         {
             LobbyPlayerList.Instance.ResetLobbyState();
         }
 
-        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsClient)
+        if (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsHost)
         {
             NetworkManager.Singleton.Shutdown();
         }
+
+        // ✅ Optional: Always go back to a clean scene
+        SceneManager.LoadScene("MainMenu");
     }
 }

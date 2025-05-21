@@ -9,35 +9,38 @@ public class ContinuousFireWeapon : WeaponBase
     [SerializeField] private float splashRadius = 2f;
     [SerializeField] private string impactEffect; 
 
+    private PlayerControls input;
+    private bool isFiring = false;
+
     private Coroutine firingRoutine;
 
     public override bool HandlesInput => true;
 
-    private void Update()
+    private void OnEnable()
     {
-        if (Input.GetMouseButtonDown(0) && CanShoot())
+        if (input == null)
         {
-            // Start firing coroutine
-            if (firingRoutine == null)
-                firingRoutine = StartCoroutine(FireRoutine());
+            input = new PlayerControls();
+            input.Player.Fire.performed += ctx => StartFiring();
+            input.Player.Fire.canceled += ctx => StopFiring();
         }
-
-        if (Input.GetMouseButtonUp(0) || !CanShoot())
-        {
-            StopFiring();
-        }
+        input.Enable();
     }
+
+    private void OnDisable()
+    {
+        input.Disable();
+    }
+
 
     private IEnumerator FireRoutine()
     {
-        // Optional: Muzzle effect on charge start
         if (muzzleFlash != null && !muzzleFlash.isPlaying)
             muzzleFlash.Play();
 
-        // Initial charge delay
         yield return new WaitForSeconds(initialChargeDelay);
 
-        while (CanShoot() && Input.GetMouseButton(0))
+        while (CanShoot() && isFiring)
         {
             Shoot();
             yield return new WaitForSeconds(damageInterval);
@@ -46,8 +49,19 @@ public class ContinuousFireWeapon : WeaponBase
         StopFiring();
     }
 
+    private void StartFiring()
+    {
+        if (!CanShoot() || firingRoutine != null)
+            return;
+
+        isFiring = true;
+        firingRoutine = StartCoroutine(FireRoutine());
+    }
+
     private void StopFiring()
     {
+        isFiring = false;
+
         if (firingRoutine != null)
         {
             StopCoroutine(firingRoutine);
@@ -56,7 +70,7 @@ public class ContinuousFireWeapon : WeaponBase
 
         if (muzzleFlash != null && muzzleFlash.isPlaying)
             muzzleFlash.Stop();
-    }
+}
 
     public override void Shoot()
     {

@@ -5,15 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class StartGame : NetworkBehaviour
 {
-    [SerializeField] private Button startButton;
     [SerializeField] private string gameSceneName = "GameScene";
+    [SerializeField] private GameObject lobbyPanelPVP;
+    [SerializeField] private GameObject lobbyPanelCOOP;
+    [SerializeField] private GameObject mainMenuPanel;
 
-    private void Start()
-    {
-        startButton.onClick.AddListener(OnStartClicked);
-    }
 
-    private void OnStartClicked()
+    public void OnStartClicked()
     {
         if (!NetworkManager.Singleton.IsServer)
         {
@@ -50,7 +48,18 @@ public class StartGame : NetworkBehaviour
 
         int wager = GameModeManager.Instance.PvPWagerAmount.Value;
 
-        // Ask all clients to deduct from their CurrencyManager
+        // ✅ Server (host) spends their own wager
+        if (CurrencyManager.Instance != null)
+        {
+            bool success = CurrencyManager.Instance.Spend(wager);
+            if (!success)
+            {
+                Debug.LogError("🚫 Host does not have enough coins to pay wager. Cancelling game start.");
+                return; // Optionally kick to menu or prevent start
+            }
+        }
+
+        // ✅ Ask all clients to deduct their wagers
         RequestClientWagerDeductionClientRpc(wager);
 
         GameModeManager.Instance.PvPRewardPot = wager * NetworkManager.Singleton.ConnectedClients.Count;
@@ -68,10 +77,45 @@ public class StartGame : NetworkBehaviour
 
             if (!success)
             {
-                Debug.LogError("🚫 Not enough coins to pay wager. Handle kick or block here.");
-                // Optionally auto-leave or disable interaction
+                Debug.LogError("🚫 Not enough coins to pay wager. Leaving lobby...");
+                RequestKickFromServerRpc();
             }
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestKickFromServerRpc(ServerRpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        Debug.LogWarning($"❌ Kicking client {clientId} due to insufficient funds.");
+
+        NetworkManager.Singleton.DisconnectClient(clientId);
+    }
+
+    private void OnEnable()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
+        }
+    }
+
+    private void HandleClientDisconnected(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.Log("👋 Disconnected from host. Returning to main menu.");
+            lobbyPanelPVP.SetActive(false);
+            lobbyPanelCOOP.SetActive(false);
+            mainMenuPanel.SetActive(true);
+        }
+    }
 }

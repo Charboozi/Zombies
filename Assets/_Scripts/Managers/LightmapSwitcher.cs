@@ -108,6 +108,7 @@ public class LightmapSwitcher : NetworkBehaviour
     {
         FullyDischargeAllInteractables();
         ApplyBlackoutClientRpc();
+        GameFeedManager.Instance?.PostFeedMessageServerRpc("Power outage: turn on the power in the energy room!");
     }
 
     private void ApplyLightsOnServerSide()

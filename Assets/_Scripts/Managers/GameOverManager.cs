@@ -111,6 +111,11 @@ public class GameOverManager : NetworkBehaviour
             ShowGameOverEffectClientRpc();
             SetCanInteractClientRpc(true);
             StartCoroutine(DelayedGameOverSceneLoad(4f)); // Fade duration
+
+            if (MapManager.Instance != null && HighScoreManager.Instance != null)
+            {
+                HighScoreManager.Instance.SetHighScore(MapManager.Instance.CurrentMapName, DayManager.Instance.CurrentDayInt);
+            }
         }
         else
         {
@@ -216,8 +221,8 @@ public class GameOverManager : NetworkBehaviour
         {
             // Normal co-op reward
             int day = DayManager.Instance.CurrentDayInt;
-            float baseReward = 10f;
-            float growthMultiplier = 1.25f;
+            float baseReward = 100f;
+            float growthMultiplier = 1.4f;
             int reward = Mathf.RoundToInt(baseReward * Mathf.Pow(growthMultiplier, day));
 
             for (int i = 0; i < LobbyPlayerList.Instance.Players.Count; i++)

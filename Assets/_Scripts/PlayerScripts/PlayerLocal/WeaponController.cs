@@ -121,18 +121,26 @@ public class WeaponController : MonoBehaviour
     /// </summary>
     public void OnWeaponSwitched()
     {
-        reloadHandler.CancelReloads();
-
-        if (currentWeapon != null)
+        if (reloadHandler != null)
         {
-            reloadHandler.Initialize(currentWeapon);
+            reloadHandler.CancelReloads();
+        }
 
-            if (currentWeapon.currentAmmo < currentWeapon.maxAmmo)
-                reloadHandler.TryAutoReload();
+        if (CurrentWeaponHolder.Instance != null && CurrentWeaponHolder.Instance.CurrentWeapon != null)
+        {
+            var weapon = CurrentWeaponHolder.Instance.CurrentWeapon;
+
+            if (reloadHandler != null)
+            {
+                reloadHandler.Initialize(weapon);
+
+                if (weapon.currentAmmo < weapon.maxAmmo)
+                    reloadHandler.TryAutoReload();
+            }
         }
         else
         {
-            Debug.LogWarning("WeaponController: no weapon to switch to.");
+            Debug.LogWarning("WeaponController: no weapon or weapon holder to switch to.");
         }
     }
     

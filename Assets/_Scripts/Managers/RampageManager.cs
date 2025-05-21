@@ -35,6 +35,7 @@ public class RampageManager : NetworkBehaviour
         Debug.Log("🚨 Rampage started.");
         StartRampageClientRpc(speedMultiplier, rampageEyeColor);
         StartRampageLocally(speedMultiplier, rampageEyeColor);
+        GameFeedManager.Instance?.PostFeedMessageServerRpc("Rampage mode activated!!");
     }
 
     [ClientRpc]
