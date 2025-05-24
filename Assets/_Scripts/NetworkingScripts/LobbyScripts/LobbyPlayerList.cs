@@ -74,9 +74,9 @@ public class LobbyPlayerList : NetworkBehaviour
     {
         yield return null; // wait 1 frame to ensure network is fully initialized
 
-        if (SteamManager.Initialized)
+        if (SteamClient.IsValid)
         {
-            string steamName = SteamFriends.GetPersonaName();
+            string steamName = SteamClient.Name;
             SubmitSteamNameServerRpc(NetworkManager.Singleton.LocalClientId, steamName);
         }
     }

@@ -15,7 +15,6 @@ public class FPSCameraController : NetworkBehaviour
     [Header("Look Settings")]
     public float minPitch = -80f;
     public float maxPitch = 80f;
-    public float mouseSensitivity = 100f;
 
     [Header("Camera Offset Settings")]
     public float cameraLerpSpeed = 5f;
@@ -48,6 +47,10 @@ public class FPSCameraController : NetworkBehaviour
         targetCameraOffset = Vector3.zero;
         currentCameraTilt = Quaternion.identity;
         targetCameraTilt = Quaternion.identity;
+
+        if (InputSensitivity.Current <= 0f)
+            InputSensitivity.Current = Mathf.Clamp(PlayerPrefs.GetFloat("Sensitivity", 10f), 0.1f, 10f);
+
 
         if (IsOwner && IsInGameScene())
         {
@@ -116,20 +119,17 @@ public class FPSCameraController : NetworkBehaviour
 
     private void ProcessMouseLook()
     {
-        float lookX = lookInput.x * mouseSensitivity * Time.deltaTime;
-        float lookY = lookInput.y * mouseSensitivity * Time.deltaTime;
+        float sensitivity = InputSensitivity.Current; // ✅ use loaded sensitivity
+        float lookX = lookInput.x * sensitivity * Time.deltaTime;
+        float lookY = lookInput.y * sensitivity * Time.deltaTime;
 
         yaw += lookX;
         pitch -= lookY;
         pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
-        // YAW → player body
         transform.rotation = Quaternion.Euler(0f, yaw, 0f);
 
-        // Get recoil rotation from controller
         Vector2 recoil = cameraRecoil != null ? cameraRecoil.GetCurrentRecoil() : Vector2.zero;
-
-        // PITCH + RECOIL applied to recoil transform
         cameraRecoil.transform.localRotation = Quaternion.Euler(pitch - recoil.y, recoil.x, 0f);
     }
 

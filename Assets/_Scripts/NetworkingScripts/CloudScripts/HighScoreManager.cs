@@ -57,7 +57,6 @@ public class HighScoreManager : MonoBehaviour
         if (File.Exists(savePath))
         {
             string json = File.ReadAllText(savePath);
-            Debug.Log($"📂 Raw save file:\n{json}");
 
             data = JsonUtility.FromJson<HighScoreData>(json);
             if (data == null)

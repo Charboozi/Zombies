@@ -20,9 +20,9 @@ public class PlayerNameTag : NetworkBehaviour
         cameraTransform = Camera.main != null ? Camera.main.transform : null;
 
         // Only the owner should set their name
-        if (IsOwner && SteamManager.Initialized)
+        if (IsOwner && SteamClient.IsValid)
         {
-            steamName.Value = SteamFriends.GetPersonaName();
+            steamName.Value = SteamClient.Name;
         }
 
         steamName.OnValueChanged += OnSteamNameChanged;

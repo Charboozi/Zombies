@@ -14,6 +14,8 @@ public class GraphicsSettingsController : MonoBehaviour
     [SerializeField] private TMP_Text fovValueLabel;
     [SerializeField] private Toggle vsyncToggle;
     [SerializeField] private TMP_Dropdown aaDropdown;
+    [SerializeField] private Slider sensitivitySlider;
+    [SerializeField] private TMP_Text sensitivityValueLabel;
 
     [Header("Target References")]
     [SerializeField] private Camera mainCamera;
@@ -41,6 +43,8 @@ public class GraphicsSettingsController : MonoBehaviour
             vsyncToggle.onValueChanged.AddListener(SetVSync);
         if (aaDropdown != null)
             aaDropdown.onValueChanged.AddListener(SetAntiAliasing);
+        if (sensitivitySlider != null)
+            sensitivitySlider.onValueChanged.AddListener(SetSensitivity);
     }
 
     private void SetupResolutions()
@@ -97,50 +101,78 @@ public class GraphicsSettingsController : MonoBehaviour
         if (resolutions == null || resolutions.Length == 0)
             resolutions = Screen.resolutions;
 
-        // Resolution & fullscreen
+        // Resolution
         int resolutionIndex = PlayerPrefs.GetInt("ResolutionIndex", 0);
         resolutionIndex = Mathf.Clamp(resolutionIndex, 0, resolutions.Length - 1);
-        Resolution res = resolutions[resolutionIndex];
-        bool isFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
-
-        Screen.SetResolution(res.width, res.height, isFullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
-        Screen.fullScreen = isFullscreen;
-
         if (resolutionDropdown != null)
+        {
             resolutionDropdown.value = resolutionIndex;
+            SetResolution(resolutionIndex);
+        }
+
+        // Fullscreen
+        bool isFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
         if (fullscreenToggle != null)
+        {
             fullscreenToggle.isOn = isFullscreen;
+            SetFullscreen(isFullscreen);
+        }
 
         // Quality
         int quality = PlayerPrefs.GetInt("QualityLevel", QualitySettings.GetQualityLevel());
         quality = Mathf.Clamp(quality, 0, QualitySettings.names.Length - 1);
-        QualitySettings.SetQualityLevel(quality);
         if (qualityDropdown != null)
+        {
             qualityDropdown.value = quality;
+            SetQualityLevel(quality);
+        }
 
         // FOV
         float fov = PlayerPrefs.GetFloat("FOV", 60f);
-        fov = Mathf.Clamp(fov, 50f, 90f);
-        if (mainCamera != null)
-            mainCamera.fieldOfView = fov;
+        fov = Mathf.Clamp(fov, 60f, 90f);
         if (fovSlider != null)
+        {
             fovSlider.value = fov;
-        if (fovValueLabel != null)
-            fovValueLabel.text = Mathf.RoundToInt(fov).ToString();
+            SetFOV(fov);
+        }
 
         // VSync
         bool vsync = PlayerPrefs.GetInt("VSync", 1) == 1;
-        QualitySettings.vSyncCount = vsync ? 1 : 0;
         if (vsyncToggle != null)
+        {
             vsyncToggle.isOn = vsync;
+            SetVSync(vsync);
+        }
 
-        // AA
+        // Anti-Aliasing
         int aaLevelIndex = PlayerPrefs.GetInt("AntiAliasing", 0);
-        int[] aaLevels = { 0, 2, 4, 8 };
-        aaLevelIndex = Mathf.Clamp(aaLevelIndex, 0, aaLevels.Length - 1);
-        QualitySettings.antiAliasing = aaLevels[aaLevelIndex];
+        aaLevelIndex = Mathf.Clamp(aaLevelIndex, 0, 3);
         if (aaDropdown != null)
+        {
             aaDropdown.value = aaLevelIndex;
+            SetAntiAliasing(aaLevelIndex);
+        }
+
+        // Sensitivity
+        float sensitivity = PlayerPrefs.GetFloat("Sensitivity", 20f);
+        if (sensitivitySlider != null)
+        {
+            sensitivitySlider.value = Mathf.Clamp(sensitivity, 1f, 100f);
+            SetSensitivity(sensitivity);
+        }
+    }
+
+    public static float Sensitivity { get; private set; } = 20f; // Static if needed globally
+
+
+    public void SetSensitivity(float value)
+    {
+        float clamped = Mathf.Clamp(value, 1f, 100f);
+        InputSensitivity.Current = clamped;
+        PlayerPrefs.SetFloat("Sensitivity", clamped);
+
+        if (sensitivityValueLabel != null)
+            sensitivityValueLabel.text = clamped.ToString("F1");
     }
 
     public void SetResolution(int index)
@@ -167,11 +199,12 @@ public class GraphicsSettingsController : MonoBehaviour
 
     public void SetFOV(float fov)
     {
-        float clampedFOV = Mathf.Clamp(fov, 50f, 90f);
+        float clampedFOV = Mathf.Clamp(fov, 60f, 90f);
         if (mainCamera != null)
             mainCamera.fieldOfView = clampedFOV;
 
         PlayerPrefs.SetFloat("FOV", clampedFOV);
+
         if (fovValueLabel != null)
             fovValueLabel.text = Mathf.RoundToInt(clampedFOV).ToString();
     }
@@ -192,16 +225,4 @@ public class GraphicsSettingsController : MonoBehaviour
         }
     }
 
-/*
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Debug.Log("🔁 Resetting all PlayerPrefs and reloading scene...");
-            PlayerPrefs.DeleteAll();
-            PlayerPrefs.Save();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
-    }
-*/
 }

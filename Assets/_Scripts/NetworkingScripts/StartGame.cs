@@ -19,6 +19,13 @@ public class StartGame : NetworkBehaviour
             return;
         }
 
+        // ✅ PvP mode requires at least 2 players
+        if (GameModeManager.Instance.IsPvPMode && NetworkManager.Singleton.ConnectedClients.Count <= 1)
+        {
+            Debug.LogWarning("🚫 Cannot start PvP game with only one player in the lobby.");
+            return;
+        }
+
         GameOverManager.Instance?.ClearEliminationOrder();
 
         // ✅ Sync PvP flag to clients

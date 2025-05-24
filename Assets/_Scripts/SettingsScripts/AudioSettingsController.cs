@@ -18,7 +18,7 @@ public class AudioSettingsController : MonoBehaviour
         {
             float masterVol = PlayerPrefs.GetFloat("MasterVolume", 1f);
             masterSlider.value = masterVol;
-            SetMasterVolume(masterVol);
+            SetMasterVolume(masterVol); // ✅ apply immediately
             masterSlider.onValueChanged.AddListener(SetMasterVolume);
         }
 
@@ -26,7 +26,7 @@ public class AudioSettingsController : MonoBehaviour
         {
             float musicVol = PlayerPrefs.GetFloat("MusicVolume", 1f);
             musicSlider.value = musicVol;
-            SetMusicVolume(musicVol);
+            SetMusicVolume(musicVol); // ✅ apply immediately
             musicSlider.onValueChanged.AddListener(SetMusicVolume);
         }
 
@@ -34,10 +34,11 @@ public class AudioSettingsController : MonoBehaviour
         {
             float sfxVol = PlayerPrefs.GetFloat("SFXVolume", 1f);
             sfxSlider.value = sfxVol;
-            SetSFXVolume(sfxVol);
+            SetSFXVolume(sfxVol); // ✅ apply immediately
             sfxSlider.onValueChanged.AddListener(SetSFXVolume);
         }
     }
+
 
     public void SetMasterVolume(float value)
     {

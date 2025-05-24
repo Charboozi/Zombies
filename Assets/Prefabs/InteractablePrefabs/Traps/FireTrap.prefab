@@ -1483,7 +1483,7 @@ MonoBehaviour:
   activeLoopClip: {fileID: 8300000, guid: 790c84a8ec49763489506946685c96ca, type: 3}
   loopingAudioSource: {fileID: 7130048771327913098}
   isActive: 0
-  damagePerTick: 70
+  damagePerTick: 40
   damageInterval: 0.25
   fireEffects:
   - {fileID: 3712192451950583953}

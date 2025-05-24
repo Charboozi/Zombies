@@ -73,10 +73,16 @@ public class FireTrap : TrapBase
         {
             foreach (var victim in victimsInRange)
             {
-                if (victim != null)
+                if (victim == null) continue;
+
+                int finalDamage = damagePerTick;
+
+                if (victim.CompareTag("Player")) // ✅ Only for players
                 {
-                    victim.TakeDamageServerRpc(damagePerTick);
+                    finalDamage = Mathf.Max(1, damagePerTick / 2); // Never less than 1
                 }
+
+                victim.TakeDamageServerRpc(finalDamage);
             }
 
             yield return new WaitForSeconds(damageInterval);

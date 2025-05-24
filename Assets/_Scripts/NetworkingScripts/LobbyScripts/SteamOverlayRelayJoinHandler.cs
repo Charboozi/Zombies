@@ -1,100 +1,119 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
-using Unity.Services.Core;
-using Unity.Services.Authentication;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
 using Steamworks;
+using Unity.Netcode;
+using Netcode.Transports.Facepunch;
+using Steamworks.Data;
 using System;
 using System.Threading.Tasks;
 
-public class SteamOverlayRelayJoinHandler : MonoBehaviour
+public class SteamOverlayJoinHandler : MonoBehaviour
 {
     [Header("UI Panels")]
-    [SerializeField] private GameObject mainMenuPanel; // 👈 Set this in Inspector
-    [SerializeField] private GameObject lobbyPanel;    // 👈 Set this in Inspector
+    [SerializeField] private GameObject mainMenuPanel;
+    [SerializeField] private GameObject lobbyPanelPVP;
+    [SerializeField] private GameObject lobbyPanelCOOP;
 
     [Header("Debug Text (optional)")]
     [SerializeField] private TMP_Text statusText;
 
-    private Callback<LobbyEnter_t> lobbyEnterCallback;
-
     private void Start()
     {
-        if (!SteamManager.Initialized)
+        if (!SteamClient.IsValid)
         {
             Debug.LogError("❌ Steam not initialized.");
             return;
         }
 
-        lobbyEnterCallback = Callback<LobbyEnter_t>.Create(OnLobbyEnteredFromSteamOverlay);
-        Debug.Log("📡 Steam overlay join handler ready.");
+        SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
+        SteamFriends.OnGameLobbyJoinRequested += OnOverlayJoinRequested;
+
+        LogStatus("📡 Steam overlay join handler ready.");
+
+        // ✅ Fallback: parse Steam lobby ID from command line if launched via overlay
+        string[] args = Environment.GetCommandLineArgs();
+        foreach (var arg in args)
+        {
+            if (ulong.TryParse(arg, out ulong lobbyId))
+            {
+                LogStatus($"🛰 Auto-joining lobby from launch args: {lobbyId}");
+                _ = SteamMatchmaking.JoinLobbyAsync(lobbyId);
+                break;
+            }
+        }
     }
 
-private async void OnLobbyEnteredFromSteamOverlay(LobbyEnter_t callback)
-{
-    CSteamID lobbyID = new CSteamID(callback.m_ulSteamIDLobby);
-    Debug.Log($"✅ Joined Steam lobby: {lobbyID}");
-
-    // Retry to get join code
-    string joinCode = null;
-    float timeout = 5f;
-    float elapsed = 0f;
-
-    while (string.IsNullOrEmpty(joinCode) && elapsed < timeout)
+    private async void OnOverlayJoinRequested(Lobby lobby, SteamId friendId)
     {
-        joinCode = SteamMatchmaking.GetLobbyData(lobbyID, "joinCode");
-        await Task.Delay(250);
-        elapsed += 0.25f;
+        LogStatus($"📨 Received join request via overlay from: {friendId}");
+        await SteamMatchmaking.JoinLobbyAsync(lobby.Id);
     }
 
-    if (string.IsNullOrEmpty(joinCode))
+    private async void OnLobbyEntered(Lobby lobby)
     {
-        Debug.LogError("❌ Still no joinCode after retry.");
-        return;
+        if (NetworkManager.Singleton.IsServer)
+        {
+            LogStatus("👑 Host entered their own lobby – skipping client join logic.");
+            return;
+        }
+
+        LogStatus($"✅ Joined Steam lobby: {lobby.Id}");
+
+        // Extract hostId from lobby metadata
+        string hostIdStr = lobby.GetData("hostId");
+        if (string.IsNullOrEmpty(hostIdStr) || !ulong.TryParse(hostIdStr, out ulong hostId))
+        {
+            LogStatus("❌ Invalid or missing hostId.");
+            return;
+        }
+
+        // Extract game mode
+        string gameMode = lobby.GetData("gameMode");
+        if (string.IsNullOrEmpty(gameMode))
+        {
+            LogStatus("❌ Missing game mode in lobby metadata.");
+            return;
+        }
+
+        // Update UI based on game mode
+        lobbyPanelPVP?.SetActive(gameMode == "PvP");
+        lobbyPanelCOOP?.SetActive(gameMode == "CoOp");
+
+        // Setup Facepunch Transport
+        FacepunchTransport transport = NetworkManager.Singleton.GetComponent<FacepunchTransport>();
+        transport.targetSteamId = hostId;
+        Debug.Log($"🎯 Target Steam ID set: {hostId}");
+
+        // Register disconnect callback early
+        NetworkManager.Singleton.OnClientDisconnectCallback += (clientId) =>
+        {
+            Debug.Log($"❌ Client disconnected. ID: {clientId}");
+
+            if (clientId == NetworkManager.Singleton.LocalClientId)
+            {
+                Debug.Log("🛑 YOU (the client) got disconnected. Possible bad hostId or Steam relay issue.");
+            }
+        };
+
+        await Task.Delay(250); // Slight delay to ensure transport is ready
+
+        NetworkManager.Singleton.StartClient();
+
+        NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
+        {
+            LogStatus($"✅ Connected to host! Client ID: {clientId}");
+        };
+
+        mainMenuPanel?.SetActive(false);
     }
 
-    Debug.Log($"🔗 Found joinCode: {joinCode}");
-
-    // Auth
-    await UnityServices.InitializeAsync();
-    if (!AuthenticationService.Instance.IsSignedIn)
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
-
-    // Join relay
-    var joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-    var relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "dtls");
-
-    var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-    transport.SetRelayServerData(relayServerData);
-
-    // Start client
-    NetworkManager.Singleton.StartClient();
-
-    // Add connection logs
-    NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
-    {
-        Debug.Log($"✅ Connected to host as client! ClientId: {id}");
-    };
-
-    NetworkManager.Singleton.OnClientDisconnectCallback += (id) =>
-    {
-        Debug.LogWarning($"❌ Client {id} disconnected.");
-    };
-
-    // Show UI
-    if (lobbyPanel != null) lobbyPanel.SetActive(true);
-    if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
-}
-
-
-    private void SetStatus(string message)
+    private void LogStatus(string message)
     {
         Debug.Log(message);
         if (statusText != null)
+        {
             statusText.text = message;
+        }
     }
 }

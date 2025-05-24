@@ -83,21 +83,65 @@ public class GameOverManager : NetworkBehaviour
             }
         }
 
-        // Track the last standing player when only one is alive
+        // Always track the last one standing
         if (aliveCount == 1)
         {
             currentlyLastAliveClientId = newLastAlive;
         }
 
-        // If someone is still alive, don't trigger game over yet
-        if (aliveCount > 0)
-            return;
+        if (GameModeManager.Instance.IsPvPMode)
+        {
+            // In PvP: Game over when only one left alive
+            if (aliveCount == 1)
+            {
+                lastSurvivorClientId = currentlyLastAliveClientId;
+                Debug.Log($"🏆 PvP: Only one player left! Client {lastSurvivorClientId}");
+                TriggerGameOver();
+            }
+        }
+        else
+        {
+            // In Co-Op: Game over when all are downed
+            if (aliveCount == 0)
+            {
+                // Wait before triggering game over to allow self-revive to happen
+                StartCoroutine(GracePeriodBeforeGameOver());
+            }
+        }
+    }
 
-        // All players are down — use tracked last survivor
-        lastSurvivorClientId = currentlyLastAliveClientId;
-        Debug.Log($"✅ All players are down. Last survivor was Client {lastSurvivorClientId}");
+    private IEnumerator GracePeriodBeforeGameOver()
+    {
+        Debug.Log("🕓 All players are down. Waiting to see if someone revives...");
 
-        TriggerGameOver();
+        yield return new WaitForSeconds(3.1f); // Wait slightly longer than self-revive time
+
+        // Re-check if anyone is still downed
+        int stillDownCount = 0;
+        ulong lastAlive = 0;
+
+        foreach (var player in playerEntities)
+        {
+            if (player == null) continue;
+
+            if (!player.isDowned.Value)
+            {
+                Debug.Log($"🟢 Player {player.OwnerClientId} revived during grace period.");
+                yield break; // Someone got back up, cancel game over
+            }
+            else
+            {
+                stillDownCount++;
+                lastAlive = player.OwnerClientId;
+            }
+        }
+
+        if (stillDownCount == playerEntities.Count)
+        {
+            lastSurvivorClientId = lastAlive;
+            Debug.Log($"🟥 No one revived. Proceeding with game over.");
+            TriggerGameOver();
+        }
     }
 
     private void TriggerGameOver()
@@ -108,8 +152,21 @@ public class GameOverManager : NetworkBehaviour
         {
             Debug.Log("✅ Triggering game over visuals...");
             RewardAllPlayersBasedOnDay();
-            ShowGameOverEffectClientRpc();
+            ShowGameOverEffectClientRpc(); // All players get death fade
             SetCanInteractClientRpc(true);
+
+            // 👇 Winner-only victory effect
+            if (GameModeManager.Instance.IsPvPMode)
+            {
+                ShowWinnerEffectClientRpc(new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new[] { lastSurvivorClientId }
+                    }
+                });
+            }
+
             StartCoroutine(DelayedGameOverSceneLoad(4f)); // Fade duration
 
             if (MapManager.Instance != null && HighScoreManager.Instance != null)
@@ -122,6 +179,7 @@ public class GameOverManager : NetworkBehaviour
             Debug.LogWarning("⚠️ NetworkSceneManager not found.");
         }
     }
+
 
     private IEnumerator DelayedGameOverSceneLoad(float delay)
     {
@@ -179,43 +237,43 @@ public class GameOverManager : NetworkBehaviour
             .Reverse()
             .ToList();
 
-        for (int i = 0; i < uniqueOrder.Count; i++)
-        {
-            ulong clientId = uniqueOrder[i];
-            float percentage = 0f;
-
-            if (i == 0) percentage = 0.80f;
-            else if (i == 1) percentage = 0.15f;
-            else if (i == 2) percentage = 0.05f;
-
-            int reward = Mathf.RoundToInt(pot * percentage);
-
-            // Update networked coin display
-            for (int j = 0; j < LobbyPlayerList.Instance.Players.Count; j++)
+            for (int i = 0; i < uniqueOrder.Count; i++)
             {
-                if (LobbyPlayerList.Instance.Players[j].ClientId == clientId)
-                {
-                    var updated = LobbyPlayerList.Instance.Players[j];
-                    updated.CoinsEarned = reward;
-                    LobbyPlayerList.Instance.Players[j] = updated;
-                    break;
-                }
-            }
+                ulong clientId = uniqueOrder[i];
+                float percentage = 0f;
 
-            // Send reward only to correct client
-            if (reward > 0)
-            {
-                RewardPvPWinnerClientRpc(reward, clientId, new ClientRpcParams
+                if (i == 0) percentage = 0.80f;
+                else if (i == 1) percentage = 0.15f;
+                else if (i == 2) percentage = 0.05f;
+
+                int reward = Mathf.RoundToInt(pot * percentage);
+
+                // Update networked coin display
+                for (int j = 0; j < LobbyPlayerList.Instance.Players.Count; j++)
                 {
-                    Send = new ClientRpcSendParams
+                    if (LobbyPlayerList.Instance.Players[j].ClientId == clientId)
                     {
-                        TargetClientIds = new[] { clientId }
+                        var updated = LobbyPlayerList.Instance.Players[j];
+                        updated.CoinsEarned = reward;
+                        LobbyPlayerList.Instance.Players[j] = updated;
+                        break;
                     }
-                });
-            }
+                }
 
-            Debug.Log($"🏅 Player {clientId} gets {reward} coins ({percentage * 100}%)");
-        }
+                // Send reward only to correct client
+                if (reward > 0)
+                {
+                    RewardPvPWinnerClientRpc(reward, clientId, new ClientRpcParams
+                    {
+                        Send = new ClientRpcSendParams
+                        {
+                            TargetClientIds = new[] { clientId }
+                        }
+                    });
+                }
+
+                Debug.Log($"🏅 Player {clientId} gets {reward} coins ({percentage * 100}%)");
+            }
         }
         else
         {
@@ -268,6 +326,16 @@ public class GameOverManager : NetworkBehaviour
         if (FadeScreenEffect.Instance != null)
         {
             FadeScreenEffect.Instance.ShowDeathEffect(3.7f); // Fade to deep red in 4 seconds
+        }
+    }
+    
+    [ClientRpc]
+    private void ShowWinnerEffectClientRpc(ClientRpcParams rpcParams = default)
+    {
+        if (FadeScreenEffect.Instance != null)
+        {
+            FadeScreenEffect.Instance.ShowVictoryEffect(3.7f); // You implement this in FadeScreenEffect
+            Debug.Log("🎉 Victory effect triggered!");
         }
     }
 }

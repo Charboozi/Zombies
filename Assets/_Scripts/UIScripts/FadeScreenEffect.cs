@@ -126,7 +126,6 @@ public class FadeScreenEffect : MonoBehaviour
 
         currentFadeCoroutine = StartCoroutine(FadeToDeathRed(duration));
     }
-
     private IEnumerator FadeToDeathRed(float duration)
     {
         float elapsed = 0f;
@@ -146,4 +145,35 @@ public class FadeScreenEffect : MonoBehaviour
             screenImage.color = targetColor;
         currentFadeCoroutine = null;
     }
+
+    public void ShowVictoryEffect(float duration = 4f)
+    {
+        if (!IsImageValid()) return;
+
+        if (currentFadeCoroutine != null)
+            StopCoroutine(currentFadeCoroutine);
+
+        currentFadeCoroutine = StartCoroutine(FadeToVictoryWhite(duration));
+    }
+    private IEnumerator FadeToVictoryWhite(float duration)
+    {
+        float elapsed = 0f;
+        Color startColor = screenImage.color;
+        Color targetColor = new Color(1f, 1f, 1f, 1f); // Pure white
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            if (IsImageValid())
+                screenImage.color = Color.Lerp(startColor, targetColor, t);
+            yield return null;
+        }
+
+        if (IsImageValid())
+            screenImage.color = targetColor;
+
+        currentFadeCoroutine = null;
+    }
+
 }

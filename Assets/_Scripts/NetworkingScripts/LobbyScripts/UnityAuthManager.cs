@@ -5,15 +5,16 @@ using Unity.Services.Core;
 using Unity.Services.Authentication;
 using System.Threading.Tasks;
 
+
 public class UnityAuthManager : MonoBehaviour
 {
     public static UnityAuthManager Instance;
 
     [SerializeField] private TMP_Text playerIdText;
 
-    public bool IsAuthenticated => AuthenticationService.Instance.IsSignedIn;
+    public bool IsAuthenticated => SteamClient.IsValid;
 
-    private async void Awake()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -24,30 +25,12 @@ public class UnityAuthManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        await AuthenticateUGS();
+        //await AuthenticateUGS();
 
         // Steam overlay name (visual only)
-        if (SteamManager.Initialized && playerIdText != null)
+        if (SteamClient.IsValid && playerIdText != null)
         {
-            playerIdText.text = SteamFriends.GetPersonaName();
-        }
-    }
-
-    private async Task AuthenticateUGS()
-    {
-        try
-        {
-            await UnityServices.InitializeAsync();
-
-            if (!AuthenticationService.Instance.IsSignedIn)
-            {
-                await AuthenticationService.Instance.SignInAnonymouslyAsync();
-                Debug.Log($"✅ Signed in to Unity Relay as: {AuthenticationService.Instance.PlayerId}");
-            }
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError("❌ Unity Auth for Relay failed: " + ex.Message);
+            playerIdText.text = SteamClient.Name;
         }
     }
 
