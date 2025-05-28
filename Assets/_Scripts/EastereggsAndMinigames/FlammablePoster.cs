@@ -21,7 +21,7 @@ public class FlammablePoster : NetworkBehaviour
 
     private void Awake()
     {
-        SetPosterState(true); // fallback
+        SetPosterState(true);
     }
 
     public override void OnNetworkSpawn()
@@ -30,37 +30,51 @@ public class FlammablePoster : NetworkBehaviour
         {
             SetPosterState(!newValue);
         };
-
         SetPosterState(!isDestroyed.Value);
     }
 
-    public void ApplyBurnDamage(float damageAmount)
+    // ✅ Called from any local script (even non-networked)
+    public void BurnRequest(float amount)
     {
-        if (!IsServer || isDestroyed.Value) return;
+        if (IsServer)
+        {
+            ApplyBurn(amount);
+        }
+        else
+        {
+            RequestBurnServerRpc(amount);
+        }
+    }
 
-        damageAccumulated += damageAmount;
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestBurnServerRpc(float amount)
+    {
+        ApplyBurn(amount);
+    }
+
+    private void ApplyBurn(float amount)
+    {
+        if (isDestroyed.Value) return;
+
+        damageAccumulated += amount;
 
         if (damageAccumulated >= damageThreshold)
         {
             isDestroyed.Value = true;
-            Debug.Log($"🔥 Poster destroyed on server: {name}");
             MoveButtonToTarget();
+            Debug.Log($"🔥 Poster {name} destroyed!");
         }
     }
 
     private void SetPosterState(bool intact)
     {
-        if (intactPoster != null) intactPoster.SetActive(intact);
-        if (destroyedPoster != null) destroyedPoster.SetActive(!intact);
+        intactPoster?.SetActive(intact);
+        destroyedPoster?.SetActive(!intact);
     }
 
     private void MoveButtonToTarget()
     {
-        if (linkedButton == null || targetPoint == null)
-        {
-            Debug.LogWarning("🔧 Linked button or target point is not assigned.");
-            return;
-        }
+        if (linkedButton == null || targetPoint == null) return;
 
         linkedButton.position = targetPoint.position;
         Debug.Log($"🟦 Button {linkedButton.name} moved to {targetPoint.position}");

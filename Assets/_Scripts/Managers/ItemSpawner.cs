@@ -7,6 +7,7 @@ public class ItemSpawner : NetworkBehaviour, IInteractableAction
     [Header("Item Spawning Settings")]
     [SerializeField] private List<GameObject> itemPrefabs;
     [SerializeField] private Vector3 spawnOffsetPosition = new Vector3(0, 1.5f, 0.25f);
+    [SerializeField] private Vector3 spawnRotationOffsetEuler = Vector3.zero; // Rotation offset in degrees
 
     public void DoAction()
     {
@@ -24,8 +25,9 @@ public class ItemSpawner : NetworkBehaviour, IInteractableAction
 
         int randomIndex = Random.Range(0, itemPrefabs.Count);
         Vector3 spawnPosition = transform.position + spawnOffsetPosition;
+        Quaternion spawnRotation = Quaternion.Euler(spawnRotationOffsetEuler);
 
-        GameObject itemInstance = Instantiate(itemPrefabs[randomIndex], spawnPosition, Quaternion.identity);
+        GameObject itemInstance = Instantiate(itemPrefabs[randomIndex], spawnPosition, spawnRotation);
 
         if (itemInstance.TryGetComponent(out NetworkObject networkObject))
         {

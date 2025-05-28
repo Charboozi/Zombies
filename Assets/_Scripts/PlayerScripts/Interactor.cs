@@ -42,13 +42,12 @@ public class Interactor : MonoBehaviour
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, interactRange, interactLayer))
+        if (Physics.Raycast(ray, out hit, interactRange))
         {
-            if (hit.collider.TryGetComponent(out Interactable interactable))
+            if (((1 << hit.collider.gameObject.layer) & interactLayer) != 0 &&
+                hit.collider.TryGetComponent(out Interactable interactable))
             {
-                if (currentInteractable != interactable)
-                    currentInteractable = interactable;
-
+                currentInteractable = interactable;
                 return;
             }
         }

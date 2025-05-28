@@ -1,9 +1,13 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Audio;
 
 [RequireComponent(typeof(ParticleSystem), typeof(AudioSource))]
 public class ParticleSoundController : MonoBehaviour
-{
+{   
+    [Header("Audio Mixer")]
+    [SerializeField] private AudioMixerGroup sfxMixerGroup;
+
     private ParticleSystem ps;
     private AudioSource audioSource;
 
@@ -75,6 +79,7 @@ public class ParticleSoundController : MonoBehaviour
             tempSource.volume = audioSource.volume;
             tempSource.spatialBlend = audioSource.spatialBlend;
             tempSource.priority = audioSource.priority;
+            tempSource.outputAudioMixerGroup = sfxMixerGroup;
             tempSource.Play();
 
             Destroy(tempAudio, tempSource.clip.length);

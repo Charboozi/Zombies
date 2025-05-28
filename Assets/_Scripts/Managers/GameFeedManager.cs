@@ -13,14 +13,6 @@ public class GameFeedManager : NetworkBehaviour
         Instance = this;
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            PostFeedMessageServerRpc("Test feed message from F key.");
-        }
-    }
-
     [ServerRpc(RequireOwnership = false)]
     public void PostFeedMessageServerRpc(string message)
     {

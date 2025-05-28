@@ -2,91 +2,71 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 
-public class SelfRevive : BaseEquipment
+public class SelfRevive : NetworkBehaviour
 {
+    [SerializeField] private float selfReviveDelay = 3f; 
+
     private EntityHealth entityHealth;
     private bool used = false;
 
-    [SerializeField] private float selfReviveDelay = 3f; // Match revive system timing
-
-    private void OnEnable()
+    public override void OnNetworkSpawn()
     {
-        used = false;
+        // Only hook up the local player
+        if (!IsOwner) return;
 
-        var localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
-        if (localPlayer == null) return;
+        // Grab our own EntityHealth
+        var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+        entityHealth = playerObj.GetComponent<EntityHealth>();
+        if (entityHealth == null) return;
 
-        var newHealth = localPlayer.GetComponent<EntityHealth>();
-        if (entityHealth != null && entityHealth != newHealth)
-        {
-            entityHealth.OnDowned -= HandleDowned; // Remove old link
-        }
-
-        entityHealth = newHealth;
-
-        if (entityHealth != null)
-        {
-            entityHealth.OnDowned -= HandleDowned; // Prevent double registration
-            entityHealth.OnDowned += HandleDowned;
-        }
+        // Subscribe to the networked downed flag
+        entityHealth.isDowned.OnValueChanged += OnDownedChanged;
     }
 
-    private void OnDisable()
+    public override void OnNetworkDespawn()
     {
-        used = false;
-
         if (entityHealth != null)
-        {
-            entityHealth.OnDowned -= HandleDowned;
-            entityHealth = null;
-        }
+            entityHealth.isDowned.OnValueChanged -= OnDownedChanged;
     }
 
-    private void HandleDowned(EntityHealth downedTarget)
+    private void OnDownedChanged(bool previous, bool current)
     {
-        if (used || entityHealth == null || downedTarget != entityHealth) return;
-
-        used = true;
-        Debug.Log("⏳ SelfRevive will trigger after delay...");
-
-        // Start the timed revive sequence
-        StartCoroutine(DelayedSelfRevive());
+        // When we just went down, trigger once
+        if (current && !used)
+        {
+            used = true;
+            StartCoroutine(DelayedSelfRevive());
+        }
     }
 
     private IEnumerator DelayedSelfRevive()
     {
-        float elapsed = 0f;
-        while (elapsed < selfReviveDelay)
+        float t = 0f;
+        while (t < selfReviveDelay)
         {
+            // If revived by someone else first, cancel
             if (!entityHealth.isDowned.Value)
             {
-                Debug.Log("🛑 SelfRevive cancelled (player already revived).");
                 used = false;
                 yield break;
             }
-
-            elapsed += Time.deltaTime;
+            t += Time.deltaTime;
             yield return null;
         }
 
+        // Ask server to revive us
         RequestReviveSelfServerRpc();
 
-        // Soft remove after revive
-        EquipmentInventory inventory = GetComponentInParent<EquipmentInventory>();
-        if (inventory != null)
-        {
-            inventory.Unequip(gameObject.name);
-        }
-
-        Debug.Log("✅ SelfRevive triggered after delay and unequipped.");
+        // Remove this equipment locally
+        var inv = GetComponentInParent<EquipmentInventory>();
+        inv?.Unequip(gameObject.name);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void RequestReviveSelfServerRpc()
+    private void RequestReviveSelfServerRpc(ServerRpcParams rpcParams = default)
     {
+        // Server‐side check & revive
         if (entityHealth != null && entityHealth.isDowned.Value)
-        {
-            entityHealth.Revive(); // 10 HP + revive
-        }
+            entityHealth.Revive();
     }
 }

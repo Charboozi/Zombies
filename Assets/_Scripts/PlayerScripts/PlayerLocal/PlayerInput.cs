@@ -16,6 +16,7 @@ public class PlayerInput : MonoBehaviour
     public static event Action<int> OnCycleWeapon;
     public static event Action OnInteractPressed;
     public static event Action OnPausePressed;
+    public static event Action OnFlashlightToggle;
 
     public static bool CanInteract = true;
 
@@ -30,50 +31,96 @@ public class PlayerInput : MonoBehaviour
         }
 
         Instance = this;
-
         controls = new PlayerControls();
 
         // Bind actions
         controls.Player.Look.performed += ctx =>
         {
+            if (PauseManager.IsPaused) return;
+
             Vector2 look = ctx.ReadValue<Vector2>();
-
-            // Scale down to match old Input.GetAxis behavior
-            look *= 0.1f; // or multiply by sensitivity * Time.deltaTime
-
+            look *= 0.1f;
             OnMouseLook?.Invoke(look);
         };
 
-        controls.Player.Move.performed += ctx => OnMoveInput?.Invoke(ctx.ReadValue<Vector2>());
-        controls.Player.Move.canceled  += ctx => OnMoveInput?.Invoke(Vector2.zero);
-
-        controls.Player.Jump.performed += ctx => OnJumpPressed?.Invoke();
-
-        controls.Player.Fire.started   += ctx => OnFirePressed?.Invoke();
-        controls.Player.Fire.canceled  += ctx => OnFireReleased?.Invoke();
-
-        controls.Player.Interact.performed += ctx => {
-            if (CanInteract) OnInteractPressed?.Invoke();
+        controls.Player.Move.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnMoveInput?.Invoke(ctx.ReadValue<Vector2>());
+        };
+        controls.Player.Move.canceled += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnMoveInput?.Invoke(Vector2.zero);
         };
 
-        controls.Player.Pause.performed += ctx => OnPausePressed?.Invoke();
+        controls.Player.Jump.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnJumpPressed?.Invoke();
+        };
+
+        controls.Player.Fire.started += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnFirePressed?.Invoke();
+        };
+
+        controls.Player.Fire.canceled += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnFireReleased?.Invoke();
+        };
+
+        controls.Player.Interact.performed += ctx =>
+        {
+            if (PauseManager.IsPaused || !CanInteract) return;
+            OnInteractPressed?.Invoke();
+        };
+
+        controls.Player.Pause.performed += ctx =>
+        {
+            // Pause input always allowed
+            OnPausePressed?.Invoke();
+        };
 
         controls.Player.CycleWeapon.performed += ctx =>
         {
+            if (PauseManager.IsPaused) return;
             float scroll = ctx.ReadValue<float>();
             Debug.Log("Scroll: " + scroll);
-
             if (scroll > 0f)
                 OnCycleWeapon?.Invoke(1);
             else if (scroll < 0f)
                 OnCycleWeapon?.Invoke(-1);
         };
 
-        // Weapon keys 1–4
-        controls.Player.SwitchWeapon1.performed += ctx => OnSwitchWeapon?.Invoke(0);
-        controls.Player.SwitchWeapon2.performed += ctx => OnSwitchWeapon?.Invoke(1);
-        controls.Player.SwitchWeapon3.performed += ctx => OnSwitchWeapon?.Invoke(2);
-        controls.Player.SwitchWeapon4.performed += ctx => OnSwitchWeapon?.Invoke(3);
+        controls.Player.SwitchWeapon1.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnSwitchWeapon?.Invoke(0);
+        };
+        controls.Player.SwitchWeapon2.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnSwitchWeapon?.Invoke(1);
+        };
+        controls.Player.SwitchWeapon3.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnSwitchWeapon?.Invoke(2);
+        };
+        controls.Player.SwitchWeapon4.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnSwitchWeapon?.Invoke(3);
+        };
+        
+        controls.Player.Flashlight.performed += ctx =>
+        {
+            if (PauseManager.IsPaused) return;
+            OnFlashlightToggle?.Invoke();
+        };
     }
 
     private void OnEnable()

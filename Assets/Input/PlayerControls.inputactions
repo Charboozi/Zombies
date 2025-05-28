@@ -29,7 +29,7 @@
                     "id": "936411f0-885d-4b7d-9f08-002b86a119af",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press",
                     "initialStateCheck": false
                 },
                 {
@@ -103,6 +103,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Flashlight",
+                    "type": "Button",
+                    "id": "a3f983fc-2566-4d2e-a70c-aaa226e74b69",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -356,6 +365,28 @@
                     "processors": "Scale(factor=-1)",
                     "groups": "",
                     "action": "CycleWeapon",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "65d8f23c-9235-4095-b93b-f48873b05e66",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Flashlight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bd6e9163-116e-4710-82b2-0c535455c15e",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Flashlight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

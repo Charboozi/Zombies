@@ -25,53 +25,58 @@ public class ArmsRecoilAnimation : MonoBehaviour, IArmsOffsetProvider
     private IEnumerator RecoilRoutine()
     {
         var weapon = CurrentWeaponHolder.Instance?.CurrentWeapon;
-        float multiplier = weapon != null ? weapon.recoilStrength / 1.5f : 1f;
+        float strength = weapon != null 
+            ? weapon.recoilStrength 
+            : 1f;
 
-        float finalAmount = recoilAmount * multiplier;
-        float finalRotation = rotationAmount * multiplier;
+        // Normalize strength (assuming maxRecoilStrength ~ 2.5f–3f)
+        float norm = Mathf.Clamp01(strength / 2.5f);
 
-        float snapDuration = 0.04f;
-        float recoveryDurationDynamic = Mathf.Lerp(0.08f, 0.18f, Mathf.Clamp01((weapon?.recoilStrength ?? 1f) / 2f));
+        // Map norm → [0.8, 1.2] for low→high recoil
+        float mult = Mathf.Lerp(0.8f, 1.2f, norm);
 
-        float snapBoost = 1.4f; // optional: increase for punchier recoil
+        float finalAmount   = recoilAmount  * mult;
+        float finalRotation = rotationAmount * mult;
 
-        Vector3 startOffset = new(0, 0, -finalAmount * snapBoost);
-        Quaternion startRotation = Quaternion.Euler(
-            -finalRotation * snapBoost,
+        // Make stronger recoil snap *faster*, but not too jarring:
+        float snapDuration  = Mathf.Lerp(0.06f, 0.03f, norm);
+        // Make recovery slower for strong recoil (smoother):
+        float recoveryDur   = Mathf.Lerp(0.12f, 0.25f, norm);
+
+        // First-frame jolt:
+        Vector3 startOffset = new Vector3(0f, 0f, -finalAmount * 1.2f);
+        Quaternion startRot = Quaternion.Euler(
+            -finalRotation * 1.2f,
             0f,
-            Random.Range(-finalRotation * 0.25f, finalRotation * 0.25f)
+            Random.Range(-finalRotation * 0.2f, finalRotation * 0.2f)
         );
-
-        // 💥 Instant frame-1 jolt
-        recoilOffset = startOffset;
-        recoilRotation = startRotation;
+        recoilOffset   = startOffset;
+        recoilRotation = startRot;
         yield return null;
 
-        // 🔹 Snap phase with ease-out (sharp acceleration)
-        float SnapEaseOut(float x) => 1f - Mathf.Cos((x * Mathf.PI) / 2f);
-
+        // Snap phase (ease-out cosine)
         float t = 0f;
         while (t < snapDuration)
         {
             t += Time.deltaTime;
-            float factor = SnapEaseOut(t / snapDuration);
-            recoilOffset = Vector3.Lerp(Vector3.zero, startOffset, factor);
-            recoilRotation = Quaternion.Slerp(Quaternion.identity, startRotation, factor);
+            float f = 1f - Mathf.Cos((t / snapDuration) * (Mathf.PI / 2f));
+            recoilOffset   = Vector3.Lerp(Vector3.zero, startOffset, f);
+            recoilRotation = Quaternion.Slerp(Quaternion.identity, startRot, f);
             yield return null;
         }
 
-        // 🔸 Smooth recovery
+        // Smooth recovery with SmoothStep
         t = 0f;
-        while (t < recoveryDurationDynamic)
+        while (t < recoveryDur)
         {
             t += Time.deltaTime;
-            float factor = t / recoveryDurationDynamic;
-            recoilOffset = Vector3.Lerp(startOffset, Vector3.zero, factor);
-            recoilRotation = Quaternion.Slerp(startRotation, Quaternion.identity, factor);
+            float f = Mathf.SmoothStep(0f, 1f, t / recoveryDur);
+            recoilOffset   = Vector3.Lerp(startOffset, Vector3.zero, f);
+            recoilRotation = Quaternion.Slerp(startRot, Quaternion.identity, f);
             yield return null;
         }
 
-        recoilOffset = Vector3.zero;
+        recoilOffset   = Vector3.zero;
         recoilRotation = Quaternion.identity;
     }
 

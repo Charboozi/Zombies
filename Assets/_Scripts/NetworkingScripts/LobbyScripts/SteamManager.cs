@@ -9,9 +9,13 @@ public class SteamManager : MonoBehaviour
     [Tooltip("480 = Spacewar (test AppID). Replace with your real Steam App ID for release.")]
     public uint steamAppId = 480;
 
+    public bool IsSteamInitialized { get; private set; } = false;
+    public string FallbackName => "DemoPlayer";
+    public ulong FallbackSteamId => 999999999;
+
     private void Awake()
     {
-        // Singleton pattern
+        // Singleton protection
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -21,31 +25,28 @@ public class SteamManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Initialize Steam
+        // ✅ Only call Init if SteamClient is NOT already valid
+        if (SteamClient.IsValid)
+        {
+            Debug.Log("ℹ️ SteamClient already initialized. Skipping Init.");
+            IsSteamInitialized = true;
+            return;
+        }
+
         try
         {
-            if (!SteamClient.IsValid)
-            {
-                SteamClient.Init(steamAppId, true);
+            SteamClient.Init(steamAppId, true);
+            IsSteamInitialized = SteamClient.IsValid;
+
+            if (IsSteamInitialized)
                 Debug.Log("✅ SteamClient initialized (Facepunch)");
-            }
+            else
+                Debug.LogWarning("⚠️ SteamClient not valid after init attempt. Using fallback.");
         }
         catch (System.Exception ex)
         {
-            Debug.LogError("❌ Steam initialization failed: " + ex.Message);
-        }
-    }
-
-    private void Update()
-    {
-        if (SteamClient.IsValid)
-        {
-            SteamClient.RunCallbacks();
-        }
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            Debug.Log("🧪 Trying to open Steam overlay: friends");
-            SteamFriends.OpenOverlay("friends");
+            Debug.LogWarning("⚠️ Steam initialization failed. Running in offline mode. Reason: " + ex.Message);
+            IsSteamInitialized = false;
         }
     }
 
@@ -57,4 +58,10 @@ public class SteamManager : MonoBehaviour
             Debug.Log("🛑 SteamClient shutdown");
         }
     }
+
+    public string GetPlayerName() =>
+        IsSteamInitialized ? SteamClient.Name : FallbackName;
+
+    public ulong GetSteamId() =>
+        IsSteamInitialized ? SteamClient.SteamId : FallbackSteamId;
 }

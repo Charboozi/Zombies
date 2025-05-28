@@ -387,16 +387,26 @@ public class EntityHealth : NetworkBehaviour
 
     private string GetSteamNameFromNameTag()
     {
+        // Try to find the PlayerNameTag component up the hierarchy
         var current = transform;
         while (current != null)
         {
             if (current.TryGetComponent<PlayerNameTag>(out var tag))
             {
-                return tag.GetPlayerName(); // we'll define this next
+                string name = tag.GetPlayerName();
+                if (!string.IsNullOrWhiteSpace(name))
+                    return name;
             }
             current = current.parent;
         }
-        return gameObject.name; // fallback
+
+        // Fallback: use SteamManager fallback or default
+        if (SteamManager.Instance != null)
+        {
+            return SteamManager.Instance.GetPlayerName(); // Handles fallback internally
+        }
+
+        return $"DemoPlayer_{OwnerClientId}";
     }
 
     [ClientRpc]

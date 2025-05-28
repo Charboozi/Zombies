@@ -52,8 +52,9 @@ public class PlayerListUI : MonoBehaviour
                 Destroy(child.gameObject);
         }
 
-        foreach (var player in players)
+        foreach (var p in players)
         {
+            var player = p; // Ensure a fresh copy per loop
             if (playerListParent == null) return;
 
             var entry = Instantiate(playerEntryPrefab, playerListParent);
@@ -68,9 +69,7 @@ public class PlayerListUI : MonoBehaviour
                 int highScore = player.HighScoreForCurrentMap;
                 badgeText.text = $"{highScore}";
 
-                // Set sprite based on high score
                 Sprite selectedSprite = null;
-
                 if (highScore >= 30)
                     selectedSprite = bloodBadge;
                 else if (highScore >= 23)
@@ -83,7 +82,7 @@ public class PlayerListUI : MonoBehaviour
                     selectedSprite = bronzeBadge;
 
                 badgeImageObj.sprite = selectedSprite;
-                badgeImageObj.enabled = selectedSprite != null; // hide if no badge
+                badgeImageObj.enabled = selectedSprite != null;
             }
 
             if (nameText != null)
@@ -92,6 +91,7 @@ public class PlayerListUI : MonoBehaviour
             if (rewardText != null)
                 rewardText.text = player.CoinsEarned > 0 ? $"$+{player.CoinsEarned}" : "";
         }
+
     }
 
     public void ClearList()

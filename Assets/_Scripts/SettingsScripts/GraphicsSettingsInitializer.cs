@@ -60,7 +60,7 @@ public class GraphicsSettingsInitializer : MonoBehaviour
 
         // Sensitivity (gameplay setting)
         float sensitivity = PlayerPrefs.GetFloat("Sensitivity", 20f);
-        InputSensitivity.Current = Mathf.Clamp(sensitivity, 1f, 100f);
+        InputSensitivity.Current = Mathf.Clamp(sensitivity, 1f, 300f);
 
     }
 }

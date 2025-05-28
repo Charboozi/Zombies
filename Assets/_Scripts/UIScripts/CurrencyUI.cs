@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using Steamworks;
 
 public class CurrencyUI : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class CurrencyUI : MonoBehaviour
 
     public void UpdateUI()
     {
-        if (CurrencyManager.Instance != null && UnityAuthManager.Instance.IsAuthenticated)
+        if (CurrencyManager.Instance != null && SteamClient.IsValid)
         {
             coinsText.text = $"$ {CurrencyManager.Instance.Coins}";
         }

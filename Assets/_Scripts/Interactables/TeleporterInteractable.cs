@@ -3,6 +3,10 @@ using Unity.Netcode;
 using System.Collections;
 using System.Collections.Generic;
 
+/// <summary>
+/// Handles teleport interactions. Supports normal and timed reward override modes.
+/// Players standing on the teleporter will be sent to either normal or reward points.
+/// </summary>
 [RequireComponent(typeof(Interactable))]
 public class TeleporterInteractable : NetworkBehaviour, IInteractableAction
 {
@@ -19,85 +23,108 @@ public class TeleporterInteractable : NetworkBehaviour, IInteractableAction
     [SerializeField] private GameObject normalVisual;
     [SerializeField] private GameObject rewardVisual;
 
-    private List<GameObject> playersInZone = new List<GameObject>();
-    private Dictionary<ulong, Vector3> playerRewardDestinations = new Dictionary<ulong, Vector3>();
-
+    // internal state
     private bool isOverrideActive = false;
     private bool rewardUsed = false;
     private float rewardDuration = 0f;
 
-    // Called by ChallengeInteractable on success
+    // track which client IDs were sent to reward
+    private readonly List<ulong> overrideTeleportedClients = new List<ulong>();
+    // track players currently in the teleport zone
+    private readonly List<GameObject> playersInZone = new List<GameObject>();
+
+    /// <summary>
+    /// Called by server to start a timed override.
+    /// During override, the first use teleports zone players to reward points.
+    /// </summary>
     public void OverrideDestinationTemporarily(float duration)
     {
-        // Assign destinations
-        playerRewardDestinations.Clear();
-        var clients = NetworkManager.Singleton.ConnectedClientsList;
-        for (int i = 0; i < clients.Count && i < rewardTeleportPoints.Length; i++)
-            playerRewardDestinations[clients[i].ClientId] = rewardTeleportPoints[i].position;
-
-        // Flip visuals to “reward mode”
-        normalVisual?.SetActive(false);
-        rewardVisual?.SetActive(true);
-
+        if (!IsServer) return;
         isOverrideActive = true;
         rewardUsed = false;
         rewardDuration = duration;
+        overrideTeleportedClients.Clear();
 
-        Debug.Log($"[Teleporter] Override enabled—waiting for use. Duration after use: {duration}s.");
+        // update visuals on all clients
+        TeleporterOverrideClientRpc(true);
+        Debug.Log($"[Teleporter] Override enabled for {duration} seconds.");
     }
 
+    /// <summary>
+    /// Executes teleport logic when the interactable is used.
+    /// </summary>
     public void DoAction()
     {
         if (!IsServer || playersInZone.Count == 0) return;
 
-        foreach (var player in playersInZone)
+        // Reward override mode
+        if (isOverrideActive && !rewardUsed)
         {
-            if (player == null) continue;
-            var netObj = player.GetComponent<NetworkObject>();
-            if (netObj == null) continue;
+            // spawn rewards once
+            int spawnCount = Mathf.Min(NetworkManager.Singleton.ConnectedClientsList.Count, rewardSpawners.Length);
+            for (int i = 0; i < spawnCount; i++)
+                rewardSpawners[i]?.SpawnRandomReward();
 
-            // <-- Fix starts here
-            Vector3 rewardPoint = Vector3.zero; 
-            bool useReward = isOverrideActive 
-                            && !rewardUsed 
-                            && playerRewardDestinations.TryGetValue(netObj.OwnerClientId, out rewardPoint);
-            // <-- Fix ends here
+            rewardUsed = true;
+            Debug.Log("[Teleporter] Teleporting zone players to reward area.");
 
-            Vector3 destination;
-            if (useReward)
+            // teleport each player in zone to corresponding reward point
+            for (int i = 0; i < playersInZone.Count; i++)
             {
-                // spawn N rewards once
-                int playerCount = NetworkManager.Singleton.ConnectedClients.Count;
-                int spawnCount = Mathf.Min(playerCount, rewardSpawners.Length);
-                for (int i = 0; i < spawnCount; i++)
-                    rewardSpawners[i]?.SpawnRandomReward();
+                var p = playersInZone[i];
+                if (p == null) continue;
+                if (!p.TryGetComponent(out NetworkObject netObj)) continue;
+                ulong clientId = netObj.OwnerClientId;
 
-                destination = rewardPoint;
-                
-                // mark override used, flip visuals, start return timer
-                rewardUsed = true;
-                normalVisual?.SetActive(true);
-                rewardVisual?.SetActive(false);
-                StartCoroutine(EndOverrideAfterDelay());
-                Debug.Log("[Teleporter] Reward used—starting return timer.");
-            }
-            else
-            {
-                destination = teleportPoints[Random.Range(0, teleportPoints.Length)].position;
-            }
+                Vector3 dest = (i < rewardTeleportPoints.Length)
+                    ? rewardTeleportPoints[i].position
+                    : rewardTeleportPoints[0].position;
 
-            TeleportPlayerClientRpc(netObj.OwnerClientId, destination);
+                overrideTeleportedClients.Add(clientId);
+                TeleportPlayerClientRpc(clientId, dest);
+            }
+            playersInZone.Clear();
+
+            // schedule return teleport after duration
+            StartCoroutine(EndOverrideAfterDelay());
         }
-
-        playersInZone.Clear();
+        // Normal teleport mode
+        else if (!isOverrideActive)
+        {
+            Debug.Log("[Teleporter] Teleporting zone players to normal area.");
+            foreach (var p in playersInZone)
+            {
+                if (p == null) continue;
+                if (!p.TryGetComponent(out NetworkObject netObj)) continue;
+                Vector3 dest = teleportPoints[Random.Range(0, teleportPoints.Length)].position;
+                TeleportPlayerClientRpc(netObj.OwnerClientId, dest);
+            }
+            playersInZone.Clear();
+        }
+        // if override active but already used, do nothing
     }
 
+    /// <summary>
+    /// Moves override-mode visuals on clients.
+    /// </summary>
     [ClientRpc]
-    private void TeleportPlayerClientRpc(ulong targetClientId, Vector3 position)
+    private void TeleporterOverrideClientRpc(bool overrideActive)
     {
-        if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
-        var ctrl = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject()
-                   ?.GetComponent<CharacterController>();
+        isOverrideActive = overrideActive;
+        normalVisual?.SetActive(!overrideActive);
+        rewardVisual?.SetActive(overrideActive);
+    }
+
+    /// <summary>
+    /// Teleports a given client to position on their client.
+    /// </summary>
+    [ClientRpc]
+    private void TeleportPlayerClientRpc(ulong clientId, Vector3 position)
+    {
+        if (NetworkManager.Singleton.LocalClientId != clientId) return;
+        var obj = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+        if (obj == null) return;
+        var ctrl = obj.GetComponent<CharacterController>();
         if (ctrl != null)
         {
             ctrl.enabled = false;
@@ -107,33 +134,41 @@ public class TeleporterInteractable : NetworkBehaviour, IInteractableAction
         FlashEffect.Instance?.TriggerFlash();
     }
 
+    /// <summary>
+    /// Returns override players back to normal points after delay.
+    /// </summary>
     private IEnumerator EndOverrideAfterDelay()
     {
         yield return new WaitForSeconds(rewardDuration);
+        Debug.Log("[Teleporter] Returning reward-mode players to normal area.");
 
-        // Teleport all back to normal points
-        foreach (var c in NetworkManager.Singleton.ConnectedClientsList)
+        foreach (ulong clientId in overrideTeleportedClients)
         {
-            var pos = teleportPoints[Random.Range(0, teleportPoints.Length)].position;
-            TeleportPlayerClientRpc(c.ClientId, pos);
+            Vector3 backPos = teleportPoints[Random.Range(0, teleportPoints.Length)].position;
+            TeleportPlayerClientRpc(clientId, backPos);
         }
+        overrideTeleportedClients.Clear();
 
-        // Reset override state
+        // end override
         isOverrideActive = false;
-        rewardUsed = false;
-        playerRewardDestinations.Clear();
-
-        Debug.Log("[Teleporter] Return timer done—back to normal mode.");
+        TeleporterOverrideClientRpc(false);
     }
 
+    /// <summary>
+    /// Adds a player to the zone. Only server should register.
+    /// </summary>
     public void AddPlayerToZone(GameObject player)
     {
-        if (!playersInZone.Contains(player))
-            playersInZone.Add(player);
+        if (!IsServer || playersInZone.Contains(player)) return;
+        playersInZone.Add(player);
     }
 
+    /// <summary>
+    /// Removes a player from the zone.
+    /// </summary>
     public void RemovePlayerFromZone(GameObject player)
     {
+        if (!IsServer) return;
         playersInZone.Remove(player);
     }
 }

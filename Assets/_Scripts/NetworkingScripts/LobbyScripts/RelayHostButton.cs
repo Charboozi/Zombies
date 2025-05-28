@@ -32,7 +32,7 @@ public class RelayHostButton : MonoBehaviour
 
         try
         {
-            var allocation = await RelayService.Instance.CreateAllocationAsync(4);
+            var allocation = await RelayService.Instance.CreateAllocationAsync(5);
             var joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
             var relayServerData = AllocationUtils.ToRelayServerData(allocation, "dtls");

@@ -14,6 +14,7 @@ public class SteamHostLobbyButton : MonoBehaviour
     [SerializeField] private GameModeType selectedGameMode; // Set this via Inspector or another button
     [SerializeField] private TMP_Text codeDisplay;
     [SerializeField] private Button createButton;
+    [SerializeField] private Button inviteButton;
 
     private Lobby currentLobby;
 
@@ -31,7 +32,11 @@ public class SteamHostLobbyButton : MonoBehaviour
 
                 // Set metadata
                 currentLobby.SetData("hostId", SteamClient.SteamId.ToString());
-                currentLobby.SetData("gameMode", selectedGameMode.ToString()); // 👈 Store PvP or CoOp
+                currentLobby.SetData("gameMode", selectedGameMode.ToString()); // Store PvP or CoOp
+
+                // Advertise lobby via Rich Presence so friends see "Join Game"
+                SteamFriends.SetRichPresence("connect", currentLobby.Id.ToString());
+                SteamFriends.SetRichPresence("status", "In Lobby");
 
                 if (codeDisplay != null)
                     codeDisplay.text = SteamClient.Name;
@@ -39,7 +44,9 @@ public class SteamHostLobbyButton : MonoBehaviour
                 NetworkManager.Singleton.StartHost();
                 Debug.Log($"✅ Hosting Steam lobby. HostID: {SteamClient.SteamId}, Mode: {selectedGameMode}");
 
-                SteamFriends.OpenGameInviteOverlay(currentLobby.Id);
+                // Hook up invite button for further invites
+                if (inviteButton != null)
+                    inviteButton.onClick.AddListener(() => SteamFriends.OpenGameInviteOverlay(currentLobby.Id));
             }
         }
         catch (Exception ex)

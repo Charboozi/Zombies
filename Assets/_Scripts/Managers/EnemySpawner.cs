@@ -131,19 +131,27 @@ public class EnemySpawner : NetworkBehaviour
     {
         int playerCount = NetworkManager.Singleton.ConnectedClientsList.Count;
 
-        if (playerCount < 4 && playerCount >= 2)
+        if (playerCount >= 4)
         {
-            spawnIntervalDecreaseRate = Mathf.Lerp(1f, spawnIntervalDecreaseRate, 0.5f); // Bring it closer to 1
-            maxEnemiesIncreaseAmount = Mathf.Max(1, maxEnemiesIncreaseAmount / 2);
-
-            Debug.Log($"[Spawner] Adjusted difficulty for {playerCount} players: spawnIntervalDecreaseRate = {spawnIntervalDecreaseRate}, maxEnemiesIncreaseAmount = {maxEnemiesIncreaseAmount}");
+            // Full party: default scaling
+            Debug.Log($"[Spawner] {playerCount} players: default difficulty.");
+            return;
         }
-        if (playerCount < 2)
+        else if (playerCount >= 2)
         {
-            spawnIntervalDecreaseRate = Mathf.Lerp(1f, spawnIntervalDecreaseRate, 0.75f); // Bring it closer to 1
-            maxEnemiesIncreaseAmount = Mathf.Max(1, maxEnemiesIncreaseAmount / 3);
-
-            Debug.Log($"[Spawner] Adjusted difficulty for {playerCount} players: spawnIntervalDecreaseRate = {spawnIntervalDecreaseRate}, maxEnemiesIncreaseAmount = {maxEnemiesIncreaseAmount}");
+            // 2–3 players: speed up spawn-rate decay by 10% and keep enemy growth steady
+            // => spawns get faster each day (harder), and you still add at least 1 enemy/day
+            spawnIntervalDecreaseRate *= 0.90f;
+            maxEnemiesIncreaseAmount = Mathf.Max(1, maxEnemiesIncreaseAmount);
+            Debug.Log($"[Spawner] Adjusted for {playerCount} players: spawnRateDecay={spawnIntervalDecreaseRate:F2}, enemiesPerDay={maxEnemiesIncreaseAmount}");
+        }
+        else // single player
+        {
+            // Solo: speed up spawn-rate decay by 15% and add 2 enemies per day
+            // => really ramp up difficulty for lone survivors
+            spawnIntervalDecreaseRate *= 0.85f;
+            maxEnemiesIncreaseAmount = Mathf.Max(2, maxEnemiesIncreaseAmount);
+            Debug.Log($"[Spawner] Adjusted for solo: spawnRateDecay={spawnIntervalDecreaseRate:F2}, enemiesPerDay={maxEnemiesIncreaseAmount}");
         }
     }
 }

@@ -86,7 +86,7 @@ public class ContinuousFireWeapon : WeaponBase
             // Damage posters
             if (hit.collider.TryGetComponent(out FlammablePoster poster))
             {
-                poster.ApplyBurnDamage(damageInterval); // small damage per tick
+                poster.BurnRequest(damageInterval);
             }
 
             ApplySplashDamage(hit.point);

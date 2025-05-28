@@ -171,7 +171,19 @@ public class GameOverManager : NetworkBehaviour
 
             if (MapManager.Instance != null && HighScoreManager.Instance != null)
             {
-                HighScoreManager.Instance.SetHighScore(MapManager.Instance.CurrentMapName, DayManager.Instance.CurrentDayInt);
+                string map = MapManager.Instance.CurrentMapName;
+                int currentDay = DayManager.Instance.CurrentDayInt;
+
+                HighScoreManager.Instance.SetHighScore(map, currentDay);
+                SyncHighScoreClientRpc(map, currentDay);
+
+                // ✅ Now push the updated score to all players
+                for (int i = 0; i < LobbyPlayerList.Instance.Players.Count; i++)
+                {
+                    var updated = LobbyPlayerList.Instance.Players[i];
+                    updated.HighScoreForCurrentMap = currentDay;
+                    LobbyPlayerList.Instance.Players[i] = updated;
+                }
             }
         }
         else
@@ -279,9 +291,18 @@ public class GameOverManager : NetworkBehaviour
         {
             // Normal co-op reward
             int day = DayManager.Instance.CurrentDayInt;
-            float baseReward = 100f;
-            float growthMultiplier = 1.4f;
-            int reward = Mathf.RoundToInt(baseReward * Mathf.Pow(growthMultiplier, day));
+
+            int reward = 0;
+            if (day > 1)
+            {
+                float baseReward = 100f;
+                float growthMultiplier = 1.4f;
+                reward = Mathf.RoundToInt(baseReward * Mathf.Pow(growthMultiplier, day));
+            }
+            else
+            {
+                Debug.Log("🟥 No reward given for dying on Day 1.");
+            }
 
             for (int i = 0; i < LobbyPlayerList.Instance.Players.Count; i++)
             {
@@ -328,7 +349,7 @@ public class GameOverManager : NetworkBehaviour
             FadeScreenEffect.Instance.ShowDeathEffect(3.7f); // Fade to deep red in 4 seconds
         }
     }
-    
+
     [ClientRpc]
     private void ShowWinnerEffectClientRpc(ClientRpcParams rpcParams = default)
     {
@@ -337,5 +358,11 @@ public class GameOverManager : NetworkBehaviour
             FadeScreenEffect.Instance.ShowVictoryEffect(3.7f); // You implement this in FadeScreenEffect
             Debug.Log("🎉 Victory effect triggered!");
         }
+    }
+    
+    [ClientRpc]
+    private void SyncHighScoreClientRpc(string mapName, int day)
+    {
+        HighScoreManager.Instance.SetHighScore(mapName, day);
     }
 }

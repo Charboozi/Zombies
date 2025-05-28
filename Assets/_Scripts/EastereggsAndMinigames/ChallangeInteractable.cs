@@ -12,49 +12,38 @@ public class ChallengeInteractable : NetworkBehaviour, IInteractableAction
     [SerializeField] private TeleporterInteractable rewardTeleporter;
     [SerializeField] private float rewardDuration = 20f;
 
-    private bool challengeStarted = false;
-    private bool challengeCompleted = false;
+    private bool challengeStarted;
+    private bool challengeCompleted;
 
     public void DoAction()
     {
-        Debug.Log($"[Challenge] DoAction() called on {(IsServer? "Server" : "Client")}, started={challengeStarted}, completed={challengeCompleted}");
         if (!IsServer || challengeStarted || challengeCompleted) return;
-        if (rewardTeleporter == null)
-        {
-            Debug.LogError("⚠️ ChallengeInteractable: rewardTeleporter is NULL!");
-            return;
-        }
-        Debug.Log("[Challenge] Starting coroutine");
+        if (rewardTeleporter == null) return;
         StartCoroutine(ChallengeRoutine());
     }
+
     private IEnumerator ChallengeRoutine()
     {
         challengeStarted = true;
         bool enemyKilled = false;
+        void OnKill(EntityHealth e) => enemyKilled = true;
+        EntityHealth.OnSpecialEnemyKilled += OnKill;
 
-        void OnSpecialKilled(EntityHealth e) => enemyKilled = true;
-        EntityHealth.OnSpecialEnemyKilled += OnSpecialKilled;
-
-        float timer = 0f;
-        while (timer < challengeTimeLimit && !enemyKilled)
+        float t = 0f;
+        while (t < challengeTimeLimit && !enemyKilled)
         {
-            timer += Time.deltaTime;
+            t += Time.deltaTime;
             yield return null;
         }
 
-        EntityHealth.OnSpecialEnemyKilled -= OnSpecialKilled;
+        EntityHealth.OnSpecialEnemyKilled -= OnKill;
 
         if (enemyKilled)
-        {
-            Debug.Log("[Challenge] Success! Enabling teleporter override.");
             rewardTeleporter.OverrideDestinationTemporarily(rewardDuration);
-            challengeCompleted = true;
-        }
         else
-        {
-            Debug.Log("[Challenge] Failed—time's up.");
-        }
+            Debug.LogWarning("[Challenge] Failed—time's up.");
 
+        challengeCompleted = enemyKilled;
         challengeStarted = false;
     }
 }

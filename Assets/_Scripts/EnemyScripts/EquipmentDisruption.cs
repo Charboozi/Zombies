@@ -1,60 +1,65 @@
+using System.Linq;
 using UnityEngine;
 using Unity.Netcode;
 
-public class AutoReviveInjector : BaseEquipment
+[RequireComponent(typeof(EnemyAttack))]
+public class EquipmentDisruption : NetworkBehaviour
 {
-    private EntityHealth entityHealth;
-    private bool used = false;
+    [Header("Equipment Disruption")]
+    [Tooltip("If true, this enemy will randomly disable one of the local player's equipped items on hit.")]
+    public bool canRemoveEquipment = true;
+
+    private EnemyAttack attackModule;
+
+    private void Awake()
+    {
+        attackModule = GetComponent<EnemyAttack>();
+    }
 
     private void OnEnable()
     {
-        var localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
-        if (localPlayer == null) return;
-
-        entityHealth = localPlayer.GetComponent<EntityHealth>();
-        if (entityHealth != null)
-        {
-            entityHealth.OnDowned += HandleDowned;
-        }
+        attackModule.OnTargetHit += HandleTargetHit;
     }
 
     private void OnDisable()
     {
-        if (entityHealth != null)
+        attackModule.OnTargetHit -= HandleTargetHit;
+    }
+
+    private void HandleTargetHit(Transform hitTarget)
+    {
+        if (!IsServer || !canRemoveEquipment)
+            return;
+
+        // Grab the hit player's NetworkObject
+        if (hitTarget.TryGetComponent(out NetworkObject netObj))
         {
-            entityHealth.OnDowned -= HandleDowned;
+            var targetClientId = netObj.OwnerClientId;
+
+            // Send a ClientRpc to exactly that client
+            RemoveRandomEquipmentClientRpc(new ClientRpcParams {
+                Send = new ClientRpcSendParams {
+                    TargetClientIds = new ulong[]{ targetClientId }
+                }
+            });
         }
     }
 
-    private void HandleDowned(EntityHealth downedTarget)
+    // This runs only on the target player's client
+    [ClientRpc]
+    private void RemoveRandomEquipmentClientRpc(ClientRpcParams rpcParams = default)
     {
-        if (used || entityHealth == null || downedTarget != entityHealth) return;
+        var localInventory = FindFirstObjectByType<EquipmentInventory>();
+        if (localInventory == null) return;
 
-        used = true;
+        // Grab current equipped list
+        var equipped = localInventory.EquippedItems.ToList();
+        if (equipped.Count == 0) return;
 
-        // ✅ Send revive command to server
-        RequestReviveSelfServerRpc();
+        // Pick one and unequip it properly
+        GameObject victim = equipped[Random.Range(0, equipped.Count)];
+        localInventory.Unequip(victim.name);
 
-        // ✅ Soft remove: unequip instead of destroy
-        EquipmentInventory inventory = GetComponentInParent<EquipmentInventory>();
-        if (inventory != null)
-        {
-            inventory.Unequip(gameObject.name); // Deactivates and hides icon
-        }
-        else
-        {
-            gameObject.SetActive(false); // Fallback
-        }
-
-        Debug.Log($"⚡ AutoReviveInjector triggered and unequipped.");
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestReviveSelfServerRpc()
-    {
-        if (entityHealth != null && entityHealth.isDowned.Value)
-        {
-            entityHealth.Revive(); // Heals 10 HP and sets isDowned = false
-        }
+        Debug.Log($"❌ Equipment removed locally: {victim.name}");
     }
 }

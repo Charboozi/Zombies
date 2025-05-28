@@ -167,7 +167,7 @@ public class GraphicsSettingsController : MonoBehaviour
 
     public void SetSensitivity(float value)
     {
-        float clamped = Mathf.Clamp(value, 1f, 100f);
+        float clamped = Mathf.Clamp(value, 1f, 300f);
         InputSensitivity.Current = clamped;
         PlayerPrefs.SetFloat("Sensitivity", clamped);
 

@@ -5,6 +5,7 @@ using Unity.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Steamworks;
+using System.Collections;
 
 public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData>
 {
@@ -12,7 +13,7 @@ public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData
     public FixedString64Bytes DisplayName;
     public FixedString64Bytes SteamName;
     public int CoinsEarned;
-    public int HighScoreForCurrentMap; // ✅ Add this
+    public int HighScoreForCurrentMap;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -64,22 +65,38 @@ public class LobbyPlayerList : NetworkBehaviour
         // 👇 Must be client + owner + Steam ready before calling RPC
         if (IsClient)
         {
-            StartCoroutine(SendSteamNameNextFrame());
+            StartCoroutine(SendPlayerInfoNextFrame());
         }
 
         Players.OnListChanged += OnListChanged;
     }
 
-    private System.Collections.IEnumerator SendSteamNameNextFrame()
+    private IEnumerator SendPlayerInfoNextFrame()
     {
-        yield return null; // wait 1 frame to ensure network is fully initialized
+        yield return null; // wait one frame for Netcode+
 
-        if (SteamClient.IsValid)
+        // 1) Steam name as before
+        string nameToSend = SteamClient.IsValid
+            ? SteamClient.Name
+            : $"DemoPlayer {NetworkManager.Singleton.LocalClientId}";
+        
+        // 2) Grab _your_ local high score
+        int myScore = 0;
+        if (MapManager.Instance != null && HighScoreManager.Instance != null)
         {
-            string steamName = SteamClient.Name;
-            SubmitSteamNameServerRpc(NetworkManager.Singleton.LocalClientId, steamName);
+            string map = MapManager.Instance.CurrentMapName;
+            myScore = HighScoreManager.Instance.GetHighScore(map);
         }
+
+        // 3) Send both up to the server
+        SubmitPlayerInfoServerRpc(
+            NetworkManager.Singleton.LocalClientId,
+            nameToSend,
+            myScore
+        );
     }
+
+
 
     public override void OnNetworkDespawn()
     {
@@ -111,18 +128,20 @@ public class LobbyPlayerList : NetworkBehaviour
     }
 
 
-
     private void OnClientConnected(ulong clientId)
     {
         if (!IsServer) return;
 
+        string fallbackDisplayName = SteamClient.IsValid ? $"Player {clientId}" : $"DemoPlayer {clientId}";
+
         Players.Add(new LobbyPlayerData
         {
             ClientId = clientId,
-            DisplayName = $"Player {clientId}", // Optional, fallback
-            SteamName = "" // Steam name will be filled in later
+            DisplayName = fallbackDisplayName,
+            SteamName = "" // Steam name will be updated by the client later
         });
     }
+
 
     private void OnListChanged(NetworkListEvent<LobbyPlayerData> change)
     {
@@ -136,26 +155,18 @@ public class LobbyPlayerList : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SubmitSteamNameServerRpc(ulong clientId, string steamName)
+    public void SubmitPlayerInfoServerRpc(ulong clientId, string steamName, int highScore)
     {
         for (int i = 0; i < Players.Count; i++)
         {
             if (Players[i].ClientId == clientId)
             {
-                var updatedPlayer = Players[i];
-                updatedPlayer.SteamName = steamName;
-                Players[i] = updatedPlayer;
+                var updated = Players[i];
+                updated.SteamName = steamName;
+                updated.HighScoreForCurrentMap = highScore;
+                Players[i] = updated;
 
-                if (MapManager.Instance != null && HighScoreManager.Instance != null)
-                {
-                    string map = MapManager.Instance.CurrentMapName;
-                    int score = HighScoreManager.Instance.GetHighScore(map);
-
-                    updatedPlayer.HighScoreForCurrentMap = score;
-                    Players[i] = updatedPlayer;
-                }
-
-                Debug.Log($"✅ Updated Steam name for {clientId}: {steamName}");
+                Debug.Log($"✅ Updated Steam name & score for {clientId}: {steamName}, Day {highScore}");
                 break;
             }
         }

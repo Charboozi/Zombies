@@ -115,7 +115,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""id"": ""936411f0-885d-4b7d-9f08-002b86a119af"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -189,6 +189,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Flashlight"",
+                    ""type"": ""Button"",
+                    ""id"": ""a3f983fc-2566-4d2e-a70c-aaa226e74b69"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": ""Press"",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -444,6 +453,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""CycleWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""65d8f23c-9235-4095-b93b-f48873b05e66"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Flashlight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bd6e9163-116e-4710-82b2-0c535455c15e"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Flashlight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -463,6 +494,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_SwitchWeapon3 = m_Player.FindAction("SwitchWeapon3", throwIfNotFound: true);
         m_Player_SwitchWeapon4 = m_Player.FindAction("SwitchWeapon4", throwIfNotFound: true);
         m_Player_CycleWeapon = m_Player.FindAction("CycleWeapon", throwIfNotFound: true);
+        m_Player_Flashlight = m_Player.FindAction("Flashlight", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -554,6 +586,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SwitchWeapon3;
     private readonly InputAction m_Player_SwitchWeapon4;
     private readonly InputAction m_Player_CycleWeapon;
+    private readonly InputAction m_Player_Flashlight;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -609,6 +642,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/CycleWeapon".
         /// </summary>
         public InputAction @CycleWeapon => m_Wrapper.m_Player_CycleWeapon;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Flashlight".
+        /// </summary>
+        public InputAction @Flashlight => m_Wrapper.m_Player_Flashlight;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -668,6 +705,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @CycleWeapon.started += instance.OnCycleWeapon;
             @CycleWeapon.performed += instance.OnCycleWeapon;
             @CycleWeapon.canceled += instance.OnCycleWeapon;
+            @Flashlight.started += instance.OnFlashlight;
+            @Flashlight.performed += instance.OnFlashlight;
+            @Flashlight.canceled += instance.OnFlashlight;
         }
 
         /// <summary>
@@ -712,6 +752,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @CycleWeapon.started -= instance.OnCycleWeapon;
             @CycleWeapon.performed -= instance.OnCycleWeapon;
             @CycleWeapon.canceled -= instance.OnCycleWeapon;
+            @Flashlight.started -= instance.OnFlashlight;
+            @Flashlight.performed -= instance.OnFlashlight;
+            @Flashlight.canceled -= instance.OnFlashlight;
         }
 
         /// <summary>
@@ -829,5 +872,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCycleWeapon(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Flashlight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnFlashlight(InputAction.CallbackContext context);
     }
 }
