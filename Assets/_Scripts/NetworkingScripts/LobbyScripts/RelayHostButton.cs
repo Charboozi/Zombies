@@ -14,7 +14,6 @@ public class RelayHostButton : MonoBehaviour
 {
     [SerializeField] private TMP_Text codeDisplay;
     [SerializeField] private Button createButton;
-    [SerializeField] private Button joinButton;
 
     public void CreateLobby()
     {

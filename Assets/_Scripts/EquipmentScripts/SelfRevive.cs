@@ -2,36 +2,41 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 
-public class SelfRevive : NetworkBehaviour
+public class SelfRevive : BaseEquipment
 {
-    [SerializeField] private float selfReviveDelay = 3f; 
+    [Header("Self Revive Settings")]
+    [SerializeField] private float selfReviveDelay = 3f;
 
+    private HealthProxy healthProxy;
     private EntityHealth entityHealth;
     private bool used = false;
 
-    public override void OnNetworkSpawn()
+    private void OnEnable()
     {
-        // Only hook up the local player
-        if (!IsOwner) return;
+        used = false;
 
-        // Grab our own EntityHealth
-        var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
-        entityHealth = playerObj.GetComponent<EntityHealth>();
-        if (entityHealth == null) return;
+        var localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
+        if (localPlayer == null || !localPlayer.IsOwner) return;
 
-        // Subscribe to the networked downed flag
-        entityHealth.isDowned.OnValueChanged += OnDownedChanged;
+        healthProxy = localPlayer.GetComponent<HealthProxy>();
+        entityHealth = FindNetworkedPlayerEntityHealth();
+
+        if (entityHealth != null)
+        {
+            entityHealth.isDowned.OnValueChanged += OnDownedChanged;
+        }
     }
 
-    public override void OnNetworkDespawn()
+    private void OnDisable()
     {
         if (entityHealth != null)
+        {
             entityHealth.isDowned.OnValueChanged -= OnDownedChanged;
+        }
     }
 
     private void OnDownedChanged(bool previous, bool current)
     {
-        // When we just went down, trigger once
         if (current && !used)
         {
             used = true;
@@ -41,32 +46,42 @@ public class SelfRevive : NetworkBehaviour
 
     private IEnumerator DelayedSelfRevive()
     {
-        float t = 0f;
-        while (t < selfReviveDelay)
+        float timer = 0f;
+
+        while (timer < selfReviveDelay)
         {
-            // If revived by someone else first, cancel
-            if (!entityHealth.isDowned.Value)
+            if (entityHealth == null || !entityHealth.isDowned.Value)
             {
-                used = false;
+                used = false; // someone else revived us
                 yield break;
             }
-            t += Time.deltaTime;
+
+            timer += Time.deltaTime;
             yield return null;
         }
 
-        // Ask server to revive us
-        RequestReviveSelfServerRpc();
+        healthProxy?.Revive(); // 🔁 Forward to server via HealthProxy
 
-        // Remove this equipment locally
+        // Remove the equipment after use
         var inv = GetComponentInParent<EquipmentInventory>();
         inv?.Unequip(gameObject.name);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestReviveSelfServerRpc(ServerRpcParams rpcParams = default)
+    // Try to find the networked EntityHealth that belongs to us
+    private EntityHealth FindNetworkedPlayerEntityHealth()
     {
-        // Server‐side check & revive
-        if (entityHealth != null && entityHealth.isDowned.Value)
-            entityHealth.Revive();
+        foreach (var health in FindObjectsByType<EntityHealth>(FindObjectsSortMode.None))
+        {
+            if (health.IsOwner && health.CompareTag("Player"))
+            {
+                return health;
+            }
+        }
+        return null;
+    }
+
+    public override void Upgrade()
+    {
+        Debug.Log($"{gameObject.name} cannot be upgraded (yet).");
     }
 }

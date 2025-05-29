@@ -1,8 +1,9 @@
 using UnityEngine;
+using Unity.Netcode;
 using System.Collections;
 
 [RequireComponent(typeof(AudioSource))]
-public class RandomSoundPlayer : MonoBehaviour
+public class RandomSoundPlayer : NetworkBehaviour
 {
     [Header("Sound Settings")]
     public AudioClip[] soundClips;
@@ -15,7 +16,10 @@ public class RandomSoundPlayer : MonoBehaviour
 
     [Header("Voice Limiting")]
     public static int currentVoices = 0;
-    public static int maxVoices = 10; // 👈 You can tweak this globally
+    public static int maxVoices = 10;
+
+    [Header("Range Settings")]
+    public float hearDistance = 15f; // 👈 Local player must be within this
 
     private AudioSource audioSource;
     private Coroutine playRoutine;
@@ -23,7 +27,10 @@ public class RandomSoundPlayer : MonoBehaviour
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        playRoutine = StartCoroutine(SoundRoutine());
+
+        // Server controls random timing
+        if (IsServer)
+            playRoutine = StartCoroutine(SoundRoutine());
     }
 
     private IEnumerator SoundRoutine()
@@ -35,21 +42,29 @@ public class RandomSoundPlayer : MonoBehaviour
 
             if (currentVoices < maxVoices)
             {
-                PlayRandomSound();
+                int clipIndex = Random.Range(0, soundClips.Length);
+                float pitch = Random.Range(minPitch, maxPitch);
+                PlaySoundClientRpc(clipIndex, pitch);
             }
         }
     }
 
-    private void PlayRandomSound()
+    [ClientRpc]
+    private void PlaySoundClientRpc(int clipIndex, float pitch)
     {
-        if (soundClips.Length == 0 || audioSource == null)
-            return;
+        if (!IsClient) return;
 
-        AudioClip randomClip = soundClips[Random.Range(0, soundClips.Length)];
-        audioSource.pitch = Random.Range(minPitch, maxPitch);
+        var localPlayer = NetworkManager.Singleton.LocalClient?.PlayerObject;
+        if (localPlayer == null) return;
 
-        audioSource.PlayOneShot(randomClip);
-        StartCoroutine(TrackVoiceDuration(randomClip.length));
+        float distance = Vector3.Distance(localPlayer.transform.position, transform.position);
+        if (distance > hearDistance) return;
+
+        if (clipIndex < 0 || clipIndex >= soundClips.Length) return;
+
+        audioSource.pitch = pitch;
+        audioSource.PlayOneShot(soundClips[clipIndex]);
+        StartCoroutine(TrackVoiceDuration(soundClips[clipIndex].length));
     }
 
     private IEnumerator TrackVoiceDuration(float duration)

@@ -93,5 +93,18 @@ public class HealthProxy : NetworkBehaviour
         if (entityHealth != null)
             entityHealth.ApplyHealingServerRpc(amount);
     }
+    public void Revive()
+    {
+        if (NetworkManager.Singleton.IsClient)
+            RequestReviveServerRpc();
+    }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestReviveServerRpc(ServerRpcParams rpcParams = default)
+    {
+        if (entityHealth != null && entityHealth.isDowned.Value)
+        {
+            entityHealth.Revive();
+        }
+    }
 }

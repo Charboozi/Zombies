@@ -39,6 +39,15 @@ public class DayEventManager : MonoBehaviour
             GameFeedManager.Instance?.PostFeedMessageServerRpc("an Unknown entity has entered the station!");
         });
 
+        DayManager.Instance.ScheduleEventForDay(13, () =>
+        {
+            Debug.Log("🎉 Day 8 Event Triggered!, Unknown entitie has entered the area, going in to lockdown mode");
+            AlarmSequenceManager.Instance.ActivateAlarm();
+            AnnouncerVoiceManager.Instance.PlayVoiceLineClientRpc("Unknown_Entity");
+            MusicPlayer.Instance.ServerPlayMusic("SnatcherSpawn");
+            GameFeedManager.Instance?.PostFeedMessageServerRpc("an Unknown entity has entered the station!");
+        });
+
         DayManager.Instance.ScheduleRecurringEvent(5, 20, day =>
         {
             Debug.Log($"⚡ Rampage Event Day {day}!");

@@ -77,7 +77,7 @@ public abstract class PowerupBase : NetworkBehaviour
         AudioSource source = loopObj.AddComponent<AudioSource>();
         source.clip = loopedEffectSound;
         source.loop = true;
-        source.volume = 0.75f;
+        source.volume = 0.45f;
         source.Play();
 
         Destroy(loopObj, duration);
